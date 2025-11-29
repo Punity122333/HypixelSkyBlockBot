@@ -1,10 +1,11 @@
 import asyncio
 import sys
+import json
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from utils.database import GameDatabase
+from database import GameDatabase
 from utils.data.all_items import ALL_ITEMS
 from utils.data.enchants import ENCHANTMENTS, REFORGES
 from utils.data.loot_tables import (
@@ -14,7 +15,10 @@ from utils.data.loot_tables import (
 from utils.data.skills import SKILL_XP_REQUIREMENTS, RUNECRAFTING_XP_REQUIREMENTS, SOCIAL_XP_REQUIREMENTS
 from utils.data.game_constants import PET_STATS, EVENTS, QUEST_DATA
 
-from cogs.commands.minions import MINION_DATA
+try:
+    from cogs.commands.minions import MINION_DATA
+except ImportError:
+    MINION_DATA = {}
 
 async def migrate_collection_items(db: GameDatabase):
     print("Migrating collection items...")
@@ -74,36 +78,36 @@ async def migrate_mob_locations(db: GameDatabase):
     
     mobs_data = {
         'hub': [
-            ('zombie', 'Zombie', 100, 10, 50, 10),
-            ('skeleton', 'Skeleton', 80, 15, 60, 12),
-            ('spider', 'Spider', 70, 12, 55, 11),
-            ('lapis_zombie', 'Lapis Zombie', 150, 18, 100, 15),
+            ('zombie', 'Zombie', 50, 5, 50, 10),
+            ('skeleton', 'Skeleton', 40, 8, 60, 12),
+            ('spider', 'Spider', 35, 6, 55, 11),
+            ('lapis_zombie', 'Lapis Zombie', 75, 9, 100, 15),
         ],
         'spiders_den': [
-            ('cave_spider', 'Cave Spider', 120, 20, 80, 15),
-            ('spider', 'Spider', 100, 18, 70, 13),
-            ('spider_jockey', 'Spider Jockey', 200, 30, 150, 25),
-            ('broodfather', 'Broodfather', 500, 50, 500, 100),
+            ('cave_spider', 'Cave Spider', 60, 10, 80, 15),
+            ('spider', 'Spider', 50, 9, 70, 13),
+            ('spider_jockey', 'Spider Jockey', 150, 25, 150, 25),
+            ('broodfather', 'Broodfather', 350, 35, 500, 100),
         ],
         'crimson_isle': [
-            ('blaze', 'Blaze', 200, 35, 200, 30),
-            ('magma_cube', 'Magma Cube', 180, 30, 180, 28),
-            ('wither_skeleton', 'Wither Skeleton', 250, 40, 250, 35),
+            ('blaze', 'Blaze', 100, 18, 200, 30),
+            ('magma_cube', 'Magma Cube', 90, 15, 180, 28),
+            ('wither_skeleton', 'Wither Skeleton', 125, 20, 250, 35),
         ],
         'end': [
-            ('enderman', 'Enderman', 300, 45, 300, 40),
-            ('zealot', 'Zealot', 500, 60, 600, 80),
-            ('ender_dragon', 'Ender Dragon', 10000, 200, 5000, 500),
+            ('enderman', 'Enderman', 150, 23, 300, 40),
+            ('zealot', 'Zealot', 400, 40, 600, 80),
+            ('ender_dragon', 'Ender Dragon', 7000, 150, 5000, 500),
         ],
         'nether': [
-            ('ghast', 'Ghast', 400, 55, 400, 50),
-            ('piglin_brute', 'Piglin Brute', 450, 60, 450, 55),
-            ('wither', 'Wither', 15000, 250, 10000, 1000),
+            ('ghast', 'Ghast', 200, 28, 400, 50),
+            ('piglin_brute', 'Piglin Brute', 225, 30, 450, 55),
+            ('wither', 'Wither', 10000, 180, 10000, 1000),
         ],
         'deep_caverns': [
-            ('lapis_zombie', 'Lapis Zombie', 150, 25, 120, 20),
-            ('redstone_pigman', 'Redstone Pigman', 180, 28, 150, 22),
-            ('emerald_slime', 'Emerald Slime', 200, 30, 180, 25),
+            ('lapis_zombie', 'Lapis Zombie', 75, 13, 120, 20),
+            ('redstone_pigman', 'Redstone Pigman', 90, 14, 150, 22),
+            ('emerald_slime', 'Emerald Slime', 150, 15, 180, 25),
         ],
     }
     
@@ -443,78 +447,98 @@ async def migrate_loot_tables(db: GameDatabase):
     count = 0
     
     for mob_name, loot_data in MOB_LOOT_TABLES.items():
+        coins_min, coins_max = loot_data.get('coins', (0, 0))
+        xp = loot_data.get('xp', 0)
+        
+        loot_dict = {}
         for rarity, items in loot_data.items():
             if rarity in ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic']:
-                coins_min, coins_max = loot_data.get('coins', (0, 0))
-                xp = loot_data.get('xp', 0)
-                await db.add_loot_table(
-                    table_id=mob_name,
-                    category='mob',
-                    rarity=rarity,
-                    loot_data=items,
-                    coins_min=coins_min,
-                    coins_max=coins_max,
-                    xp_reward=xp
-                )
-                count += 1
+                loot_dict[rarity] = items
+        
+        if loot_dict:
+            await db.add_loot_table(
+                table_id=mob_name,
+                category='mob',
+                loot_data=loot_dict,
+                coins_min=coins_min,
+                coins_max=coins_max,
+                xp_reward=xp
+            )
+            count += 1
     
     for fish_type, loot_data in FISHING_LOOT_TABLES.items():
+        loot_dict = {}
         for rarity, items in loot_data.items():
             if rarity in ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic']:
-                await db.add_loot_table(
-                    table_id=fish_type,
-                    category='fishing',
-                    rarity=rarity,
-                    loot_data=items
-                )
-                count += 1
+                loot_dict[rarity] = items
+        
+        if loot_dict:
+            await db.add_loot_table(
+                table_id=fish_type,
+                category='fishing',
+                loot_data=loot_dict
+            )
+            count += 1
     
     for ore_type, loot_data in MINING_LOOT_TABLES.items():
+        loot_dict = {}
         for rarity, items in loot_data.items():
             if rarity in ['common', 'uncommon', 'rare', 'epic', 'legendary']:
-                await db.add_loot_table(
-                    table_id=ore_type,
-                    category='mining',
-                    rarity=rarity,
-                    loot_data=items
-                )
-                count += 1
+                loot_dict[rarity] = items
+        
+        if loot_dict:
+            await db.add_loot_table(
+                table_id=ore_type,
+                category='mining',
+                loot_data=loot_dict
+            )
+            count += 1
     
     for crop_type, loot_data in FARMING_LOOT_TABLES.items():
+        loot_dict = {}
         for rarity, items in loot_data.items():
             if rarity in ['common', 'uncommon', 'rare', 'epic']:
-                await db.add_loot_table(
-                    table_id=crop_type,
-                    category='farming',
-                    rarity=rarity,
-                    loot_data=items
-                )
-                count += 1
+                loot_dict[rarity] = items
+        
+        if loot_dict:
+            await db.add_loot_table(
+                table_id=crop_type,
+                category='farming',
+                loot_data=loot_dict
+            )
+            count += 1
     
     for wood_type, loot_data in FORAGING_LOOT_TABLES.items():
+        loot_dict = {}
         for rarity, items in loot_data.items():
             if rarity in ['common', 'uncommon', 'rare']:
-                await db.add_loot_table(
-                    table_id=wood_type,
-                    category='foraging',
-                    rarity=rarity,
-                    loot_data=items
-                )
-                count += 1
+                loot_dict[rarity] = items
+        
+        if loot_dict:
+            await db.add_loot_table(
+                table_id=wood_type,
+                category='foraging',
+                loot_data=loot_dict
+            )
+            count += 1
     
     for floor, loot_data in DUNGEON_LOOT_TABLES.items():
+        coins_min, coins_max = loot_data.get('coins', (0, 0))
+        
+        loot_dict = {}
         for rarity, items in loot_data.items():
             if rarity in ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic']:
-                coins_min, coins_max = loot_data.get('coins', (0, 0))
-                await db.add_loot_table(
-                    table_id=floor,
-                    category='dungeon',
-                    rarity=rarity,
-                    loot_data=items,
-                    coins_min=coins_min,
-                    coins_max=coins_max
-                )
-                count += 1
+                loot_dict[rarity] = items
+        
+        if loot_dict:
+            await db.add_loot_table(
+                table_id=floor,
+                category='dungeon',
+                loot_data=loot_dict,
+                coins_min=coins_min,
+                coins_max=coins_max
+            )
+            count += 1
     
     print(f"Migrated {count} loot table entries")
 
@@ -651,47 +675,58 @@ async def migrate_quests(db: GameDatabase):
 async def migrate_items(db: GameDatabase):
     print("Migrating items...")
     count = 0
+    if not db.conn:
+        print("Database connection not established!")
+        return
+    
     for item_id, item in ALL_ITEMS.items():
-        await db.add_game_item(
-            item_id=item.id,
-            name=item.name,
-            rarity=item.rarity,
-            item_type=item.type,
-            stats=item.stats,
-            lore=item.lore,
-            special_ability=item.special_ability,
-            craft_recipe=item.craft_recipe,
-            npc_sell_price=item.npc_sell_price,
-            collection_req=item.collection_req,
-            default_bazaar_price=item.default_bazaar_price
-        )
-        count += 1
+        try:
+            lore_str = '\n'.join(item.lore) if isinstance(item.lore, list) else (item.lore or '')
+            
+            await db.conn.execute('''
+                INSERT OR REPLACE INTO game_items (
+                    item_id, name, rarity, item_type, stats, lore, 
+                    special_ability, craft_recipe, npc_sell_price, 
+                    collection_req, default_bazaar_price
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                item.id,
+                item.name,
+                item.rarity,
+                item.type,
+                json.dumps(item.stats) if item.stats else '{}',
+                lore_str,
+                item.special_ability or '',
+                json.dumps(item.craft_recipe) if item.craft_recipe else '{}',
+                item.npc_sell_price or 0,
+                json.dumps(item.collection_req) if item.collection_req else '{}',
+                item.default_bazaar_price or 100
+            ))
+            count += 1
+        except Exception as e:
+            print(f"Error migrating item {item_id}: {e}")
+    
+    await db.conn.commit()
     print(f"Migrated {count} items")
 
 async def update_default_bazaar_prices(db: GameDatabase):
     print("Updating default bazaar prices...")
     
-    await db.initialize()
-    
     count = 0
-    for item_id, item in ALL_ITEMS.items():
-        await db.add_game_item(
-            item_id=item.id,
-            name=item.name,
-            rarity=item.rarity,
-            item_type=item.type,
-            stats=item.stats,
-            lore=item.lore,
-            special_ability=item.special_ability,
-            craft_recipe=item.craft_recipe,
-            npc_sell_price=item.npc_sell_price,
-            collection_req=item.collection_req,
-            default_bazaar_price=item.default_bazaar_price
-        )
-        count += 1
-    
+    if db.conn:
+        for item_id, item in ALL_ITEMS.items():
+            price = item.default_bazaar_price or 100
+            try:
+                await db.conn.execute('''
+                    INSERT OR REPLACE INTO bazaar_products (product_id, buy_price, sell_price, last_update)
+                    VALUES (?, ?, ?, ?)
+                ''', (item_id, price, price * 0.93, 0))
+                count += 1
+            except Exception as e:
+                print(f"Error updating price for {item_id}: {e}")
+        
+        await db.conn.commit()
     print(f"Updated {count} items with default bazaar prices")
-    await db.close()
 
 async def main():
     print("Starting game data migration...")

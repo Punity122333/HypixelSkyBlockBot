@@ -41,16 +41,23 @@ class CommandSyncManager:
         }
         
         if isinstance(cmd, app_commands.Command):
+            if hasattr(cmd, 'callback') and hasattr(cmd.callback, '__code__'):
+                data['callback'] = str(cmd.callback.__code__.co_code)
+            
             if cmd.parameters:
-                data['parameters'] = [
-                    {
+                params = []
+                for p in cmd.parameters:
+                    param_data = {
                         'name': p.name,
                         'description': p.description,
                         'required': p.required,
                         'type': str(p.type) if hasattr(p, 'type') else None,
+                        'default': str(p.default) if hasattr(p, 'default') else None,
                     }
-                    for p in cmd.parameters
-                ]
+                    if hasattr(p, 'choices') and p.choices:
+                        param_data['choices'] = [{'name': c.name, 'value': str(c.value)} for c in p.choices]
+                    params.append(param_data)
+                data['parameters'] = params
         
         if isinstance(cmd, app_commands.Group):
             data['commands'] = [self._hash_command(c) for c in cmd.commands]

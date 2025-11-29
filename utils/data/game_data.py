@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
+import json
 import random
+import json
 
 @dataclass
 class Item:
@@ -31,6 +33,7 @@ class GameDataManager:
         self._dungeons_cache: Dict[str, Dict] = {}
         self._slayers_cache: Dict[str, Dict] = {}
         self._slayer_drops_cache: Dict[str, List[Tuple[str, int, int]]] = {}
+        self._item_cache = {}
     
     async def get_item(self, item_id: str) -> Optional[Item]:
         if item_id in self._items_cache:
@@ -38,17 +41,18 @@ class GameDataManager:
         
         item_data = await self.db.get_game_item(item_id)
         if item_data:
+            item_type = item_data.get('item_type') or item_data.get('type', 'misc')
             item = Item(
                 id=item_data['item_id'],
                 name=item_data['name'],
                 rarity=item_data['rarity'],
-                type=item_data['type'],
-                stats=item_data['stats'],
-                lore=item_data['lore'],
-                special_ability=item_data['special_ability'],
-                craft_recipe=item_data['craft_recipe'],
-                npc_sell_price=item_data['npc_sell_price'],
-                collection_req=item_data['collection_req'],
+                type=item_type,
+                stats=json.loads(item_data['stats']) if isinstance(item_data.get('stats'), str) else item_data.get('stats', {}),
+                lore=item_data.get('lore', '').split('\n') if isinstance(item_data.get('lore'), str) else item_data.get('lore', []),
+                special_ability=item_data.get('special_ability'),
+                craft_recipe=json.loads(item_data['craft_recipe']) if isinstance(item_data.get('craft_recipe'), str) else item_data.get('craft_recipe'),
+                npc_sell_price=item_data.get('npc_sell_price', 0),
+                collection_req=json.loads(item_data['collection_req']) if isinstance(item_data.get('collection_req'), str) else item_data.get('collection_req'),
                 default_bazaar_price=item_data.get('default_bazaar_price', 100)
             )
             self._items_cache[item_id] = item
@@ -76,27 +80,55 @@ class GameDataManager:
             self._items_cache[item.id] = item
         return items
     
-    async def get_all_items(self) -> Dict[str, Item]:
-        if self._items_cache:
-            return self._items_cache
-        
-        items_data = await self.db.get_all_game_items()
-        for item_data in items_data:
-            item = Item(
-                id=item_data['item_id'],
-                name=item_data['name'],
-                rarity=item_data['rarity'],
-                type=item_data['type'],
-                stats=item_data['stats'],
-                lore=item_data['lore'],
-                special_ability=item_data['special_ability'],
-                craft_recipe=item_data['craft_recipe'],
-                npc_sell_price=item_data['npc_sell_price'],
-                collection_req=item_data['collection_req'],
-                default_bazaar_price=item_data.get('default_bazaar_price', 100)
-            )
-            self._items_cache[item.id] = item
-        return self._items_cache
+    async def get_all_items(self) -> List[Dict[str, Any]]:
+        if not self.db.conn:
+            return []
+
+        rows = await self.db.get_all_game_items()
+        items = []
+
+        # rows is a dict → loop properly
+        for item_id, row_dict in rows.items():
+
+            # Ensure row_dict is actually a dict
+            if not isinstance(row_dict, dict):
+                try:
+                    row_dict = dict(row_dict)
+                except Exception:
+                    continue
+
+            # Safe JSON loader
+            def safe_json(value, default):
+                if not value:
+                    return default
+                try:
+                    return json.loads(value)
+                except Exception:
+                    return default
+
+            # Build normalized item
+            item = {
+                'item_id': item_id,
+                'name': row_dict.get('name', '') or '',
+                'rarity': row_dict.get('rarity', '') or '',
+                'type': row_dict.get('item_type') or row_dict.get('type') or '',
+                'stats': safe_json(row_dict.get('stats'), {}),
+                'lore': row_dict.get('lore', '') or '',
+                'special_ability': row_dict.get('special_ability', '') or '',
+                'craft_recipe': safe_json(row_dict.get('craft_recipe'), {}),
+                'npc_sell_price': row_dict.get('npc_sell_price', 0) or 0,
+                'collection_req': safe_json(row_dict.get('collection_req'), {}),
+                'default_bazaar_price': row_dict.get('default_bazaar_price', 0) or 0
+            }
+
+            # Cache it
+            self._item_cache[item_id] = item
+            items.append(item)
+
+        return items
+
+
+
     
     async def get_enchantment(self, enchant_id: str) -> Optional[Dict]:
         if enchant_id in self._enchants_cache:
@@ -123,8 +155,16 @@ class GameDataManager:
         
         loot_data = await self.db.get_loot_table(table_id, category)
         if loot_data:
-            self._loot_cache[cache_key] = loot_data
-        return loot_data
+            # Return the loot_data field which contains the rarity mappings
+            # Plus add coins/xp metadata to the same level for compatibility
+            result = loot_data.get('loot_data', {}).copy() if isinstance(loot_data.get('loot_data'), dict) else {}
+            if 'coins_min' in loot_data and 'coins_max' in loot_data:
+                result['coins'] = (loot_data['coins_min'], loot_data['coins_max'])
+            if 'xp_reward' in loot_data:
+                result['xp'] = loot_data['xp_reward']
+            self._loot_cache[cache_key] = result
+            return result
+        return {}
     
     async def get_skill_config(self, skill_name: str) -> Optional[Dict]:
         if skill_name in self._skills_cache:
@@ -177,7 +217,14 @@ class GameDataManager:
         for rarity, chance in rarity_chances.items():
             if rarity in loot_table and random.random() < chance:
                 rarity_drops = loot_table[rarity]
-                item_id, min_amt, max_amt = random.choice(rarity_drops)
+                if not rarity_drops:
+                    continue
+                chosen_drop = random.choice(rarity_drops)
+                # Handle both list and tuple formats
+                if isinstance(chosen_drop, (list, tuple)) and len(chosen_drop) >= 3:
+                    item_id, min_amt, max_amt = chosen_drop[0], chosen_drop[1], chosen_drop[2]
+                else:
+                    continue
                 
                 amount = random.randint(min_amt, max_amt)
                 fortune_bonus = int((fortune / 100) * amount)
@@ -187,10 +234,15 @@ class GameDataManager:
                     drops.append((item_id, total_amount))
         
         if not drops and 'common' in loot_table:
-            item_id, min_amt, max_amt = random.choice(loot_table['common'])
-            amount = random.randint(min_amt, max_amt)
-            fortune_bonus = int((fortune / 100) * amount)
-            drops.append((item_id, amount + fortune_bonus))
+            rarity_drops = loot_table['common']
+            if rarity_drops:
+                chosen_drop = random.choice(rarity_drops)
+                # Handle both list and tuple formats
+                if isinstance(chosen_drop, (list, tuple)) and len(chosen_drop) >= 3:
+                    item_id, min_amt, max_amt = chosen_drop[0], chosen_drop[1], chosen_drop[2]
+                    amount = random.randint(min_amt, max_amt)
+                    fortune_bonus = int((fortune / 100) * amount)
+                    drops.append((item_id, amount + fortune_bonus))
         
         return drops
     
@@ -284,6 +336,10 @@ class GameDataManager:
             self._events_cache[event['event_id']] = event
         return self._events_cache
     
+    async def get_all_game_events(self) -> List[Dict]:
+        events_data = await self.db.get_all_game_events()
+        return events_data
+    
     async def get_quest_data(self, quest_id: str) -> Optional[Dict]:
         if quest_id in self._quests_cache:
             return self._quests_cache[quest_id]
@@ -336,12 +392,30 @@ class GameDataManager:
             return {'ingredients': item.craft_recipe}
         return None
     
-    async def get_all_crafting_recipes(self) -> Dict[str, Dict]:
-        items = await self.get_all_items()
+    async def get_all_crafting_recipes(self) -> dict[str, dict]:
+        if not self.db.conn:
+            return {}
+
+        cursor = await self.db.conn.execute('SELECT output_item, ingredients FROM crafting_recipes')
+        rows = await cursor.fetchall()
         recipes = {}
-        for item_id, item in items.items():
-            if item.craft_recipe:
-                recipes[item_id] = item.craft_recipe
+
+        for row in rows:
+            # row is a sqlite row object or tuple
+            output_item = row['output_item'] if isinstance(row, dict) else row[0]
+            ingredients = row['ingredients'] if isinstance(row, dict) else row[1]
+
+            if not output_item or not ingredients:
+                continue
+
+            try:
+                ingredients_dict = json.loads(ingredients)
+            except Exception:
+                continue
+
+            if isinstance(ingredients_dict, dict):
+                recipes[output_item] = ingredients_dict
+
         return recipes
     
     async def get_all_tool_tiers(self) -> Dict[str, List[Dict]]:
@@ -369,6 +443,70 @@ class GameDataManager:
     async def get_gathering_drops(self, gathering_type: str, resource_type: str) -> List[Dict[str, Any]]:
         drops_data = await self.db.get_gathering_drops(gathering_type, resource_type)
         return drops_data
+    
+    async def get_all_seasons(self) -> List[str]:
+        seasons_data = await self.db.get_all_seasons()
+        return seasons_data
+    
+    async def get_all_mayors(self) -> List[Dict]:
+        mayors_data = await self.db.get_all_mayors()
+        return mayors_data
+    
+    async def get_mobs_by_location(self, location_id: str) -> List[Dict]:
+        mobs_data = await self.db.get_mobs_by_location(location_id)
+        return mobs_data
+    
+    async def get_mob_loot_table(self, mob_name: str) -> Dict[str, Any]:
+        loot_table = await self.db.get_mob_loot_table(mob_name)
+        return loot_table
+    
+    async def get_mob_loot_coins(self, mob_name: str) -> Optional[Dict[str, int]]:
+        coin_data = await self.db.get_mob_loot_coins(mob_name)
+        return coin_data
+    
+    async def get_collection_tier_requirements(self, item_id: str) -> List[int]:
+        return await self.db.get_collection_tier_requirements(item_id)
+    
+    async def get_all_collection_tier_requirements(self) -> Dict[str, List[int]]:
+        return await self.db.get_all_collection_tier_requirements()
+    
+    async def get_collection_tier_reward(self, tier: int) -> Optional[Dict[str, Any]]:
+        return await self.db.get_collection_tier_reward(tier)
+    
+    async def get_all_collection_tier_rewards(self) -> Dict[int, Dict[str, Any]]:
+        return await self.db.get_all_collection_tier_rewards()
+    
+    async def get_collection_category_bonuses(self, category: str) -> Dict[int, Dict[str, int]]:
+        return await self.db.get_collection_category_bonuses(category)
+    
+    async def get_all_collection_category_bonuses(self) -> Dict[str, Dict[int, Dict[str, int]]]:
+        return await self.db.get_all_collection_category_bonuses()
+    
+    async def get_collection_categories(self) -> Dict[str, List[str]]:
+        return await self.db.get_collection_categories()
+    
+    async def get_category_items(self, category: str) -> List[str]:
+        return await self.db.get_category_items(category)
+    
+    async def get_item_category(self, item_id: str) -> Optional[str]:
+        return await self.db.get_item_category(item_id)
+    
+    async def get_all_fairy_soul_locations(self) -> List[str]:
+        return await self.db.get_all_fairy_soul_locations()
+    
+    async def get_all_game_quests(self) -> List[Dict]:
+        quests_data = await self.db.get_all_game_quests()
+        return quests_data
+    
+    async def get_game_quest(self, quest_id: str) -> Optional[Dict]:
+        quest_data = await self.db.get_game_quest(quest_id)
+        return quest_data
+    
+    async def get_rarity_color(self, rarity: str) -> Optional[str]:
+        return await self.db.get_rarity_color(rarity)
+    
+    async def get_game_pet(self, pet_id: str) -> Optional[Dict]:
+        return await self.db.get_game_pet(pet_id)
     
     def clear_cache(self):
         self._items_cache.clear()

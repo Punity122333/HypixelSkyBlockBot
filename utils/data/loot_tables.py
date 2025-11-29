@@ -59,6 +59,170 @@ MOB_LOOT_TABLES = {
         'coins': (1000, 5000),
         'xp': 1000
     },
+    'Lapis Zombie': {
+        'common': [('rotten_flesh', 1, 3), ('lapis_lazuli', 1, 2)],
+        'uncommon': [('enchanted_rotten_flesh', 1, 1), ('enchanted_lapis_lazuli', 1, 1)],
+        'rare': [('zombie_pet', 1, 1)],
+        'coins': (15, 65),
+        'xp': 22
+    },
+    'Cave Spider': {
+        'common': [('string', 1, 3), ('spider_eye', 1, 2)],
+        'uncommon': [('enchanted_string', 1, 1), ('tarantula_web', 1, 1)],
+        'rare': [('spider_pet', 1, 1)],
+        'coins': (18, 70),
+        'xp': 28
+    },
+    'Spider Jockey': {
+        'common': [('string', 2, 4), ('bone', 1, 3), ('arrow', 2, 6)],
+        'uncommon': [('enchanted_string', 1, 2), ('enchanted_bone', 1, 1)],
+        'rare': [('spider_pet', 1, 1), ('skeleton_pet', 1, 1)],
+        'epic': [('aspect_of_the_end', 1, 1)],
+        'coins': (25, 100),
+        'xp': 45
+    },
+    'Broodfather': {
+        'common': [('string', 3, 8), ('spider_eye', 2, 5)],
+        'uncommon': [('enchanted_string', 2, 4), ('tarantula_web', 2, 4)],
+        'rare': [('fly_swatter', 1, 1), ('spider_pet', 1, 1)],
+        'epic': [('tarantula_helmet', 1, 1), ('scorpion_foil', 1, 1)],
+        'legendary': [('digested_mosquito', 1, 1)],
+        'coins': (100, 500),
+        'xp': 200
+    },
+    'Magma Cube': {
+        'common': [('magma_cream', 1, 3), ('slime_ball', 1, 2)],
+        'uncommon': [('enchanted_magma_cream', 1, 1)],
+        'rare': [('magma_cube_pet', 1, 1)],
+        'coins': (30, 120),
+        'xp': 50
+    },
+    'Wither Skeleton': {
+        'common': [('bone', 2, 4), ('coal', 1, 3)],
+        'uncommon': [('enchanted_bone', 1, 2), ('wither_skeleton_skull', 1, 1)],
+        'rare': [('skeleton_pet', 1, 1)],
+        'epic': [('skeleton_master_helmet', 1, 1)],
+        'coins': (40, 150),
+        'xp': 65
+    },
+    'Zealot': {
+        'common': [('ender_pearl', 2, 4)],
+        'uncommon': [('enchanted_ender_pearl', 1, 2)],
+        'rare': [('enchanted_eye_of_ender', 1, 1), ('enderman_pet', 1, 1)],
+        'epic': [('aspect_of_the_end', 1, 1)],
+        'legendary': [('summoning_eye', 1, 1)],
+        'coins': (100, 400),
+        'xp': 150
+    },
+    'Ender Dragon': {
+        'uncommon': [('dragon_scale', 5, 12), ('enchanted_ender_pearl', 8, 15)],
+        'rare': [('dragon_fragment', 10, 25)],
+        'epic': [('dragon_helmet', 1, 1), ('dragon_chestplate', 1, 1), ('dragon_leggings', 1, 1), ('dragon_boots', 1, 1)],
+        'legendary': [('ender_dragon_pet', 1, 1), ('aspect_of_the_dragons', 1, 1)],
+        'mythic': [('dragon_egg', 1, 1)],
+        'coins': (1000, 5000),
+        'xp': 1000
+    },
+    'Ghast': {
+        'common': [('ghast_tear', 1, 2), ('gunpowder', 1, 3)],
+        'uncommon': [('enchanted_ghast_tear', 1, 1)],
+        'rare': [('ghast_pet', 1, 1)],
+        'coins': (50, 200),
+        'xp': 80
+    },
+    'Piglin Brute': {
+        'common': [('gold_ingot', 2, 5), ('pork', 1, 3)],
+        'uncommon': [('enchanted_gold', 1, 2), ('enchanted_pork', 1, 1)],
+        'rare': [('pigman_pet_item', 1, 1), ('golden_tooth', 1, 1)],
+        'coins': (60, 220),
+        'xp': 90
+    },
+    'Wither': {
+        'uncommon': [('bone', 10, 20), ('coal', 5, 10)],
+        'rare': [('wither_skeleton_skull', 2, 5)],
+        'epic': [('enchanted_bone', 3, 8)],
+        'legendary': [('nether_star', 1, 1)],
+        'mythic': [('wither_pet', 1, 1)],
+        'coins': (1500, 10000),
+        'xp': 2000
+    },
+    'Redstone Pigman': {
+        'common': [('rotten_flesh', 2, 4), ('redstone', 2, 5)],
+        'uncommon': [('enchanted_rotten_flesh', 1, 1), ('enchanted_redstone', 1, 1)],
+        'rare': [('zombie_pet', 1, 1)],
+        'coins': (25, 90),
+        'xp': 35
+    },
+    'Emerald Slime': {
+        'common': [('slime_ball', 2, 5), ('emerald', 1, 2)],
+        'uncommon': [('enchanted_slime_ball', 1, 2), ('enchanted_emerald', 1, 1)],
+        'rare': [('slime_pet', 1, 1)],
+        'coins': (30, 100),
+        'xp': 40
+    },
+    'Sven': {
+        'common': [('bone', 5, 10), ('wolf_tooth', 2, 5)],
+        'uncommon': [('enchanted_bone', 2, 4), ('hamster_wheel', 1, 2)],
+        'rare': [('wolf_pet', 1, 1), ('golden_tooth', 1, 2)],
+        'epic': [('overflux_capacitor', 1, 1), ('grizzly_bait', 1, 1)],
+        'legendary': [('couture_rune', 1, 1)],
+        'coins': (300, 1500),
+        'xp': 350
+    },
+    'Revenant': {
+        'common': [('rotten_flesh', 5, 12), ('bone', 3, 8)],
+        'uncommon': [('enchanted_rotten_flesh', 2, 5), ('revenant_flesh', 2, 4)],
+        'rare': [('beheaded_horror', 1, 2), ('zombie_pet', 1, 1)],
+        'epic': [('revenant_catalyst', 1, 1), ('snake_rune', 1, 1)],
+        'legendary': [('scythe_blade', 1, 1)],
+        'coins': (400, 2000),
+        'xp': 400
+    },
+    'Necron': {
+        'uncommon': [('bone', 10, 25), ('enchanted_bone', 3, 8)],
+        'rare': [('enchanted_diamond', 5, 15), ('wither_blood', 2, 5)],
+        'epic': [('shadow_assassin_helmet', 1, 1), ('shadow_assassin_chestplate', 1, 1)],
+        'legendary': [('necron_helmet', 1, 1), ('necron_chestplate', 1, 1), ('necron_leggings', 1, 1), ('necron_boots', 1, 1)],
+        'mythic': [('wither_shield', 1, 1), ('necron_blade', 1, 1)],
+        'coins': (2000, 10000),
+        'xp': 2500
+    },
+    'Goldor': {
+        'uncommon': [('gold_ingot', 15, 30), ('enchanted_gold', 5, 12)],
+        'rare': [('enchanted_gold_block', 2, 6), ('titanium', 3, 8)],
+        'epic': [('shadow_assassin_leggings', 1, 1), ('shadow_assassin_boots', 1, 1)],
+        'legendary': [('goldor_helmet', 1, 1), ('goldor_chestplate', 1, 1), ('goldor_leggings', 1, 1), ('goldor_boots', 1, 1)],
+        'mythic': [('golden_sadan_head', 1, 1)],
+        'coins': (2500, 12000),
+        'xp': 3000
+    },
+    'Tarantula': {
+        'common': [('string', 4, 10), ('spider_eye', 3, 7)],
+        'uncommon': [('enchanted_string', 2, 5), ('tarantula_web', 2, 5)],
+        'rare': [('toxic_arrow_poison', 1, 3), ('fly_swatter', 1, 1), ('spider_pet', 1, 1)],
+        'epic': [('tarantula_helmet', 1, 1), ('digested_mosquito', 1, 1)],
+        'legendary': [('fly_swatter_max', 1, 1)],
+        'coins': (200, 1000),
+        'xp': 250
+    },
+    'Voidgloom': {
+        'common': [('ender_pearl', 5, 12)],
+        'uncommon': [('enchanted_ender_pearl', 3, 8), ('null_sphere', 2, 5)],
+        'rare': [('enchanted_eye_of_ender', 2, 4), ('void_conqueror_enderman_skin', 1, 2)],
+        'epic': [('enderman_pet', 1, 1), ('summoning_eye', 1, 1)],
+        'legendary': [('judgement_core', 1, 1), ('endersnake_rune', 1, 1)],
+        'coins': (500, 2500),
+        'xp': 450
+    },
+    'Inferno': {
+        'common': [('blaze_rod', 4, 10), ('magma_cream', 3, 8)],
+        'uncommon': [('enchanted_blaze_rod', 2, 5), ('inferno_fuel', 3, 7)],
+        'rare': [('enchanted_magma_cream', 2, 4), ('fire_stone', 1, 2)],
+        'epic': [('blaze_pet', 1, 1), ('molten_cube', 1, 1)],
+        'legendary': [('infernal_kuudra_key', 1, 1)],
+        'coins': (600, 3000),
+        'xp': 550
+    },
 }
 
 FISHING_LOOT_TABLES = {
