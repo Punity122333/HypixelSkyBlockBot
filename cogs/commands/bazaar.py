@@ -93,6 +93,7 @@ class BazaarCommands(commands.Cog):
     @app_commands.command(name="bz_buy", description="Instantly buy items from bazaar")
     @app_commands.describe(item_id="Item to buy", amount="Amount to buy")
     async def bz_buy(self, interaction: discord.Interaction, item_id: str, amount: int):
+        item_id = item_id.lower().replace(" ", "_")
         await interaction.response.defer()
         
         player = await self.bot.player_manager.get_or_create_player(
@@ -102,9 +103,12 @@ class BazaarCommands(commands.Cog):
         success, message = await self.bot.market_system.instant_buy(interaction.user.id, item_id, amount)
         
         if success:
+            item_obj = await self.bot.game_data.get_item(item_id)
+            item_name = item_obj.name if item_obj and getattr(item_obj, "name", None) else item_id.replace("_", " ").title()
+            item_name = f"**{item_name}**"
             embed = discord.Embed(
-                title="✅ Purchase Complete!",
-                description=message,
+                title=f"✅ Purchase Complete!",
+                description=f"You bought **{amount}x** {item_name} from the bazaar.",
                 color=discord.Color.green()
             )
         else:
@@ -113,12 +117,12 @@ class BazaarCommands(commands.Cog):
                 description=message,
                 color=discord.Color.red()
             )
-        
         await interaction.followup.send(embed=embed, ephemeral=not success)
     
     @app_commands.command(name="bz_sell", description="Instantly sell items to bazaar")
     @app_commands.describe(item_id="Item to sell", amount="Amount to sell")
     async def bz_sell(self, interaction: discord.Interaction, item_id: str, amount: int):
+        item_id = item_id.lower().replace(" ", "_")
         await interaction.response.defer()
         
         player = await self.bot.player_manager.get_or_create_player(
@@ -128,9 +132,12 @@ class BazaarCommands(commands.Cog):
         success, message = await self.bot.market_system.instant_sell(interaction.user.id, item_id, amount)
         
         if success:
+            item_obj = await self.bot.game_data.get_item(item_id)
+            item_name = item_obj.name if item_obj and getattr(item_obj, "name", None) else item_id.replace("_", " ").title()
+            item_name = f"**{item_name}**"
             embed = discord.Embed(
                 title="✅ Sale Complete!",
-                description=message,
+                description=f"You sold **{amount}x** {item_name} to the bazaar.",
                 color=discord.Color.green()
             )
         else:
@@ -142,47 +149,10 @@ class BazaarCommands(commands.Cog):
         
         await interaction.followup.send(embed=embed, ephemeral=not success)
     
-    @bz_sell.autocomplete('item_id')
-    async def bz_sell_autocomplete(self, interaction: discord.Interaction, current: str):
-        """Autocomplete for bazaar sell - shows items from user's inventory"""
-        try:
-            # Get user's inventory
-            inventory = await self.bot.db.get_inventory(interaction.user.id)
-            
-            if not inventory:
-                return []
-            
-            # Count items
-            from collections import defaultdict
-            item_counts = defaultdict(int)
-            for item_data in inventory:
-                item_counts[item_data['item_id']] += 1
-            
-            # Create choices
-            choices = []
-            for item_id, count in item_counts.items():
-                # Get item info
-                item = await self.bot.game_data.get_item(item_id)
-                if item and item.type not in ['PET', 'MINION']:  # Only show tradeable items
-                    # Filter by current input
-                    if current.lower() in item.name.lower() or current.lower() in item_id.lower():
-                        choices.append(
-                            app_commands.Choice(
-                                name=f"{item.name} (x{count})",
-                                value=item_id
-                            )
-                        )
-            
-            # Sort by name and limit to 25 choices
-            choices.sort(key=lambda x: x.name)
-            return choices[:25]
-        except Exception as e:
-            print(f"Error in bz_sell autocomplete: {e}")
-            return []
-    
     @app_commands.command(name="bz_order_buy", description="Place a buy order")
     @app_commands.describe(item_id="Item to buy", price="Price per item", amount="Amount to buy")
     async def bz_order_buy(self, interaction: discord.Interaction, item_id: str, price: float, amount: int):
+        item_id = item_id.lower().replace(" ", "_")
         await interaction.response.defer()
         
         player = await self.bot.player_manager.get_or_create_player(
@@ -194,12 +164,14 @@ class BazaarCommands(commands.Cog):
             await interaction.followup.send("❌ Invalid item ID!", ephemeral=True)
             return
         
+        item_name = item.name if getattr(item, "name", None) else item_id.replace("_", " ").title()
+        item_name = f"**{item_name}**"
         success, message = await self.bot.market_system.create_buy_order(interaction.user.id, item_id, price, amount)
         
         if success:
             embed = discord.Embed(
                 title="✅ Buy Order Created!",
-                description=message,
+                description=f"You placed a buy order for **{amount}x** {item_name} at {price:.1f} coins each.",
                 color=discord.Color.green()
             )
         else:
@@ -215,7 +187,7 @@ class BazaarCommands(commands.Cog):
     @app_commands.describe(item_id="Item to sell", price="Price per item", amount="Amount to sell")
     async def bz_order_sell(self, interaction: discord.Interaction, item_id: str, price: float, amount: int):
         await interaction.response.defer()
-        
+        item_id = item_id.lower().replace(" ", "_")
         player = await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
@@ -225,12 +197,14 @@ class BazaarCommands(commands.Cog):
             await interaction.followup.send("❌ Invalid item ID!", ephemeral=True)
             return
         
+        item_name = item.name if getattr(item, "name", None) else item_id.replace("_", " ").title()
+        item_name = f"**{item_name}**"
         success, message = await self.bot.market_system.create_sell_order(interaction.user.id, item_id, price, amount)
         
         if success:
             embed = discord.Embed(
                 title="✅ Sell Order Created!",
-                description=message,
+                description=f"You placed a sell order for **{amount}x** {item_name} at {price:.1f} coins each.",
                 color=discord.Color.green()
             )
         else:
@@ -265,7 +239,7 @@ class BazaarCommands(commands.Cog):
                 for order in buy_orders[:5]:
                     item = await self.bot.game_data.get_item(order['product_id'])
                     if item:
-                        buy_text += f"#{order['id']}: {order['amount']}x {item.name} @ {order['price']:.1f} each\n"
+                        buy_text += f"#{order['id']}: {order['amount']}x {item.name} @ **{order['price']:.1f}** each\n"
                 if buy_text:
                     embed.add_field(name="💵 Buy Orders", value=buy_text, inline=False)
             
@@ -274,7 +248,7 @@ class BazaarCommands(commands.Cog):
                 for order in sell_orders[:5]:
                     item = await self.bot.game_data.get_item(order['product_id'])
                     if item:
-                        sell_text += f"#{order['id']}: {order['amount']}x {item.name} @ {order['price']:.1f} each\n"
+                        sell_text += f"#{order['id']}: {order['amount']}x {item.name} @ **{order['price']:.1f}** each\n"
                 if sell_text:
                     embed.add_field(name="💸 Sell Orders", value=sell_text, inline=False)
         
@@ -285,7 +259,7 @@ class BazaarCommands(commands.Cog):
     async def bz_cancel(self, interaction: discord.Interaction, order_id: int):
         await interaction.response.defer()
         
-        await self.bot.db.cancel_bazaar_order(order_id, interaction.user.id)
+        await self.bot.db.cancel_bazaar_order(order_id)
         
         embed = discord.Embed(
             title="✅ Order Cancelled!",
@@ -298,46 +272,52 @@ class BazaarCommands(commands.Cog):
     @app_commands.command(name="bz_list", description="List bazaar items")
     async def bz_list(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        
-        # Get all items from database
+
+        # Get all items from database (now dicts)
         all_items = await self.bot.game_data.get_all_items()
-        
-        # Get all bazaar products (items with fluctuating prices)
+
+        # Get all bazaar products
         bazaar_products = await self.bot.db.get_all_bazaar_products()
         bazaar_dict = {p['product_id']: p for p in bazaar_products}
-        
-        # Filter for items that should be on bazaar and sort by default price
+
         items_list = []
-        for item_id, item in all_items.items():
-            # Skip non-tradeable items
-            if item.type in ['PET', 'MINION']:
+        for item in all_items:
+            item_id = item.get("item_id")
+            item_type = item.get("type")
+
+            # skip non-tradeables
+            if item_type in ["PET", "MINION"]:
                 continue
-            
-            # Get price - use bazaar price if available, otherwise default
+            name = item.get("name", "")
+            if "from" in name.lower():
+                continue
+
+            # bazaar live prices
             if item_id in bazaar_dict:
                 product = bazaar_dict[item_id]
-                buy_price = product['buy_price']
-                sell_price = product['sell_price']
+                buy_price = product["buy_price"]
+                sell_price = product["sell_price"]
                 price_source = "live"
             else:
-                # Use default bazaar price
-                buy_price = item.default_bazaar_price * 1.1  # 10% markup for buy
-                sell_price = item.default_bazaar_price * 0.9  # 10% discount for sell
+                # fallback
+                base = item.get("default_bazaar_price", 0)
+                buy_price = base * 1.1
+                sell_price = base * 0.9
                 price_source = "default"
-            
+
             items_list.append({
-                'name': item.name,
-                'id': item_id,
-                'buy_price': buy_price,
-                'sell_price': sell_price,
-                'source': price_source
+                "name": item.get("name"),
+                "id": item_id,
+                "buy_price": buy_price,
+                "sell_price": sell_price,
+                "source": price_source
             })
-        
-        # Sort by buy price
-        items_list.sort(key=lambda x: x['buy_price'])
-        
-        # Create pagination view and send
-        if len(items_list) > 0:
+
+        # sort by buy price
+        items_list.sort(key=lambda x: x["buy_price"])
+
+        # send paginated embed
+        if items_list:
             view = BazaarPaginationView(items_list)
             await interaction.followup.send(embed=view.get_page_embed(), view=view)
         else:

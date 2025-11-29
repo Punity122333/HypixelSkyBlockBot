@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import random
+from utils.compat import roll_loot as compat_roll_loot
 
 class SlayerCommands(commands.Cog):
     def __init__(self, bot):
@@ -100,37 +101,49 @@ class SlayerCommands(commands.Cog):
         success = random.random() > 0.2
         
         if success:
-            xp_gained = boss_info['xp'][tier_int - 1]
+            tier_key = f'tier_{tier_int}'
+            tier_info = boss_info_from_db.get('tier_data', {}).get(tier_key, {}) if boss_info_from_db else {}
             
-            slayer_drops_from_db = await self.bot.game_data.get_slayer_drops(boss)
-            
-            if not slayer_drops_from_db:
-                slayer_drops = {
-                    'revenant': [('revenant_flesh', 2, 10), ('revenant_viscera', 1, 3), ('beheaded_horror', 0, 1)],
-                    'tarantula': [('tarantula_web', 2, 8), ('toxic_arrow_poison', 1, 4), ('digested_mosquito', 0, 1)],
-                    'sven': [('wolf_tooth', 2, 8), ('hamster_wheel', 1, 3), ('overflux_capacitor', 0, 1)],
-                    'voidgloom': [('null_sphere', 2, 6), ('void_conqueror_enderman_skin', 1, 2), ('summoning_eye', 0, 1)],
-                    'inferno': [('inferno_fuel', 3, 10), ('blaze_rod', 2, 5), ('fire_stone', 1, 2)],
-                }
-                drops = slayer_drops.get(boss, [('rotten_flesh', 1, 3)])
+            if tier_info and 'xp_reward' in tier_info:
+                xp_gained = tier_info.get('xp_reward', boss_info['xp'][tier_int - 1])
             else:
-                drops = slayer_drops_from_db
+                xp_gained = boss_info['xp'][tier_int - 1]
+            
+            slayer_drops = await self.bot.db.get_slayer_drops(boss)
             
             items_obtained = []
-            for item_id, min_amt, max_amt in drops:
-                if max_amt > 0 and random.random() > 0.3:
-                    amount = random.randint(min_amt, max_amt)
-                    if amount > 0:
-                        await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, amount)
-                        items_obtained.append(f"{item_id} x{amount}")
+            if slayer_drops:
+                for drop in slayer_drops:
+                    drop_dict = dict(drop) if hasattr(drop, 'keys') else drop
+                    if isinstance(drop_dict, dict):
+                        drop_chance = drop_dict.get('drop_chance', 0.1)
+                        if random.random() < drop_chance:
+                            item_id = drop_dict.get('item_id', 'unknown')
+                            min_amt = drop_dict.get('min_amt', 1)
+                            max_amt = drop_dict.get('max_amt', 1)
+                            amount = random.randint(min_amt, max_amt)
+                            if amount > 0:
+                                await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, amount)
+                                item_name = item_id.replace('_', ' ').title()
+                                items_obtained.append(f"{item_name} x{amount}")
             
-            coins_reward = random.randint(cost // 10, cost // 5)
+            if tier_info and 'coins_reward' in tier_info:
+                coins_min, coins_max = tier_info['coins_reward']
+                coins_reward = random.randint(coins_min, coins_max)
+            else:
+                coins_reward = random.randint(cost // 10, cost // 5)
             
             await self.bot.player_manager.add_coins(interaction.user.id, coins_reward)
             
+            await self.bot.db.skills.update_slayer_xp(interaction.user.id, boss, xp_gained)
+            
             player_data = await self.bot.db.get_player(interaction.user.id)
             if player_data:
-                await self.bot.db.update_player(interaction.user.id, total_earned=player_data.get('total_earned', 0) + coins_reward)
+                await self.bot.db.update_player(
+                    interaction.user.id,
+                    total_earned=player_data.get('total_earned', 0) + coins_reward,
+                    coins=player_data.get('coins', 0) + coins_reward
+                )
             
             embed = discord.Embed(
                 title=f"{boss_info['emoji']} Slayer Quest Complete!",
@@ -168,13 +181,26 @@ class SlayerCommands(commands.Cog):
             color=discord.Color.dark_red()
         )
         
-        embed.add_field(name="🧟 Revenant Horror", value="Level 7\n2,450 XP", inline=True)
-        embed.add_field(name="🕷️ Tarantula Broodfather", value="Level 6\n1,820 XP", inline=True)
-        embed.add_field(name="🐺 Sven Packmaster", value="Level 8\n3,120 XP", inline=True)
+        slayer_types = [
+            ('revenant', '🧟 Revenant Horror'),
+            ('tarantula', '🕷️ Tarantula Broodfather'),
+            ('sven', '🐺 Sven Packmaster'),
+            ('voidgloom', '👾 Voidgloom Seraph'),
+            ('inferno', '🔥 Inferno Demonlord')
+        ]
         
-        embed.add_field(name="👾 Voidgloom Seraph", value="Level 5\n980 XP", inline=True)
-        embed.add_field(name="🔥 Inferno Demonlord", value="Level 4\n650 XP", inline=True)
-        embed.add_field(name="📊 Total Kills", value="487", inline=True)
+        total_kills = 0
+        for slayer_id, slayer_name in slayer_types:
+            stats = await self.bot.db.skills.get_slayer_stats(interaction.user.id, slayer_id)
+            if stats:
+                xp = stats.get('xp', 0)
+                level = stats.get('level', 0)
+                embed.add_field(name=slayer_name, value=f"Level {level}\n{xp:,} XP", inline=True)
+                total_kills += stats.get('kills', 0)
+            else:
+                embed.add_field(name=slayer_name, value="Level 0\n0 XP", inline=True)
+        
+        embed.add_field(name="📊 Total Kills", value=f"{total_kills}", inline=True)
         
         await interaction.followup.send(embed=embed)
 

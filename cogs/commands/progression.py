@@ -165,7 +165,17 @@ class ProgressionCommands(commands.Cog):
             if progression.get('tutorial_completed'):
                 status += "✅ Tutorial Complete\n"
             else:
-                status += "❌ Tutorial Pending (use `/starter_pack`)\n"
+                status += "❌ Tutorial Pending (use `/begin`)\n"
+            
+            if progression.get('first_mine_date'):
+                status += "✅ First Mining Session\n"
+            else:
+                status += "⛏️ Start mining (use `/mine`)\n"
+            
+            if progression.get('first_farm_date'):
+                status += "✅ First Farming Session\n"
+            else:
+                status += "🌾 Start farming (use `/farm`)\n"
             
             if progression.get('first_auction_date'):
                 status += "✅ First Auction Created\n"

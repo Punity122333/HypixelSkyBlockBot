@@ -43,6 +43,13 @@ class AuctionCommands(commands.Cog):
             interaction.user.id, item_id, {'count': 1}, starting_bid, duration_seconds, bin_price if bin_price > 0 else None
         )
         
+        progression = await self.bot.db.get_player_progression(interaction.user.id)
+        if not progression or not progression.get('first_auction_date'):
+            await self.bot.db.update_progression(
+                interaction.user.id,
+                first_auction_date=int(time.time())
+            )
+        
         embed = discord.Embed(
             title="✅ Auction Created!",
             description=f"Your {item.name} is now listed!",
@@ -139,7 +146,7 @@ class AuctionCommands(commands.Cog):
         
         await self.bot.db.update_player(interaction.user.id, coins=player['coins'] - bid_amount)
         
-        success = await self.bot.db.place_bid(auction_id, interaction.user.id, bid_amount)
+        success = await self.bot.db.place_bid(interaction.user.id, auction_id, bid_amount)
         
         if not success:
             await self.bot.db.update_player(interaction.user.id, coins=player['coins'])
@@ -163,7 +170,7 @@ class AuctionCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
-        success = await self.bot.db.buy_bin(auction_id, interaction.user.id)
+        success = await self.bot.db.buy_bin(interaction.user.id, auction_id, 0)
         
         if not success:
             await interaction.followup.send("❌ Failed to buy! Auction may not be a BIN or you don't have enough coins.", ephemeral=True)

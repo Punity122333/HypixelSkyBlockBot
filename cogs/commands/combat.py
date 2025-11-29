@@ -6,7 +6,8 @@ import random
 import asyncio
 from typing import Optional, TYPE_CHECKING
 from utils.stat_calculator import StatCalculator
-from utils.compat import roll_loot as compat_roll_loot, get_coins_reward as compat_get_coins, get_xp_reward as compat_get_xp
+from utils.compat import roll_loot as compat_roll_loot
+from utils.event_effects import EventEffects
 
 if TYPE_CHECKING:
     from main import SkyblockBot
@@ -27,6 +28,7 @@ class CombatView(View):
         self.player_damage: int = 50
         self.player_stats: Optional[dict] = None
         self.message: Optional[discord.Message] = None
+        self.event_effects = EventEffects(bot)
         
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:
@@ -45,7 +47,7 @@ class CombatView(View):
         
         combat_effects = StatCalculator.apply_combat_effects(self.player_stats, None)
         
-        crit = random.random() < combat_effects['crit_chance']
+        crit = random.random() * 100 < combat_effects['crit_chance']
         damage = combat_effects['base_damage']
         if crit:
             damage = int(damage * combat_effects['crit_damage_multiplier'])
@@ -57,36 +59,66 @@ class CombatView(View):
         embed = discord.Embed(title=f"⚔️ Fighting {self.mob_name}", color=discord.Color.red())
         
         if self.mob_health <= 0:
+            mob_id = self.mob_name.lower().replace(' ', '_')
             loot_table = await self.bot.game_data.get_loot_table(self.mob_name, 'mob')
+            
             if not loot_table:
                 loot_table = {}
             
+            if 'coins' not in loot_table:
+                loot_table['coins'] = (self.coins_reward // 2, self.coins_reward)
+            if 'xp' not in loot_table:
+                loot_table['xp'] = self.xp_reward
+            
             magic_find = self.player_stats.get('magic_find', 0)
-            drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find)
+            fortune = self.player_stats.get('looting', 0)
+            drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find, fortune)
             
             items_obtained = []
             for item_id, amount in drops:
                 await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
-                items_obtained.append(f"{item_id} x{amount}")
+                item_name = item_id.replace('_', ' ').title()
+                items_obtained.append(f"{item_name} x{amount}")
+                
+                current_collection = await self.bot.db.get_collection(self.user_id, item_id)
+                await self.bot.db.add_collection(self.user_id, item_id, current_collection + amount)
             
-            coins = compat_get_coins(loot_table)
-            xp = compat_get_xp(loot_table)
+            coins = self.coins_reward
+            xp = self.xp_reward
+            
+            xp_multiplier = await self.event_effects.get_xp_multiplier('combat')
+            coin_multiplier = await self.event_effects.get_coin_multiplier()
+            magic_find_bonus = await self.event_effects.get_magic_find_bonus()
+            
+            xp = int(xp * xp_multiplier)
+            coins = int(coins * coin_multiplier)
             
             embed.description = f"💀 You defeated the {self.mob_name}!"
             if items_obtained:
                 embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
-            embed.add_field(name="💰 Reward", value=f"+{coins} coins\n+{xp} Combat XP", inline=False)
+            else:
+                embed.add_field(name="🎁 Items Dropped", value="No items dropped this time.", inline=False)
             
-            await self.bot.player_manager.add_coins(self.user_id, coins)   
+            reward_text = f"+{coins} coins\n+{xp} Combat XP"
+            if xp_multiplier > 1.0 or coin_multiplier > 1.0:
+                reward_text += "\n🎪 Event bonuses active!"
+            embed.add_field(name="💰 Reward", value=reward_text, inline=False)
+            
+            await self.bot.player_manager.add_coins(self.user_id, coins)
             
             player = await self.bot.db.get_player(self.user_id)
             if player:
-                await self.bot.db.update_player(self.user_id, total_earned=player.get('total_earned', 0) + coins)
+                await self.bot.db.update_player(
+                    interaction.user.id,
+                    total_earned=player.get('total_earned', 0) + coins,
+                    coins=player.get('coins', 0) + coins
+                )
+
             
-            skills = await self.bot.db.get_skills(self.user_id)   
+            skills = await self.bot.db.get_skills(self.user_id)
             combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
             if combat_skill:
-                new_xp = combat_skill['xp'] + self.xp_reward
+                new_xp = combat_skill['xp'] + xp
                 new_level = await self.bot.game_data.calculate_level_from_xp('combat', new_xp)
                 await self.bot.db.update_skill(self.user_id, 'combat', xp=new_xp, level=new_level)
             
@@ -102,7 +134,7 @@ class CombatView(View):
             self.player_stats['defense'], 
             self.player_stats.get('true_defense', 0)
         )
-        mob_damage = int(mob_damage * damage_reduction)
+        mob_damage = int(mob_damage * (1 - damage_reduction))
         mob_damage = max(1, mob_damage)
         self.player_health = (self.player_health or 0) - mob_damage
         
@@ -145,7 +177,7 @@ class CombatView(View):
             self.player_stats['defense'], 
             self.player_stats.get('true_defense', 0)
         )
-        mob_damage = int(mob_damage * damage_reduction * 0.5)
+        mob_damage = int(mob_damage * (1 - damage_reduction) * 0.5)
         mob_damage = max(1, mob_damage)
         self.player_health = (self.player_health or 0) - mob_damage
         
@@ -197,33 +229,62 @@ class CombatView(View):
         embed = discord.Embed(title=f"⚔️ Fighting {self.mob_name}", color=discord.Color.purple())
         
         if self.mob_health <= 0:
+            mob_id = self.mob_name.lower().replace(' ', '_')
             loot_table = await self.bot.game_data.get_loot_table(self.mob_name, 'mob')
+            
             if not loot_table:
                 loot_table = {}
             
+            if 'coins' not in loot_table:
+                loot_table['coins'] = (self.coins_reward // 2, self.coins_reward)
+            if 'xp' not in loot_table:
+                loot_table['xp'] = self.xp_reward
+            
             magic_find = self.player_stats.get('magic_find', 0)
-            drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find)
+            fortune = self.player_stats.get('looting', 0)
+            drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find, fortune)
             
             items_obtained = []
             for item_id, amount in drops:
                 await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
-                items_obtained.append(f"{item_id} x{amount}")
+                item_name = item_id.replace('_', ' ').title()
+                items_obtained.append(f"{item_name} x{amount}")
+                
+                current_collection = await self.bot.db.get_collection(self.user_id, item_id)
+                await self.bot.db.add_collection(self.user_id, item_id, current_collection + amount)
             
-            coins = compat_get_coins(loot_table)
-            xp = compat_get_xp(loot_table)
+            coins = self.coins_reward
+            xp = self.xp_reward
+            
+            xp_multiplier = await self.event_effects.get_xp_multiplier('combat')
+            coin_multiplier = await self.event_effects.get_coin_multiplier()
+            magic_find_bonus = await self.event_effects.get_magic_find_bonus()
+            
+            xp = int(xp * xp_multiplier)
+            coins = int(coins * coin_multiplier)
             
             embed.description = f"💀 You defeated the {self.mob_name} with your ability!"
             if items_obtained:
                 embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
-            embed.add_field(name="💰 Reward", value=f"+{coins} coins\n+{xp} Combat XP", inline=False)
+            else:
+                embed.add_field(name="🎁 Items Dropped", value="No items dropped this time.", inline=False)
             
-            await self.bot.player_manager.add_coins(self.user_id, coins)   
+            reward_text = f"+{coins} coins\n+{xp} Combat XP"
+            if xp_multiplier > 1.0 or coin_multiplier > 1.0:
+                reward_text += "\n🎪 Event bonuses active!"
+            embed.add_field(name="💰 Reward", value=reward_text, inline=False)
+            
+            await self.bot.player_manager.add_coins(self.user_id, coins)
             
             player = await self.bot.db.get_player(self.user_id)
             if player:
-                await self.bot.db.update_player(self.user_id, total_earned=player.get('total_earned', 0) + coins)
-            
-            skills = await self.bot.db.get_skills(self.user_id)   
+                await self.bot.db.update_player(
+                    interaction.user.id,
+                    total_earned=player.get('total_earned', 0) + coins,
+                    coins=player.get('coins', 0) + coins
+                )
+                
+            skills = await self.bot.db.get_skills(self.user_id)
             combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
             if combat_skill:
                 new_xp = combat_skill['xp'] + xp
@@ -242,7 +303,7 @@ class CombatView(View):
             self.player_stats['defense'], 
             self.player_stats.get('true_defense', 0)
         )
-        mob_damage = int(mob_damage * damage_reduction)
+        mob_damage = int(mob_damage * (1 - damage_reduction))
         mob_damage = max(1, mob_damage)
         self.player_health = (self.player_health or 0) - mob_damage
         
@@ -299,7 +360,7 @@ class CombatCommands(commands.Cog):
         app_commands.Choice(name="🌋 Crimson Isle (Hard)", value="crimson_isle"),
         app_commands.Choice(name="🔚 The End (Very Hard)", value="end"),
         app_commands.Choice(name="🔥 Nether (Extreme)", value="nether"),
-        app_commands.Choice(name="Deep Caverns", value="deep_caverns"),
+        app_commands.Choice(name="🕳️ Deep Caverns (????)", value="deep_caverns"),
     ])
     async def fight(self, interaction: discord.Interaction, location: str):
         await interaction.response.defer()
@@ -308,7 +369,7 @@ class CombatCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
-        from utils.progression_system import ProgressionSystem
+        from utils.systems.progression_system import ProgressionSystem
         
         skills = await self.bot.db.get_skills(interaction.user.id)
         combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
@@ -335,36 +396,36 @@ class CombatCommands(commands.Cog):
         if not mob_list:
             mobs = {
                 'hub': [
-                    ('Zombie', 100, 10, 50, 10),
-                    ('Skeleton', 80, 15, 60, 12),
-                    ('Spider', 70, 12, 55, 11),
-                    ('Lapis Zombie', 150, 18, 100, 15),
+                    ('Zombie', 50, 5, 50, 10),
+                    ('Skeleton', 40, 8, 60, 12),
+                    ('Spider', 35, 6, 55, 11),
+                    ('Lapis Zombie', 75, 9, 100, 15),
                 ],
                 'spiders_den': [
-                    ('Cave Spider', 120, 20, 80, 15),
-                    ('Spider', 100, 18, 70, 13),
-                    ('Spider Jockey', 200, 30, 150, 25),
-                    ('Broodfather', 500, 50, 500, 100),
+                    ('Cave Spider', 60, 10, 80, 15),
+                    ('Spider', 50, 9, 70, 13),
+                    ('Spider Jockey', 100, 15, 150, 25),
+                    ('Broodfather', 250, 25, 500, 100),
                 ],
                 'crimson_isle': [
-                    ('Blaze', 200, 35, 200, 30),
-                    ('Magma Cube', 180, 30, 180, 28),
-                    ('Wither Skeleton', 250, 40, 250, 35),
+                    ('Blaze', 100, 18, 200, 30),
+                    ('Magma Cube', 90, 15, 180, 28),
+                    ('Wither Skeleton', 125, 20, 250, 35),
                 ],
                 'end': [
-                    ('Enderman', 300, 45, 300, 40),
-                    ('Zealot', 500, 60, 600, 80),
-                    ('Ender Dragon', 10000, 200, 5000, 500),
+                    ('Enderman', 150, 23, 300, 40),
+                    ('Zealot', 250, 30, 600, 80),
+                    ('Ender Dragon', 5000, 100, 5000, 500),
                 ],
                 'nether': [
-                    ('Ghast', 400, 55, 400, 50),
-                    ('Piglin Brute', 450, 60, 450, 55),
-                    ('Wither', 15000, 250, 10000, 1000),
+                    ('Ghast', 200, 28, 400, 50),
+                    ('Piglin Brute', 225, 30, 450, 55),
+                    ('Wither', 7500, 125, 10000, 1000),
                 ],
                 'deep_caverns': [
-                    ('Lapis Zombie', 150, 25, 120, 20),
-                    ('Redstone Pigman', 180, 28, 150, 22),
-                    ('Emerald Slime', 200, 30, 180, 25),
+                    ('Lapis Zombie', 75, 13, 120, 20),
+                    ('Redstone Pigman', 90, 14, 150, 22),
+                    ('Emerald Slime', 100, 15, 180, 25),
                 ],
             }
             mob_data = random.choice(mobs.get(location, mobs['hub']))
@@ -399,7 +460,7 @@ class CombatCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
-        from utils.progression_system import ProgressionSystem
+        from utils.systems.progression_system import ProgressionSystem
         
         skills = await self.bot.db.get_skills(interaction.user.id)
         combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)

@@ -333,8 +333,7 @@ class PetCommands(commands.Cog):
             await interaction.followup.send("❌ You don't have any pet equipped!", ephemeral=True)
             return
         
-        await self.bot.db.conn.execute('UPDATE pets SET active = 0 WHERE user_id = ?', (interaction.user.id,))
-        await self.bot.db.conn.commit()
+        await self.bot.db.unequip_pet(interaction.user.id)
         
         embed = discord.Embed(
             title="🐾 Pet Unequipped",

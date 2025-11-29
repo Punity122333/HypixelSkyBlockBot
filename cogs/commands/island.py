@@ -13,6 +13,8 @@ class IslandCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
+        souls = await self.bot.db.get_fairy_souls(interaction.user.id)
+        
         embed = discord.Embed(
             title=f"🏝️ {interaction.user.name}'s Island",
             description="Your personal island in SkyBlock!",
@@ -21,7 +23,7 @@ class IslandCommands(commands.Cog):
         
         embed.add_field(name="📊 Island Level", value="15", inline=True)
         embed.add_field(name="👥 Visitors", value="Enabled", inline=True)
-        embed.add_field(name="🏗️ Build Limit", value="192 blocks", inline=True)
+        embed.add_field(name="✨ Fairy Souls", value=f"{souls}/242", inline=True)
         
         embed.add_field(
             name="🤖 Active Minions",
@@ -29,85 +31,105 @@ class IslandCommands(commands.Cog):
             inline=False
         )
         
-        embed.set_footer(text="Use /minion to manage your minions")
+        embed.set_footer(text="Use /search_fairy_soul to find fairy souls!")
         
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="minion", description="Manage your minions")
-    @app_commands.describe(action="What to do with minions")
-    @app_commands.choices(action=[
-        app_commands.Choice(name="View All", value="view"),
-        app_commands.Choice(name="Place Minion", value="place"),
-        app_commands.Choice(name="Collect Items", value="collect"),
-        app_commands.Choice(name="Upgrade", value="upgrade"),
-    ])
-    async def minion(self, interaction: discord.Interaction, action: str):
+    @app_commands.command(name="search_fairy_soul", description="Search for a fairy soul!")
+    async def search_fairy_soul(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
         
-        if action == "view":
-            embed = discord.Embed(
-                title="🤖 Your Minions",
-                description="All minions on your island",
-                color=discord.Color.blue()
-            )
-            
-            embed.add_field(
-                name="Slot 1: Wheat Minion XI",
-                value="Storage: 1,245/1,920 wheat\nFuel: 48% Catalyst",
-                inline=False
-            )
-            embed.add_field(
-                name="Slot 2: Cobblestone Minion X",
-                value="Storage: 892/1,536 cobblestone\nFuel: None",
-                inline=False
-            )
-            
-            await interaction.response.send_message(embed=embed)
+        collected_locations_data = await self.bot.db.get_fairy_soul_locations(interaction.user.id)
         
-        elif action == "collect":
-            minion_items = [
-                ('wheat', 50, 150),
-                ('cobblestone', 100, 300),
-                ('coal', 20, 80),
-                ('oak_wood', 30, 120),
-            ]
+        collected_locations = []
+        if collected_locations_data:
+            if isinstance(collected_locations_data, list):
+                collected_locations = [loc if isinstance(loc, str) else loc.get('location', '') for loc in collected_locations_data if loc]
             
-            items_collected = []
-            for item_id, min_amt, max_amt in minion_items:
-                amount = random.randint(min_amt, max_amt)
-                await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, amount)
-                items_collected.append(f"{item_id} x{amount}")
-            
-            coins = random.randint(1000, 5000)
-            await self.bot.player_manager.add_coins(interaction.user.id, coins)
-            
-            player_data = await self.bot.db.get_player(interaction.user.id)
-            if player_data:
-                await self.bot.db.update_player(interaction.user.id, total_earned=player_data.get('total_earned', 0) + coins)
-            
+        all_locations_data = await self.bot.game_data.get_all_fairy_soul_locations()
+        all_locations = []
+        if all_locations_data:
+            if isinstance(all_locations_data, list):
+                all_locations = [loc if isinstance(loc, str) else loc.get('location', '') for loc in all_locations_data if loc]
+        
+        uncollected = [loc for loc in all_locations if loc and loc not in collected_locations]
+        
+        if not uncollected:
             embed = discord.Embed(
-                title="💰 Minion Collection",
-                description="You collected items from all minions!",
+                title="✨ All Fairy Souls Collected!",
+                description="You've collected all available fairy souls!",
                 color=discord.Color.gold()
             )
-            embed.add_field(name="🎁 Items Collected", value="\n".join(items_collected), inline=False)
-            embed.add_field(name="Coins Earned", value=f"+{coins:,} coins", inline=False)
-            
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
+            return
         
+        found_chance = random.random()
+        
+        if found_chance < 0.3:
+            location = random.choice(uncollected)
+            success = await self.bot.db.collect_fairy_soul(interaction.user.id, location)
+            
+            if success:
+                total_souls = await self.bot.db.get_fairy_souls(interaction.user.id)
+                
+                health_bonus = total_souls * 3
+                mana_bonus = total_souls * 2
+                
+                player = await self.bot.db.get_player(interaction.user.id)
+                base_health = 100
+                base_mana = 20
+                
+                await self.bot.db.update_player(
+                    interaction.user.id,
+                    max_health=base_health + health_bonus,
+                    max_mana=base_mana + mana_bonus
+                )
+                
+                embed = discord.Embed(
+                    title="✨ Fairy Soul Found!",
+                    description=f"You found a fairy soul at **{location.replace('_', ' ')}**!",
+                    color=discord.Color.purple()
+                )
+                embed.add_field(name="Total Souls", value=f"{total_souls}/{len(all_locations)}", inline=True)
+                embed.add_field(name="Health Bonus", value=f"+{health_bonus} ❤️", inline=True)
+                embed.add_field(name="Mana Bonus", value=f"+{mana_bonus} ✨", inline=True)
+                
+                await interaction.followup.send(embed=embed)
+            else:
+                embed = discord.Embed(
+                    title="✨ Already Collected",
+                    description="You've already collected this fairy soul!",
+                    color=discord.Color.orange()
+                )
+                await interaction.followup.send(embed=embed)
         else:
-            await interaction.response.send_message(
-                f"🤖 Minion {action} system coming soon!",
-                ephemeral=True
+            embed = discord.Embed(
+                title="🔍 Still Searching...",
+                description="You searched but didn't find a fairy soul this time. Keep searching!",
+                color=discord.Color.blue()
             )
+            embed.set_footer(text="Try again to keep searching!")
+            await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="fairy_souls", description="Check your fairy soul progress")
     async def fairy_souls(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
+        
+        souls = await self.bot.db.get_fairy_souls(interaction.user.id)
+        collected_locations = await self.bot.db.get_fairy_soul_locations(interaction.user.id)
+        
+        health_bonus = souls * 3
+        mana_bonus = souls * 2
+        
+        progress_pct = (souls / 242) * 100
         
         embed = discord.Embed(
             title="✨ Fairy Souls",
@@ -115,17 +137,19 @@ class IslandCommands(commands.Cog):
             color=discord.Color.purple()
         )
         
-        embed.add_field(name="Collected", value="127 / 242", inline=True)
-        embed.add_field(name="Next Milestone", value="150 souls", inline=True)
-        embed.add_field(name="Progress", value="52.5%", inline=True)
+        embed.add_field(name="Collected", value=f"{souls} / 242", inline=True)
+        embed.add_field(name="Progress", value=f"{progress_pct:.1f}%", inline=True)
+        embed.add_field(name="Remaining", value=f"{242 - souls}", inline=True)
         
         embed.add_field(
-            name="Bonuses Unlocked",
-            value="+25 Health\n+12 Defense\n+8 Strength\n+10 Speed",
+            name="Current Bonuses",
+            value=f"+{health_bonus} ❤️ Health\n+{mana_bonus} ✨ Mana",
             inline=False
         )
         
-        await interaction.response.send_message(embed=embed)
+        embed.set_footer(text="Use /search_fairy_soul to find more fairy souls!")
+        
+        await interaction.followup.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(IslandCommands(bot))

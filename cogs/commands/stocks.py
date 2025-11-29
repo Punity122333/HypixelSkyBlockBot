@@ -3,6 +3,11 @@ from discord.ext import commands
 from discord import app_commands
 from typing import List
 import math
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+from datetime import datetime
 
 class StockMarketCommands(commands.Cog):
     def __init__(self, bot):
@@ -28,12 +33,26 @@ class StockMarketCommands(commands.Cog):
                 current = (current + 1) % total
                 await interaction_inner.response.edit_message(embed=embeds[current], view=self)
 
-        await interaction.response.send_message(embed=embeds[current], view=Paginator())
+        # Use followup if interaction has been deferred, otherwise use response
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embeds[current], view=Paginator())
+        else:
+            await interaction.response.send_message(embed=embeds[current], view=Paginator())
 
     @app_commands.command(name="stocks", description="View the stock market")
     async def stocks(self, interaction: discord.Interaction):
         await interaction.response.defer()
         stocks = await self.bot.db.get_all_stocks()
+        
+        if not stocks:
+            embed = discord.Embed(
+                title="📈 SkyBlock Stock Exchange",
+                description="No stocks available at the moment.",
+                color=discord.Color.blue()
+            )
+            await interaction.followup.send(embed=embed)
+            return
+        
         embeds: List[discord.Embed] = []
         per_page = 4
         pages = math.ceil(len(stocks) / per_page)
@@ -48,7 +67,7 @@ class StockMarketCommands(commands.Cog):
                 change = ((stock['current_price'] - stock['opening_price']) / stock['opening_price']) * 100
                 emoji = "📈" if change > 0 else "📉" if change < 0 else "➡️"
                 value = f"**${stock['current_price']:.2f}** {emoji}\nChange: {change:+.2f}%\nVol: {stock['volume']:,}\nHigh: ${stock['daily_high']:.2f} | Low: ${stock['daily_low']:.2f}"
-                embed.add_field(name=f"{stock['stock_symbol']} - {stock['company_name']}", value=value, inline=True)
+                embed.add_field(name=f"{stock['symbol']} - {stock['company_name']}", value=value, inline=True)
             embed.set_footer(text="Use /stock_buy or /stock_sell to trade stocks")
             embeds.append(embed)
 
@@ -129,7 +148,39 @@ class StockMarketCommands(commands.Cog):
         for name, value in fields.items():
             embed.add_field(name=name, value=value, inline=True)
 
-        history = await self.bot.db.get_market_history(symbol, 10)
+        history = await self.bot.db.get_market_history(symbol, 50)
+        
+        if history and len(history) > 1:
+            try:
+                plt.style.use('dark_background')
+                fig, ax = plt.subplots(figsize=(10, 5))
+                
+                prices = [h['price'] for h in reversed(history)]
+                timestamps = list(range(len(prices)))
+                
+                ax.plot(timestamps, prices, color='#00ff00' if change >= 0 else '#ff0000', linewidth=2)
+                ax.fill_between(timestamps, prices, alpha=0.3, color='#00ff00' if change >= 0 else '#ff0000')
+                
+                ax.set_title(f"{symbol} Price History", fontsize=14, fontweight='bold')
+                ax.set_xlabel("Time", fontsize=10)
+                ax.set_ylabel("Price ($)", fontsize=10)
+                ax.grid(True, alpha=0.2)
+                
+                plt.tight_layout()
+                
+                buffer = io.BytesIO()
+                plt.savefig(buffer, format='png', dpi=100, facecolor='#2f3136')
+                buffer.seek(0)
+                plt.close()
+                
+                file = discord.File(buffer, filename=f"{symbol}_chart.png")
+                embed.set_image(url=f"attachment://{symbol}_chart.png")
+                
+                await interaction.followup.send(embed=embed, file=file)
+                return
+            except Exception as e:
+                print(f"Chart generation error: {e}")
+        
         if history:
             history_text = ""
             for h in history[:5]:

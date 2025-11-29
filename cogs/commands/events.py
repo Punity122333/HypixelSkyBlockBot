@@ -3,15 +3,14 @@ from discord.ext import commands
 from discord import app_commands
 import time
 import random
+from utils.decorators import auto_defer
 
 class EventCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.event_start_time = int(time.time())
 
     async def get_active_events(self):
         current_time = int(time.time())
-        elapsed = current_time - self.event_start_time
         
         active_events = []
         upcoming_events = []
@@ -19,7 +18,7 @@ class EventCommands(commands.Cog):
         events = await self.bot.game_data.get_all_game_events()
         
         for event in events:
-            cycle_position = elapsed % event['occurs_every']
+            cycle_position = current_time % event['occurs_every']
             
             if cycle_position < event['duration']:
                 time_remaining = event['duration'] - cycle_position
@@ -40,9 +39,8 @@ class EventCommands(commands.Cog):
             return f"{minutes}m"
 
     @app_commands.command(name="events", description="View active SkyBlock events")
+    @auto_defer
     async def events(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
         active_events, upcoming_events = await self.get_active_events()
         
         embed = discord.Embed(
@@ -86,9 +84,8 @@ class EventCommands(commands.Cog):
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="calendar", description="View the SkyBlock calendar")
+    @auto_defer
     async def calendar(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
         current_time = int(time.time())
         day_of_year = (current_time // 86400) % 365
         season_day = day_of_year % 31
@@ -105,8 +102,8 @@ class EventCommands(commands.Cog):
         mayors = await self.bot.game_data.get_all_mayors()
         if mayors:
             current_mayor_data = mayors[year % len(mayors)]
-            current_mayor = current_mayor_data['mayor_name']
-            mayor_perks_value = current_mayor_data['perks']
+            current_mayor = current_mayor_data.get('mayor_name', current_mayor_data.get('name', 'Unknown'))
+            mayor_perks_value = current_mayor_data.get('perks', 'No special perks')
         else:
             mayors_list = ['Diana', 'Derpy', 'Paul', 'Jerry', 'Marina', 'Aatrox']
             current_mayor = mayors_list[(year % len(mayors_list))]

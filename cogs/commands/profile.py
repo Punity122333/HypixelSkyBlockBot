@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from utils.comprehensive_stat_calculator import ComprehensiveStatCalculator
 
 class ProfileCommands(commands.Cog):
     def __init__(self, bot):
@@ -14,6 +15,8 @@ class ProfileCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
+        # Use comprehensive stat calculator for full stats
+        stats = await ComprehensiveStatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
         skills = await self.bot.db.get_skills(interaction.user.id)
         
         embed = discord.Embed(
@@ -23,11 +26,11 @@ class ProfileCommands(commands.Cog):
         
         embed.add_field(name="💰 Purse", value=f"{player['coins']:,} coins", inline=True)
         embed.add_field(name="🏦 Bank", value=f"{player['bank']:,} coins", inline=True)
-        embed.add_field(name="❤️ Health", value=f"{player['health']}/{player['max_health']}", inline=True)
+        embed.add_field(name="❤️ Health", value=f"{int(stats['health'])}/{int(stats['max_health'])}", inline=True)
         
-        embed.add_field(name="💙 Mana", value=f"{player['mana']}/{player['max_mana']}", inline=True)
-        embed.add_field(name="🛡️ Defense", value=str(player['defense']), inline=True)
-        embed.add_field(name="⚔️ Strength", value=str(player['strength']), inline=True)
+        embed.add_field(name="💙 Mana", value=f"{int(stats['max_mana'])}", inline=True)
+        embed.add_field(name="🛡️ Defense", value=str(int(stats['defense'])), inline=True)
+        embed.add_field(name="⚔️ Strength", value=str(int(stats['strength'])), inline=True)
         
         skill_avg = sum(s['level'] for s in skills) / len(skills) if skills else 0
         embed.add_field(name="📚 Skill Average", value=f"{skill_avg:.2f}", inline=True)
@@ -57,30 +60,29 @@ class ProfileCommands(commands.Cog):
     async def stats(self, interaction: discord.Interaction):
         await interaction.response.defer()
         
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
+        # Use comprehensive stat calculator for full stats (includes fairy souls, set bonuses, pets, etc)
+        stats = await ComprehensiveStatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+
         embed = discord.Embed(
             title=f"📈 {interaction.user.name}'s Stats",
             color=discord.Color.blue()
         )
         
-        embed.add_field(name="❤️ Health", value=f"{player['max_health']}", inline=True)
-        embed.add_field(name="🛡️ Defense", value=str(player['defense']), inline=True)
-        embed.add_field(name="⚔️ Strength", value=str(player['strength']), inline=True)
+        embed.add_field(name="❤️ Health", value=f"{int(stats['max_health'])}", inline=True)
+        embed.add_field(name="🛡️ Defense", value=str(int(stats['defense'])), inline=True)
+        embed.add_field(name="⚔️ Strength", value=str(int(stats['strength'])), inline=True)
         
-        embed.add_field(name="☠️ Crit Chance", value=f"{player['crit_chance']}%", inline=True)
-        embed.add_field(name="💥 Crit Damage", value=f"{player['crit_damage']}%", inline=True)
-        embed.add_field(name="✨ Intelligence", value=str(player['intelligence']), inline=True)
+        embed.add_field(name="☠️ Crit Chance", value=f"{stats.get('crit_chance', 0)}%", inline=True)
+        embed.add_field(name="💥 Crit Damage", value=f"{stats.get('crit_damage', 0)}%", inline=True)
+        embed.add_field(name="✨ Intelligence", value=str(int(stats.get('intelligence', 0))), inline=True)
         
-        embed.add_field(name="⚡ Speed", value=str(player['speed']), inline=True)
-        embed.add_field(name="🐟 Sea Creature Chance", value=f"{player['sea_creature_chance']}%", inline=True)
-        embed.add_field(name="🔮 Magic Find", value=str(player['magic_find']), inline=True)
+        embed.add_field(name="⚡ Speed", value=str(int(stats.get('speed', 0))), inline=True)
+        embed.add_field(name="🐟 Sea Creature Chance", value=f"{stats.get('sea_creature_chance', 0)}%", inline=True)
+        embed.add_field(name="🔮 Magic Find", value=str(int(stats.get('magic_find', 0))), inline=True)
         
-        embed.add_field(name="🍀 Pet Luck", value=str(player['pet_luck']), inline=True)
-        embed.add_field(name="💢 Ferocity", value=str(player['ferocity']), inline=True)
-        embed.add_field(name="⚡ Ability Damage", value=str(player['ability_damage']), inline=True)
+        embed.add_field(name="🍀 Pet Luck", value=str(int(stats.get('pet_luck', 0))), inline=True)
+        embed.add_field(name="💢 Ferocity", value=str(int(stats.get('ferocity', 0))), inline=True)
+        embed.add_field(name="⚡ Ability Damage", value=str(int(stats.get('ability_damage', 0))), inline=True)
         
         await interaction.followup.send(embed=embed)
 
