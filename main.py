@@ -3,9 +3,9 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from typing import Optional
-from utils.database import GameDatabase
+from database import GameDatabase
 from utils.player_manager import PlayerManager
-from utils.market_system import MarketSystem, run_market_simulation
+from utils.systems.market_system import MarketSystem, run_market_simulation
 from utils.data.game_data import GameDataManager
 from utils.command_sync import CommandSyncManager
 import pathlib
@@ -13,8 +13,8 @@ import traceback
 import asyncio
 
 load_dotenv()
-TOKEN = os.getenv('DC3')
-APPLICATION_ID = os.getenv('AP3')
+TOKEN = os.getenv('TOKEN')
+APPLICATION_ID = os.getenv('APPID')
 DEV_GUILD_ID = os.getenv('DEV_GUILD_ID')
 DEV_GUILD_IDS = [gid.strip() for gid in DEV_GUILD_ID.split(',')] if DEV_GUILD_ID else []
 
