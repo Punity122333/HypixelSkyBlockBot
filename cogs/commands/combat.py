@@ -4,8 +4,9 @@ from discord import app_commands
 from discord.ui import View, Button
 import random
 import asyncio
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Tuple
 from utils.stat_calculator import StatCalculator
+from utils.systems.combat_system import CombatSystem
 from utils.compat import roll_loot as compat_roll_loot
 from utils.event_effects import EventEffects
 
@@ -29,7 +30,7 @@ class CombatView(View):
         self.player_stats: Optional[dict] = None
         self.message: Optional[discord.Message] = None
         self.event_effects = EventEffects(bot)
-        
+    
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:
             await interaction.response.send_message("This isn't your fight!", ephemeral=True)
@@ -42,18 +43,21 @@ class CombatView(View):
             self.player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, self.user_id)
         
         if self.player_health is None:
-            self.player_health = self.player_stats['max_health']
-            self.player_max_health = self.player_stats['max_health']
+            self.player_health = int(self.player_stats['max_health'])
+            self.player_max_health = int(self.player_stats['max_health'])
         
-        combat_effects = StatCalculator.apply_combat_effects(self.player_stats, None)
+        mob_defense = 0
+        damage_result = await CombatSystem.calculate_player_damage(self.bot.db, self.user_id, mob_defense)
         
-        crit = random.random() * 100 < combat_effects['crit_chance']
-        damage = combat_effects['base_damage']
-        if crit:
-            damage = int(damage * combat_effects['crit_damage_multiplier'])
+        total_damage = int(damage_result['damage'])
+        crit = damage_result['is_crit']
+        combat_level = damage_result.get('combat_level', 0)
+        skill_multiplier = damage_result.get('skill_multiplier', 1.0)
         
         ferocity_hits = 1 + (self.player_stats.get('ferocity', 0) // 100)
-        total_damage = damage * ferocity_hits
+        if ferocity_hits > 1:
+            total_damage = int(total_damage * ferocity_hits)
+        
         self.mob_health -= total_damage
         
         embed = discord.Embed(title=f"⚔️ Fighting {self.mob_name}", color=discord.Color.red())
@@ -82,6 +86,12 @@ class CombatView(View):
                 
                 current_collection = await self.bot.db.get_collection(self.user_id, item_id)
                 await self.bot.db.add_collection(self.user_id, item_id, current_collection + amount)
+
+            pet_drop = await self.bot.game_data._try_drop_pet(mob_id, magic_find)
+            if pet_drop:
+                pet_type, pet_rarity = pet_drop
+                await self.bot.db.add_player_pet(self.user_id, pet_type, pet_rarity)
+                items_obtained.append(f"🐾 **{pet_rarity} {pet_type.title()} Pet!**")
             
             coins = self.coins_reward
             xp = self.xp_reward
@@ -94,6 +104,10 @@ class CombatView(View):
             coins = int(coins * coin_multiplier)
             
             embed.description = f"💀 You defeated the {self.mob_name}!"
+            if combat_level > 0:
+                combat_drop_multiplier = 1.0 + (combat_level * 0.05)
+                embed.description += f"\n⚔️ **Combat Level {combat_level}** - {skill_multiplier:.2f}x damage, {combat_drop_multiplier:.2f}x drops"
+            
             if items_obtained:
                 embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
             else:
@@ -153,6 +167,8 @@ class CombatView(View):
         hit_text = f"💥 **CRITICAL HIT!** You dealt {total_damage} damage!" if crit else f"⚔️ You dealt {total_damage} damage!"
         if ferocity_hits > 1:
             hit_text += f" ({ferocity_hits}x hits from Ferocity!)"
+        if combat_level > 0:
+            hit_text += f"\n⚔️ Combat Level {combat_level} ({skill_multiplier:.2f}x damage bonus)"
         embed.description = f"{hit_text}\n🩸 The {self.mob_name} dealt {mob_damage} damage to you!"
         
         mob_hp_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
@@ -169,8 +185,8 @@ class CombatView(View):
             self.player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, self.user_id)
         
         if self.player_health is None:
-            self.player_health = self.player_stats['max_health']
-            self.player_max_health = self.player_stats['max_health']
+            self.player_health = int(self.player_stats['max_health'])
+            self.player_max_health = int(self.player_stats['max_health'])
         
         mob_damage = random.randint(self.mob_damage - 5, self.mob_damage + 5)
         damage_reduction = StatCalculator.calculate_damage_reduction(
@@ -210,8 +226,8 @@ class CombatView(View):
             self.player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, self.user_id)
         
         if self.player_health is None:
-            self.player_health = self.player_stats['max_health']
-            self.player_max_health = self.player_stats['max_health']
+            self.player_health = int(self.player_stats['max_health'])
+            self.player_max_health = int(self.player_stats['max_health'])
         
         mana_cost = 50
         current_mana = self.player_stats.get('mana', self.player_stats['max_mana'])
@@ -252,6 +268,12 @@ class CombatView(View):
                 
                 current_collection = await self.bot.db.get_collection(self.user_id, item_id)
                 await self.bot.db.add_collection(self.user_id, item_id, current_collection + amount)
+            
+            pet_drop = await self.bot.game_data._try_drop_pet(mob_id, magic_find)
+            if pet_drop:
+                pet_type, pet_rarity = pet_drop
+                await self.bot.db.add_player_pet(self.user_id, pet_type, pet_rarity)
+                items_obtained.append(f"🐾 **{pet_rarity} {pet_type.title()} Pet!**")
             
             coins = self.coins_reward
             xp = self.xp_reward

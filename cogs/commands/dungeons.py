@@ -4,21 +4,28 @@ from discord import app_commands
 from discord.ui import View, Button
 import random
 import asyncio
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Dict, Any
 from utils.stat_calculator import StatCalculator
 from utils.compat import roll_loot as compat_roll_loot, get_coins_reward as compat_get_coins
 from utils.decorators import auto_defer
+from utils.data.loot_tables import default_loot
+from utils.systems.party_system import PartySystem
+from utils.systems.puzzle_system import PuzzleSystem, Puzzle, PuzzleType
+from utils.systems.combat_system import CombatSystem
+from utils.systems.dungeon_system import DungeonSystem
+from utils.systems.economy_system import EconomySystem
 
 if TYPE_CHECKING:
     from main import SkyblockBot
 
 class DungeonView(View):
-    def __init__(self, bot: "SkyblockBot", user_id: int, floor_name: str, floor_data: dict):
+    def __init__(self, bot: "SkyblockBot", user_id: int, floor_name: str, floor_data: dict, party_id: Optional[int] = None):
         super().__init__(timeout=300)
         self.bot = bot
         self.user_id = user_id
         self.floor_name = floor_name
         self.floor_data = floor_data
+        self.party_id = party_id
         self.rooms_cleared = 0
         self.total_rooms = 7
         self.current_health: Optional[int] = None
@@ -33,6 +40,14 @@ class DungeonView(View):
         self.puzzles_failed = 0
         self.death_count = 0
         self.room_history = []
+        self.coins_gained_in_run = 0
+        self.current_puzzle: Optional[Puzzle] = None
+        self.party_size = 1
+        
+        if self.party_id:
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                self.party_size = len(party['members'])
         
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:
@@ -47,8 +62,9 @@ class DungeonView(View):
             return
         
         if self.current_health is None:
-            self.current_health = player['health']
-            self.max_health = player['max_health']
+            player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, self.user_id)
+            self.current_health = int(player_stats['max_health'])
+            self.max_health = int(player_stats['max_health'])
         
         self.rooms_cleared += 1
         
@@ -65,7 +81,7 @@ class DungeonView(View):
                 secret_count = random.randint(1, 3)
                 self.secrets_found += secret_count
                 coins = random.randint(50, 150)
-                await self.bot.player_manager.add_coins(self.user_id, coins)
+                self.coins_gained_in_run += coins
                 result += f"\n✨ Found {secret_count} secret(s) and {coins} coins!"
         elif room_type == 'blood_door':
             cost = random.randint(5, 15)
@@ -85,7 +101,7 @@ class DungeonView(View):
             loot_roll = random.random()
             if loot_roll > 0.7:
                 coins = random.randint(100, 300)
-                await self.bot.player_manager.add_coins(self.user_id, coins)
+                self.coins_gained_in_run += coins
                 result = f"⚰️ **Crypt!** You opened a crypt and found {coins} coins!"
             else:
                 damage_taken = random.randint(15, 35)
@@ -94,20 +110,39 @@ class DungeonView(View):
                 result = f"⚰️ **Crypt!** Undead burst out and dealt {damage_taken} damage!"
         elif room_type == 'mob':
             mob_difficulty = random.choice(['easy', 'medium', 'hard', 'miniboss'])
+            
+            mob_configs = {
+                'easy': {'defense': 10, 'damage_range': (5, 15), 'coins': (20, 50)},
+                'medium': {'defense': 25, 'damage_range': (15, 30), 'coins': (50, 100)},
+                'hard': {'defense': 50, 'damage_range': (25, 45), 'coins': (100, 200)},
+                'miniboss': {'defense': 100, 'damage_range': (40, 80), 'coins': (150, 400)}
+            }
+            
+            config = mob_configs[mob_difficulty]
+            
+            damage_result = await CombatSystem.calculate_player_damage(
+                self.bot.db, self.user_id, config['defense']
+            )
+            
+            mob_base_hp = config['damage_range'][1] * 3
+            player_damage = damage_result['damage']
+            
+            if player_damage >= mob_base_hp:
+                damage_taken = config['damage_range'][0]
+            else:
+                damage_taken = random.randint(*config['damage_range'])
+            
+            coins = random.randint(*config['coins'])
+            self.coins_gained_in_run += coins
+            
             if mob_difficulty == 'miniboss':
-                damage_taken = random.randint(40, 80)
-                coins = random.randint(150, 400)
-                await self.bot.player_manager.add_coins(self.user_id, coins)
                 result = f"👑 **Miniboss Room!** You defeated a mini-boss! Took {damage_taken} damage but gained {coins} coins!"
             elif mob_difficulty == 'hard':
-                damage_taken = random.randint(25, 45)
-                result = f"⚔️ **Mob Room (Hard)!** Tough enemies dealt {damage_taken} damage!"
+                result = f"⚔️ **Mob Room (Hard)!** Tough enemies dealt {damage_taken} damage! ({int(player_damage)} damage dealt)"
             elif mob_difficulty == 'medium':
-                damage_taken = random.randint(15, 30)
-                result = f"⚔️ **Mob Room (Medium)!** You took {damage_taken} damage clearing the room!"
+                result = f"⚔️ **Mob Room (Medium)!** You took {damage_taken} damage clearing the room! ({int(player_damage)} damage dealt)"
             else:
-                damage_taken = random.randint(5, 15)
-                result = f"⚔️ **Mob Room (Easy)!** You took {damage_taken} damage clearing the room!"
+                result = f"⚔️ **Mob Room (Easy)!** You took {damage_taken} damage clearing the room! ({int(player_damage)} damage dealt)"
             
             self.current_health = (self.current_health or 0) - damage_taken
             self.total_damage += damage_taken
@@ -117,29 +152,24 @@ class DungeonView(View):
                 self.secrets_found += secret_count
                 result += f"\n✨ Found {secret_count} secret(s) while fighting!"
         elif room_type == 'puzzle':
-            puzzle_types = ['Teleport Maze', 'Ice Path', 'Three Weirdos', 'Blaze Puzzle', 'Water Board']
-            puzzle_name = random.choice(puzzle_types)
-            success_chance = 0.65
+            floor_id = self.floor_name.lower().replace(' ', '')
+            puzzle_difficulty = min(10, max(1, (self.rooms_cleared // 2) + 1))
             
-            if random.random() < success_chance:
-                self.keys += 1
-                reward = random.choice(['key', 'coins', 'secrets'])
-                if reward == 'coins':
-                    coins = random.randint(80, 200)
-                    await self.bot.player_manager.add_coins(self.user_id, coins)
-                    result = f"🧩 **Puzzle Room ({puzzle_name})!** Solved! Got a key and {coins} coins! 🗝️"
-                elif reward == 'secrets':
-                    secret_count = random.randint(2, 3)
-                    self.secrets_found += secret_count
-                    result = f"🧩 **Puzzle Room ({puzzle_name})!** Solved! Got a key and found {secret_count} secrets! 🗝️"
-                else:
-                    result = f"🧩 **Puzzle Room ({puzzle_name})!** You solved it and got a key! 🗝️"
-            else:
-                self.puzzles_failed += 1
-                damage_taken = random.randint(10, 25)
-                self.current_health = (self.current_health or 0) - damage_taken
-                self.total_damage += damage_taken
-                result = f"🧩 **Puzzle Room ({puzzle_name})!** Failed! Took {damage_taken} damage from traps!"
+            self.current_puzzle = PuzzleSystem.create_puzzle(puzzle_difficulty, self.party_size)
+            
+            embed = discord.Embed(
+                title=f"🧩 Puzzle Room - {self.current_puzzle.data['name']}",
+                description=f"**Difficulty:** {puzzle_difficulty}/10\n**Attempts:** {self.current_puzzle.max_attempts}\n\n{self.current_puzzle.data['description']}",
+                color=discord.Color.purple()
+            )
+            embed.add_field(name="Question", value=self.current_puzzle.data['question'], inline=False)
+            embed.add_field(name="❤️ Health", value=f"{self.current_health or 0}/{self.max_health or 0}", inline=True)
+            embed.add_field(name="🗝️ Keys", value=str(self.keys), inline=True)
+            embed.add_field(name="✨ Secrets", value=f"{self.secrets_found}/{self.max_secrets}", inline=True)
+            embed.set_footer(text="Type your answer in chat or use the 'Get Hint' button")
+            
+            await interaction.response.edit_message(embed=embed, view=self)
+            return
         elif room_type == 'trap':
             trap_types = ['Arrow Trap', 'Lava Pit', 'TNT Trap', 'Poison Darts', 'Falling Blocks']
             trap_name = random.choice(trap_types)
@@ -154,7 +184,7 @@ class DungeonView(View):
                 result += f"\n✨ Found a secret while dodging traps!"
         elif room_type != 'blocked':
             coins = random.randint(30, 150)
-            await self.bot.player_manager.add_coins(self.user_id, coins)   
+            self.coins_gained_in_run += coins
             result = f"💎 **Treasure Room!** You found {coins} coins!"
             if random.random() > 0.5:
                 secret_count = random.randint(1, 3)
@@ -226,9 +256,9 @@ class DungeonView(View):
         if random.random() > 0.4:
             self.secrets_found += 1
             coins = random.randint(30, 120)
-            await self.bot.player_manager.add_coins(self.user_id, coins)   
+            self.coins_gained_in_run += coins
             
-            secret_types = ['Chest', 'Lever', 'Fairy Soul', 'Wither Essence', 'Bat', 'Item Frame']
+            secret_types = ['Chest', 'Lever', 'Wither Essence', 'Bat', 'Item Frame', 'Redstone Key']
             secret_type = random.choice(secret_types)
             
             result = f"✨ **Secret Found - {secret_type}!**\nYou found a secret and gained {coins} coins!"
@@ -243,7 +273,7 @@ class DungeonView(View):
         embed.add_field(name="❤️ Health", value=f"{self.current_health or 0}/{self.max_health or 0}", inline=True)
         embed.add_field(name="🗝️ Keys", value=str(self.keys), inline=True)
         embed.add_field(name="✨ Secrets", value=f"{self.secrets_found}/{self.max_secrets}", inline=True)
-        embed.add_field(name="� Deaths", value=str(self.death_count), inline=True)
+        embed.add_field(name=" Deaths", value=str(self.death_count), inline=True)
         embed.add_field(name="🚪 Doors Unlocked", value=f"W:{self.wither_doors_unlocked} B:{self.blood_doors_unlocked}", inline=True)
         embed.add_field(name="⚰️ Crypts", value=str(self.crypts_opened), inline=True)
         
@@ -251,6 +281,7 @@ class DungeonView(View):
     
     @discord.ui.button(label="🚪 Exit Dungeon", style=discord.ButtonStyle.gray, row=1)
     async def exit_dungeon(self, interaction: discord.Interaction, button: Button):
+        floor_id = self.floor_name.lower().replace(' ', '')
         score = self._calculate_score()
         
         embed = discord.Embed(
@@ -269,36 +300,79 @@ class DungeonView(View):
         
         player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, self.user_id)
         magic_find = player_stats.get('magic_find', 0)
-        magic_find += self.secrets_found * 2
         
         drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find)
         items_obtained = []
-        for item_id, amount in drops:
+        
+        if self.party_id:
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                member_ids = [m['user_id'] for m in party['members']]
+                member_data = [{'user_id': mid} for mid in member_ids]
+                
+                items_per_member = max(1, len(drops) // len(member_ids))
+                
+                for member_id in member_ids:
+                    for item_id, amount in drops[:items_per_member]:
+                        await self.bot.db.add_item_to_inventory(member_id, item_id, amount)
+                        if member_id == self.user_id:
+                            items_obtained.append(f"{item_id} x{amount}")
+        else:
+            for item_id, amount in drops:
+                await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
+                items_obtained.append(f"{item_id} x{amount}")
+        
+        dungeon_loot = await self._roll_dungeon_loot(floor_key, score, magic_find)
+        for item_id, amount in dungeon_loot:
             await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
-            items_obtained.append(f"{item_id} x{amount}")
+            items_obtained.append(f"✨ {item_id.replace('_', ' ').title()} x{amount}")
         
         if 'keys' in loot_table:
             min_keys, max_keys = loot_table['keys']
             bonus_keys = random.randint(min_keys, max_keys)
             self.keys += bonus_keys
         
-        score = self._calculate_score()
-        rewards = compat_get_coins(loot_table)
-        rewards = int(rewards * (score / 300))
-        await self.bot.player_manager.add_coins(self.user_id, rewards)   
+        coin_rewards = (self.rooms_cleared * 100) + (self.secrets_found * 50) - (self.death_count * 50)
+        xp_rewards = (self.rooms_cleared * 20) + (self.secrets_found * 10)
         
-        player_data = await self.bot.db.get_player(self.user_id)
-        if player_data:
-            await self.bot.db.update_player(
-                interaction.user.id,
-                total_earned=player_data.get('total_earned', 0) + rewards,
-                coins=player_data.get('coins', 0) + rewards
-            )
+        total_rewards = coin_rewards + self.coins_gained_in_run
+        
+        if self.party_id:
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                member_data = party['members']
+                
+                coins_per_member = total_rewards // len(member_data)
+                
+                for member in member_data:
+                    member_id = member['user_id']
+                    await self.bot.player_manager.add_coins(member_id, coins_per_member)
+                    player_data = await self.bot.db.get_player(member_id)
+                    if player_data:
+                        await self.bot.db.update_player(
+                            member_id,
+                            total_earned=player_data.get('total_earned', 0) + coins_per_member,
+                            coins=player_data.get('coins', 0) + coins_per_member
+                        )
+        else:
+            await self.bot.player_manager.add_coins(self.user_id, total_rewards)
+            player_data = await self.bot.db.get_player(self.user_id)
+            if player_data:
+                await self.bot.db.update_player(
+                    interaction.user.id,
+                    total_earned=player_data.get('total_earned', 0) + total_rewards,
+                    coins=player_data.get('coins', 0) + total_rewards
+                )
         
         if items_obtained:
             embed.add_field(name="🎁 Items Found", value="\n".join(items_obtained[:15]), inline=False)
         embed.add_field(name="🗝️ Keys Obtained", value=str(self.keys), inline=True)
-        embed.add_field(name="💰 Reward", value=f"{rewards} coins", inline=True)
+        embed.add_field(name="💰 Reward", value=f"{total_rewards} coins", inline=True)
+        embed.add_field(name="⭐ XP Gained", value=f"{xp_rewards} XP", inline=True)
+        
+        if self.party_id:
+            PartySystem.end_dungeon(self.party_id)
+            embed.set_footer(text=f"Party rewards distributed to {self.party_size} members")
         
         self.stop()
         for child in self.children:
@@ -306,27 +380,110 @@ class DungeonView(View):
                 child.disabled = True 
         await interaction.response.edit_message(embed=embed, view=self)
     
+    @discord.ui.button(label="💡 Get Hint", style=discord.ButtonStyle.blurple, row=1)
+    async def get_puzzle_hint(self, interaction: discord.Interaction, button: Button):
+        if not self.current_puzzle:
+            await interaction.response.send_message("❌ No active puzzle!", ephemeral=True)
+            return
+        
+        hint = self.current_puzzle.get_hint()
+        
+        if hint:
+            attempts_remaining = self.current_puzzle.max_attempts - self.current_puzzle.attempts
+            embed = discord.Embed(
+                title=f"💡 Puzzle Hint",
+                description=hint,
+                color=discord.Color.blue()
+            )
+            embed.set_footer(text=f"Attempts remaining: {attempts_remaining}/{self.current_puzzle.max_attempts}")
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ No hints available for this puzzle!", ephemeral=True)
+    
+    async def check_puzzle_answer(self, message_content: str) -> bool:
+        if not self.current_puzzle:
+            return False
+        
+        is_correct, message = self.current_puzzle.attempt_solve(message_content)
+        
+        if is_correct:
+            floor_difficulty = min(10, max(1, (self.rooms_cleared // 2) + 1))
+            
+            rewards = PuzzleSystem.calculate_puzzle_rewards(
+                self.current_puzzle,
+                floor_difficulty
+            )
+            
+            self.coins_gained_in_run += rewards['coins']
+            
+            self.current_puzzle = None
+            return True
+        else:
+            attempts_remaining = self.current_puzzle.max_attempts - self.current_puzzle.attempts
+            if attempts_remaining <= 0:
+                self.puzzles_failed += 1
+                
+                player_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+                
+                damage = PuzzleSystem.calculate_damage_on_failure(
+                    self.current_puzzle.difficulty,
+                    player_stats
+                )
+                
+                self.current_health = (self.current_health or 0) - damage
+                self.total_damage += damage
+                
+                self.current_puzzle = None
+                return False
+            return False
+    
+    async def _roll_dungeon_loot(self, floor_id: str, score: int, magic_find: float):
+        dungeon_loot = await self.bot.db.get_dungeon_loot(floor_id, score)
+        items = []
+
+        if not dungeon_loot:
+            dungeon_loot = self._get_default_dungeon_loot(floor_id)
+
+        valid_loot = []
+        for loot in dungeon_loot:
+            req = loot.get('score_requirement') if isinstance(loot, dict) else loot['score_requirement']
+            if req is None or score >= req:
+                valid_loot.append(loot)
+
+        for loot in valid_loot:
+            if isinstance(loot, dict):
+                drop_chance = loot.get('drop_chance', 0.1)
+                item_id = loot.get('item_id')
+                min_amount = loot.get('min_amount', 1)
+                max_amount = loot.get('max_amount', 1)
+            else:
+                drop_chance = loot['drop_chance']
+                item_id = loot['item_id']
+                min_amount = loot['min_amount']
+                max_amount = loot['max_amount']
+
+            adjusted_chance = drop_chance * (1 + magic_find / 100)
+            if random.random() < adjusted_chance:
+                amount = random.randint(min_amount, max_amount)
+                items.append((item_id, amount))
+
+        return items
+
+    def _get_default_dungeon_loot(self, floor_id: str):
+        
+        return default_loot.get(floor_id, default_loot.get('entrance', []))
+    
     def _calculate_score(self) -> int:
-        base_score = 100
-        room_score = self.rooms_cleared * 20
-        secret_score = self.secrets_found * 5
-        secret_percentage = (self.secrets_found / self.max_secrets) * 100
+        base_score = (self.rooms_cleared * 20)
+        secret_bonus = (self.secrets_found * 5)
+        death_penalty = (self.death_count * 25)
+        door_bonus = (self.wither_doors_unlocked * 3) + (self.blood_doors_unlocked * 2)
+        crypt_bonus = (self.crypts_opened * 5)
+        puzzle_penalty = (self.puzzles_failed * 10)
         
-        health_bonus = max(0, 100 - self.total_damage // 10)
-        death_penalty = self.death_count * 25
-        puzzle_bonus = max(0, 50 - (self.puzzles_failed * 10))
-        door_bonus = (self.wither_doors_unlocked * 10) + (self.blood_doors_unlocked * 8)
-        crypt_bonus = self.crypts_opened * 5
+        score = base_score + secret_bonus + door_bonus + crypt_bonus - death_penalty - puzzle_penalty
         
-        total_score = (base_score + room_score + secret_score + health_bonus + 
-                      puzzle_bonus + door_bonus + crypt_bonus - death_penalty)
-        
-        if secret_percentage >= 100:
-            total_score += 100
-        elif secret_percentage >= 80:
-            total_score += 50
-        
-        return max(0, total_score)
+        return max(0, score)
 
 class DungeonCommands(commands.Cog):
     def __init__(self, bot):
@@ -357,6 +514,32 @@ class DungeonCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
+        can_enter, reason = await DungeonSystem.can_enter_floor(self.bot.db, interaction.user.id, floor)
+        if not can_enter:
+            await interaction.followup.send(f"❌ Cannot enter this floor: {reason}", ephemeral=True)
+            return
+        
+        gear_score = await DungeonSystem.calculate_gear_score(self.bot.db, interaction.user.id)
+        
+        party = PartySystem.get_party(interaction.user.id)
+        party_id = None
+        
+        if party:
+            if party['leader_id'] != interaction.user.id:
+                await interaction.followup.send("❌ Only the party leader can start a dungeon!", ephemeral=True)
+                return
+            
+            if party['in_dungeon']:
+                await interaction.followup.send("❌ Your party is already in a dungeon!", ephemeral=True)
+                return
+            
+            result = PartySystem.start_dungeon(interaction.user.id, floor)
+            if not result['success']:
+                await interaction.followup.send(f"❌ {result['error']}", ephemeral=True)
+                return
+            
+            party_id = party['party_id']
+        
         floor_info_from_db = await self.bot.game_data.get_dungeon_floor(floor)
         
         if not floor_info_from_db:
@@ -385,7 +568,7 @@ class DungeonCommands(commands.Cog):
                 'time': int(floor_info_from_db['time']) if 'time' in floor_info_from_db.keys() else 300
             }
         
-        view = DungeonView(self.bot, interaction.user.id, floor_info['name'], floor_info)
+        view = DungeonView(self.bot, interaction.user.id, floor_info['name'], floor_info, party_id)
         
         embed = discord.Embed(
             title=f"🏰 Entering {floor_info['name']}",
@@ -394,7 +577,15 @@ class DungeonCommands(commands.Cog):
         )
         embed.add_field(name="Expected Time", value=f"~{floor_info['time']//60}m {floor_info['time']%60}s", inline=True)
         embed.add_field(name="Base Rewards", value=f"{floor_info['rewards']:,} coins", inline=True)
-        embed.set_footer(text="Use buttons to navigate the dungeon")
+        embed.add_field(name="Gear Score", value=f"{gear_score}", inline=True)
+        
+        if party_id:
+            party = PartySystem.get_party_by_id(party_id)
+            if party:
+                embed.add_field(name="Party Size", value=f"{len(party['members'])}/{party['max_members']}", inline=True)
+                embed.set_footer(text="Party dungeon run - rewards will be distributed")
+        else:
+            embed.set_footer(text="Use buttons to navigate the dungeon")
         
         await interaction.followup.send(embed=embed, view=view)
 
@@ -430,9 +621,15 @@ class DungeonCommands(commands.Cog):
         
         embed.add_field(
             name="Commands",
-            value="`/party_create` - Create a new party\n`/party_invite @user` - Invite someone\n`/party_join @user` - Join a party\n`/party_leave` - Leave party",
+            value="`/party_create` - Create a new party\n`/party_invite @user` - Invite someone\n`/party_list` - View your party\n`/party_leave` - Leave party\n`/party_kick @user` - Kick a member (leader only)\n`/party_disband` - Disband party (leader only)",
             inline=False
         )
+        
+        party = PartySystem.get_party(interaction.user.id)
+        if party:
+            members_text = "\n".join([f"{'👑 ' if m['user_id'] == party['leader_id'] else ''}**{m['username']}**" for m in party['members']])
+            embed.add_field(name="Your Current Party", value=members_text, inline=False)
+            embed.add_field(name="Party Status", value="🏰 In Dungeon" if party['in_dungeon'] else "⏳ In Lobby", inline=True)
         
         await interaction.response.send_message(embed=embed)
 

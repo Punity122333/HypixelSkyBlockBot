@@ -3,99 +3,96 @@ from discord.ext import commands
 from discord import app_commands
 from discord.ui import View, Button
 import math
+from typing import Dict, List, Tuple
 
-COMMAND_CATEGORIES = {
-    '👤 Profile & Stats': [
-        ('profile', 'View your player profile'),
-        ('stats', 'View your stats'),
-        ('skills', 'View your skill levels'),
-        ('progression', 'View your progression and milestones')
-    ],
-    '💰 Economy & Banking': [
-        ('bank', 'View your bank account'),
-        ('deposit', 'Deposit coins into bank'),
-        ('withdraw', 'Withdraw coins from bank'),
-        ('pay', 'Pay coins to another player')
-    ],
-    '🎒 Inventory & Items': [
-        ('inventory', 'View your inventory'),
-        ('enderchest', 'View your ender chest'),
-        ('wardrobe', 'Manage armor sets'),
-        ('accessories', 'View accessory bag')
-    ],
-    '⛏️ Gathering & Skills': [
-        ('mine', 'Mine for resources'),
-        ('farm', 'Farm crops'),
-        ('fish', 'Go fishing'),
-        ('forage', 'Chop trees'),
-        ('combat_mobs', 'Fight mobs')
-    ],
-    '🔨 Crafting & Upgrading': [
-        ('craft', 'Craft items'),
-        ('recipes', 'View crafting recipes'),
-        ('reforge', 'Reforge items for better stats'),
-        ('reforges', 'View available reforges'),
-        ('enchant', 'Enchant items')
-    ],
-    '🏪 Trading & Markets': [
-        ('ah_create', 'Create an auction'),
-        ('ah_browse', 'Browse auctions'),
-        ('ah_bid', 'Bid on auction'),
-        ('ah_bin', 'Buy BIN auction'),
-        ('ah_my', 'View your auctions'),
-        ('bz_prices', 'View bazaar prices'),
-        ('bz_buy', 'Buy from bazaar'),
-        ('bz_sell', 'Sell to bazaar'),
-        ('bz_order_buy', 'Place buy order'),
-        ('bz_order_sell', 'Place sell order')
-    ],
-    '� Economy & Analysis': [
-        ('stocks', 'View stock market'),
-        ('stock_buy', 'Buy stocks'),
-        ('stock_sell', 'Sell stocks'),
-        ('portfolio', 'View portfolio'),
-        ('flip_stats', 'View flip statistics'),
-        ('market_trends', 'View market trends'),
-        ('economy_overview', 'Economy overview')
-    ],
-    '🐾 Pets & Minions': [
-        ('pets', 'View your pets'),
-        ('pet_equip', 'Equip a pet'),
-        ('pet_info', 'View pet info'),
-        ('minions', 'View your minions'),
-        ('minion_place', 'Place a minion'),
-        ('minion_collect', 'Collect from minion')
-    ],
-    '📜 Quests & Collections': [
-        ('quests', 'View active quests'),
-        ('claim_quest', 'Claim quest reward'),
-        ('daily', 'Claim daily reward'),
-        ('collections', 'View collections'),
-        ('starter_pack', 'Get starter items')
-    ],
-    '🏰 Dungeons & Combat': [
-        ('dungeons', 'Enter dungeons'),
-        ('slayer', 'Start slayer quest'),
-        ('combat_stats', 'View combat stats')
-    ],
-    '🎪 Events & Calendar': [
-        ('events', 'View active events'),
-        ('calendar', 'View SkyBlock calendar')
-    ],
-    '🏆 Other Commands': [
-        ('leaderboard', 'View leaderboards'),
-        ('guide', 'Progression guide'),
-        ('tips', 'Get trading tips'),
-        ('progression_path', 'View tool progression')
-    ]
+COG_CATEGORY_MAP = {
+    'ProfileCommands': '👤 Profile & Stats',
+    'BeginCommands': '👤 Profile & Stats',
+    'IslandCommands': '👤 Profile & Stats',
+    'ProgressionCommands': '👤 Profile & Stats',
+    'LeaderboardCommands': '👤 Profile & Stats',
+    
+    'BankCommands': '💰 Economy & Banking',
+    'EconomyStatsCommands': '💰 Economy & Banking',
+    
+    'InventoryCommands': '🎒 Inventory & Items',
+    'CollectionCommands': '🎒 Inventory & Items',
+    
+    'SkillCommands': '⛏️ Gathering & Skills',
+    'GatheringCommands': '⛏️ Gathering & Skills',
+    
+    'CraftingCommands': '🔨 Crafting & Upgrading',
+    'EnchantingCommands': '🔨 Crafting & Upgrading',
+    
+    'AuctionCommands': '🏪 Trading & Markets',
+    'BazaarCommands': '🏪 Trading & Markets',
+    'MarketplaceCommands': '🏪 Trading & Markets',
+    'MerchantCommands': '🏪 Trading & Markets',
+    
+    'StockCommands': '📈 Stocks & Economy',
+    
+    'PetCommands': '🐾 Pets & Minions',
+    'MinionCommands': '🐾 Pets & Minions',
+    
+    'QuestCommands': '📜 Quests & Collections',
+    
+    'CombatCommands': '🏰 Dungeons & Combat',
+    'DungeonCommands': '🏰 Dungeons & Combat',
+    'SlayerCommands': '🏰 Dungeons & Combat',
+    
+    'EventCommands': '🎪 Events & Calendar',
+    
+    'MiscCommands': '⚙️ Bot & Admin',
+    'AdminCommands': '⚙️ Bot & Admin',
 }
 
+CATEGORY_ORDER = [
+    '👤 Profile & Stats',
+    '💰 Economy & Banking',
+    '🎒 Inventory & Items',
+    '⛏️ Gathering & Skills',
+    '🔨 Crafting & Upgrading',
+    '🏪 Trading & Markets',
+    '📈 Stocks & Economy',
+    '🐾 Pets & Minions',
+    '📜 Quests & Collections',
+    '🏰 Dungeons & Combat',
+    '🎪 Events & Calendar',
+    '⚙️ Bot & Admin',
+]
+
+def get_command_categories(bot: commands.Bot) -> Dict[str, List[Tuple[str, str]]]:
+    categories: Dict[str, List[Tuple[str, str]]] = {category: [] for category in CATEGORY_ORDER}
+    categories['📋 Other Commands'] = []
+    
+    for cmd in bot.tree.get_commands():
+        if isinstance(cmd, (app_commands.Command, app_commands.Group)):
+            cmd_name = cmd.name
+            cmd_description = cmd.description or 'No description available'
+            
+            category = '📋 Other Commands'
+            
+            binding = getattr(cmd, 'binding', None)
+            if binding is not None:
+                cog_name = binding.__class__.__name__
+                category = COG_CATEGORY_MAP.get(cog_name, '📋 Other Commands')
+            
+            categories[category].append((cmd_name, cmd_description))
+    
+    categories = {cat: cmds for cat, cmds in categories.items() if cmds}
+
+    for category in categories:
+        categories[category].sort(key=lambda x: x[0])
+    
+    return categories
+
 class HelpView(View):
-    def __init__(self, user_id):
+    def __init__(self, user_id, command_categories: Dict[str, List[Tuple[str, str]]]):
         super().__init__(timeout=180)
         self.user_id = user_id
         self.page = 0
-        self.categories = list(COMMAND_CATEGORIES.keys())
+        self.command_categories = command_categories
+        self.categories = list(command_categories.keys())
         
         self.add_buttons()
     
@@ -134,29 +131,77 @@ class HelpView(View):
     
     def create_embed(self):
         embed = discord.Embed(
-            title="� SkyBlock Bot Commands",
+            title="SkyBlock Bot Commands",
             description="All available commands organized by category",
             color=discord.Color.blue()
         )
         
-        items_per_page = 3
-        start_idx = self.page * items_per_page
-        end_idx = min(start_idx + items_per_page, len(self.categories))
+        total_commands = sum(len(cmds) for cmds in self.command_categories.values())
         
-        for category_name in self.categories[start_idx:end_idx]:
-            commands_list = COMMAND_CATEGORIES[category_name]
+        for category_name, commands_list in self.command_categories.items():
+            if not commands_list:
+                continue
             commands_text = "\n".join([f"`/{cmd}` - {desc}" for cmd, desc in commands_list])
-            
             embed.add_field(
                 name=category_name,
                 value=commands_text,
                 inline=False
             )
         
-        total_pages = math.ceil(len(self.categories) / items_per_page)
-        embed.set_footer(text=f"Page {self.page + 1}/{total_pages} • Start with /starter_pack to begin!")
-        
+        embed.set_footer(text=f"Total: {total_commands} commands | Use /claim_starter_pack to begin!")
         return embed
+
+class WikiPaginationView(View):
+    def __init__(self, pages: list, title: str):
+        super().__init__(timeout=180)
+        self.pages = pages
+        self.title = title
+        self.current_page = 0
+        self.update_buttons()
+    
+    def update_buttons(self):
+        self.first_page.disabled = self.current_page == 0
+        self.prev_page.disabled = self.current_page == 0
+        self.next_page.disabled = self.current_page >= len(self.pages) - 1
+        self.last_page.disabled = self.current_page >= len(self.pages) - 1
+    
+    def get_embed(self):
+        embed = discord.Embed(
+            title=f"📚 {self.title} Wiki" if self.current_page == 0 else None,
+            description=self.pages[self.current_page],
+            color=discord.Color.blue()
+        )
+        embed.set_footer(text=f"Page {self.current_page + 1}/{len(self.pages)}")
+        return embed
+    
+    @discord.ui.button(label="⏮️", style=discord.ButtonStyle.secondary)
+    async def first_page(self, interaction: discord.Interaction, button: Button):
+        self.current_page = 0
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+    
+    @discord.ui.button(label="◀️", style=discord.ButtonStyle.primary)
+    async def prev_page(self, interaction: discord.Interaction, button: Button):
+        self.current_page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+    
+    @discord.ui.button(label="▶️", style=discord.ButtonStyle.primary)
+    async def next_page(self, interaction: discord.Interaction, button: Button):
+        self.current_page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+    
+    @discord.ui.button(label="⏭️", style=discord.ButtonStyle.secondary)
+    async def last_page(self, interaction: discord.Interaction, button: Button):
+        self.current_page = len(self.pages) - 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+    
+    async def on_timeout(self):
+        for item in self.children:
+            if isinstance(item, Button):
+                item.disabled = True
 
 class MiscCommands(commands.Cog):
     def __init__(self, bot):
@@ -164,7 +209,9 @@ class MiscCommands(commands.Cog):
 
     @app_commands.command(name="help", description="View all available commands")
     async def help(self, interaction: discord.Interaction):
-        view = HelpView(interaction.user.id)
+        command_categories = get_command_categories(self.bot)
+        
+        view = HelpView(interaction.user.id, command_categories)
         embed = view.create_embed()
         
         await interaction.response.send_message(embed=embed, view=view)
@@ -173,19 +220,78 @@ class MiscCommands(commands.Cog):
     @app_commands.command(name="wiki", description="Search the SkyBlock wiki")
     @app_commands.describe(query="What to search for")
     async def wiki(self, interaction: discord.Interaction, query: str):
-        embed = discord.Embed(
-            title=f"📚 Wiki Search: {query}",
-            description=f"Search results for '{query}'",
-            color=discord.Color.blue()
-        )
+        import os
         
-        embed.add_field(
-            name="Top Results",
-            value=f"• {query} Guide\n• {query} Recipes\n• {query} Statistics",
-            inline=False
-        )
+        query_normalized = query.lower().strip().replace(' ', '_')
         
-        await interaction.response.send_message(embed=embed)
+        wiki_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'wiki')
+        wiki_file = os.path.join(wiki_path, f'{query_normalized}.txt')
+        
+        if os.path.exists(wiki_file):
+            with open(wiki_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            if len(content) > 4000:
+                lines = content.split('\n')
+                chunks = []
+                current_chunk = ""
+                
+                for line in lines:
+                    if len(current_chunk) + len(line) + 1 < 4000:
+                        current_chunk += line + '\n'
+                    else:
+                        chunks.append(current_chunk)
+                        current_chunk = line + '\n'
+                
+                if current_chunk:
+                    chunks.append(current_chunk)
+                
+                view = WikiPaginationView(chunks, query.title())
+                embed = discord.Embed(
+                    title=f"📚 {query.title()} Wiki",
+                    description=chunks[0],
+                    color=discord.Color.blue()
+                )
+                embed.set_footer(text=f"Page 1/{len(chunks)}")
+                
+                await interaction.response.send_message(embed=embed, view=view)
+            else:
+                embed = discord.Embed(
+                    title=f"📚 {query.title()} Wiki",
+                    description=content,
+                    color=discord.Color.blue()
+                )
+                await interaction.response.send_message(embed=embed)
+        else:
+            index_file = os.path.join(wiki_path, 'wiki_index.txt')
+            suggestions = []
+            
+            if os.path.exists(index_file):
+                with open(index_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#') and '|' in line:
+                            parts = line.split('|')
+                            if len(parts) >= 2:
+                                keyword = parts[0].strip()
+                                if query_normalized in keyword or keyword in query_normalized:
+                                    suggestions.append(keyword.replace('_', ' '))
+            
+            if suggestions:
+                suggestion_text = "\n".join([f"• {s}" for s in suggestions[:10]])
+                embed = discord.Embed(
+                    title=f"📚 No exact match for '{query}'",
+                    description=f"Did you mean one of these?\n\n{suggestion_text}\n\nTry: `/wiki <topic>`",
+                    color=discord.Color.orange()
+                )
+            else:
+                embed = discord.Embed(
+                    title=f"📚 Wiki topic not found: {query}",
+                    description="Available topics:\n• getting_started\n• fairy_souls\n• dungeons\n• bazaar\n• coins\n• mining\n• farming\n• combat\n\nMore topics coming soon!",
+                    color=discord.Color.red()
+                )
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name="settings", description="Configure bot settings")
     async def settings(self, interaction: discord.Interaction):

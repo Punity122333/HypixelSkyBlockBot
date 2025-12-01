@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from utils.event_effects import EventEffects
+from utils.autocomplete import item_autocomplete
 
 class EnchantingAdvanced(commands.Cog):
     def __init__(self, bot):
@@ -73,6 +74,10 @@ class EnchantingAdvanced(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
+    @enchant.autocomplete('item')
+    async def enchant_item_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
     @app_commands.command(name="anvil", description="Combine items in the anvil")
     @app_commands.describe(
         item1="First item to combine",
@@ -134,6 +139,14 @@ class EnchantingAdvanced(commands.Cog):
             await self.bot.db.update_skill(interaction.user.id, 'enchanting', xp=new_xp, level=new_level)
         
         await interaction.followup.send(embed=embed)
+
+    @anvil.autocomplete('item1')
+    async def anvil_item1_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
+    @anvil.autocomplete('item2')
+    async def anvil_item2_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
 
 async def setup(bot):
     await bot.add_cog(EnchantingAdvanced(bot))

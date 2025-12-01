@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from utils.systems.progression_system import ProgressionSystem
 
 class ProgressionCommands(commands.Cog):
     def __init__(self, bot):

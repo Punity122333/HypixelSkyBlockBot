@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from utils.comprehensive_stat_calculator import ComprehensiveStatCalculator
+from utils.stat_calculator import StatCalculator
 
 class ProfileCommands(commands.Cog):
     def __init__(self, bot):
@@ -15,8 +15,7 @@ class ProfileCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
-        # Use comprehensive stat calculator for full stats
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+        stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
         skills = await self.bot.db.get_skills(interaction.user.id)
         
         embed = discord.Embed(
@@ -60,8 +59,7 @@ class ProfileCommands(commands.Cog):
     async def stats(self, interaction: discord.Interaction):
         await interaction.response.defer()
         
-        # Use comprehensive stat calculator for full stats (includes fairy souls, set bonuses, pets, etc)
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+        stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
 
         embed = discord.Embed(
             title=f"📈 {interaction.user.name}'s Stats",

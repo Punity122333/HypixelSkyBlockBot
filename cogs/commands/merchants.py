@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import time
+from utils.systems.economy_system import EconomySystem
 
 class MerchantCommands(commands.Cog):
     def __init__(self, bot):

@@ -4,108 +4,9 @@ from discord import app_commands
 from discord.ui import View, Button, Select
 from typing import Optional
 import math
+from utils.data.game_constants import PET_STATS
+from utils.autocomplete import pet_autocomplete
 
-PET_STATS = {
-    'wolf': {
-        'COMMON': {'strength': 5, 'crit_damage': 10},
-        'UNCOMMON': {'strength': 10, 'crit_damage': 15},
-        'RARE': {'strength': 15, 'crit_damage': 25},
-        'EPIC': {'strength': 25, 'crit_damage': 35},
-        'LEGENDARY': {'strength': 40, 'crit_damage': 50}
-    },
-    'enderman': {
-        'COMMON': {'crit_damage': 5},
-        'UNCOMMON': {'crit_damage': 10},
-        'RARE': {'crit_damage': 15},
-        'EPIC': {'crit_damage': 25, 'intelligence': 10},
-        'LEGENDARY': {'crit_damage': 35, 'intelligence': 15}
-    },
-    'phoenix': {
-        'EPIC': {'strength': 20, 'intelligence': 30},
-        'LEGENDARY': {'strength': 35, 'intelligence': 50, 'health': 50}
-    },
-    'dragon': {
-        'LEGENDARY': {'strength': 50, 'crit_damage': 50, 'crit_chance': 10, 'health': 100}
-    },
-    'bee': {
-        'COMMON': {'farming_fortune': 5},
-        'UNCOMMON': {'farming_fortune': 10},
-        'RARE': {'farming_fortune': 20, 'speed': 5},
-        'EPIC': {'farming_fortune': 30, 'speed': 10}
-    },
-    'elephant': {
-        'COMMON': {'mining_fortune': 5, 'defense': 5},
-        'UNCOMMON': {'mining_fortune': 10, 'defense': 10},
-        'RARE': {'mining_fortune': 20, 'defense': 15},
-        'EPIC': {'mining_fortune': 30, 'defense': 25, 'health': 25}
-    },
-    'giraffe': {
-        'COMMON': {'foraging_fortune': 5},
-        'UNCOMMON': {'foraging_fortune': 10},
-        'RARE': {'foraging_fortune': 20, 'health': 10},
-        'EPIC': {'foraging_fortune': 30, 'health': 20}
-    },
-    'dolphin': {
-        'COMMON': {'fishing_speed': 5},
-        'UNCOMMON': {'fishing_speed': 10},
-        'RARE': {'fishing_speed': 15},
-        'EPIC': {'fishing_speed': 25, 'sea_creature_chance': 5}
-    },
-    'rabbit': {
-        'COMMON': {'speed': 10},
-        'UNCOMMON': {'speed': 20},
-        'RARE': {'speed': 30, 'health': 10},
-        'EPIC': {'speed': 40, 'health': 20}
-    },
-    'sheep': {
-        'COMMON': {'intelligence': 5},
-        'UNCOMMON': {'intelligence': 10, 'ability_damage': 5},
-        'RARE': {'intelligence': 15, 'ability_damage': 10},
-        'EPIC': {'intelligence': 25, 'ability_damage': 15}
-    },
-    'pigman': {
-        'EPIC': {'strength': 20, 'defense': 10, 'ferocity': 10},
-        'LEGENDARY': {'strength': 35, 'defense': 20, 'ferocity': 20}
-    },
-    'bal': {
-        'EPIC': {'mining_speed': 20, 'mining_fortune': 15},
-        'LEGENDARY': {'mining_speed': 30, 'mining_fortune': 25}
-    },
-    'blaze': {
-        'RARE': {'strength': 10, 'defense': 5},
-        'EPIC': {'strength': 20, 'defense': 10, 'intelligence': 10},
-        'LEGENDARY': {'strength': 30, 'defense': 20, 'intelligence': 20}
-    },
-    'silverfish': {
-        'COMMON': {'mining_speed': 5},
-        'UNCOMMON': {'mining_speed': 10, 'defense': 5},
-        'RARE': {'mining_speed': 15, 'defense': 10}
-    },
-    'tiger': {
-        'LEGENDARY': {'strength': 30, 'ferocity': 25, 'crit_chance': 5}
-    },
-    'lion': {
-        'LEGENDARY': {'strength': 50, 'speed': 25, 'ferocity': 20}
-    },
-    'monkey': {
-        'RARE': {'intelligence': 20, 'speed': 10},
-        'EPIC': {'intelligence': 30, 'speed': 15, 'ability_damage': 10}
-    },
-    'parrot': {
-        'EPIC': {'intelligence': 25, 'crit_damage': 15},
-        'LEGENDARY': {'intelligence': 40, 'crit_damage': 25}
-    },
-    'turtle': {
-        'RARE': {'defense': 30, 'health': 20},
-        'EPIC': {'defense': 50, 'health': 40},
-        'LEGENDARY': {'defense': 75, 'health': 60}
-    },
-    'chicken': {
-        'COMMON': {'health': 10},
-        'UNCOMMON': {'health': 20, 'speed': 5},
-        'RARE': {'health': 30, 'speed': 10}
-    }
-}
 
 class PetSelectView(View):
     def __init__(self, pets, user_id, bot):
@@ -233,6 +134,7 @@ class PetCommands(commands.Cog):
         )
         
         pets = await self.bot.db.get_user_pets(interaction.user.id)
+
         
         matching_pet = None
         for pet in pets:
@@ -276,6 +178,10 @@ class PetCommands(commands.Cog):
         
         await interaction.followup.send(embed=embed)
 
+    @pet_equip.autocomplete('pet_type')
+    async def pet_equip_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await pet_autocomplete(interaction, current)
+    
     @app_commands.command(name="pet_info", description="View detailed info about a pet")
     @app_commands.describe(pet_type="The type of pet")
     async def pet_info(self, interaction: discord.Interaction, pet_type: str):
@@ -284,6 +190,7 @@ class PetCommands(commands.Cog):
         pet_type = pet_type.lower()
         
         all_pets = await self.bot.game_data.get_all_pet_stats()
+
         matching_pets = {k: v for k, v in all_pets.items() if v['pet_type'] == pet_type}
         
         if not matching_pets and pet_type not in PET_STATS:
@@ -318,6 +225,11 @@ class PetCommands(commands.Cog):
         embed.set_footer(text="Stats scale with pet level (up to +100% at level 100)")
         
         await interaction.followup.send(embed=embed)
+        
+    
+    @pet_info.autocomplete('pet_type')
+    async def pet_info_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await pet_autocomplete(interaction, current)
 
     @app_commands.command(name="pet_unequip", description="Unequip your current pet")
     async def pet_unequip(self, interaction: discord.Interaction):

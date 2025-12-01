@@ -4,6 +4,7 @@ from discord import app_commands
 import asyncio
 import time
 from typing import Dict, List
+from utils.autocomplete import recipe_autocomplete, item_autocomplete
 
 class _TrieNode:
         __slots__ = ("children", "items")
@@ -63,7 +64,6 @@ class CraftingCommands(commands.Cog):
         if isinstance(entry, dict):
             if "ingredients" in entry and isinstance(entry["ingredients"], dict):
                 return entry["ingredients"]
-            # If the entry itself *is* the ingredients dict
             if all(isinstance(k, str) and isinstance(v, int) for k, v in entry.items()):
                 return entry
         return None
@@ -91,12 +91,20 @@ class CraftingCommands(commands.Cog):
             item_id = self._normalize_item_id(item)
             recipe_data = await self.bot.game_data.get_crafting_recipe(item_id)
             recipe = self._unwrap_recipe(recipe_data)
+            output_amount = 1
+            if recipe_data and isinstance(recipe_data, dict):
+                output_amount = recipe_data.get('output_amount', 1)
             if recipe is None:
                 all_recipes = await self._load_all_recipes()
-                recipe = self._unwrap_recipe(all_recipes.get(item_id))
+                recipe_entry = all_recipes.get(item_id)
+                recipe = self._unwrap_recipe(recipe_entry)
+                if recipe_entry and isinstance(recipe_entry, dict):
+                    output_amount = recipe_entry.get('output_amount', 1)
             if not recipe:
                 await interaction.followup.send(f"❌ No recipe found for `{item}`!", ephemeral=True)
                 return
+            if output_amount < 1:
+                output_amount = 1
             inventory = await self.bot.db.get_inventory(interaction.user.id)
             player_items = {}
             for inv_item in inventory:
@@ -122,13 +130,50 @@ class CraftingCommands(commands.Cog):
             for ing, amt in recipe.items():
                 tasks.append(self.bot.db.remove_item_from_inventory(interaction.user.id, ing, amt * quantity))
             await asyncio.gather(*tasks)
-            await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, quantity)
+            
+            item_obj = await self.bot.game_data.get_item(item_id)
+            is_pet = False
+            if item_obj and hasattr(item_obj, 'type') and item_obj.type == 'PET':
+                is_pet = True
+            elif item_obj and isinstance(item_obj, dict) and item_obj.get('type') == 'PET':
+                is_pet = True
+            
+            if is_pet:
+                pet_type = item_id
+                if '_' in item_id:
+                    parts = item_id.rsplit('_', 1)
+                    if len(parts) == 2 and parts[1].upper() in ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC']:
+                        pet_type = parts[0]
+                        rarity = parts[1].upper()
+                    else:
+                        pet_type = item_id
+                        rarity = 'COMMON'
+                else:
+                    rarity = 'COMMON'
+                
+                total_pets = quantity * output_amount
+                for _ in range(total_pets):
+                    await self.bot.db.add_player_pet(interaction.user.id, pet_type, rarity)
+            else:
+                total_output = quantity * output_amount
+                await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, total_output)
+            
             name = await self._resolve_item_name(item_id)
             name = f"**{name}**"
-            embed = discord.Embed(title="✅ Crafted!", description=f"You crafted **{quantity}x** {name}!", color=discord.Color.green())
+            total_crafted = quantity * output_amount
+            
+            if output_amount > 1:
+                craft_desc = f"You crafted **{quantity}x** recipes, producing **{total_crafted}x** {name}!"
+            else:
+                craft_desc = f"You crafted **{total_crafted}x** {name}!"
+            
+            embed = discord.Embed(title="✅ Crafted!", description=craft_desc, color=discord.Color.green())
             s = "\n".join([f"• **{amt * quantity}x** {ing.replace('_',' ').title()}" for ing, amt in recipe.items()])
             embed.add_field(name="Materials Used", value=s, inline=False)
-            embed.add_field(name="Result", value=f"**{quantity}x** {name}", inline=False)
+            if is_pet:
+                embed.add_field(name="Result", value=f"🐾 **{total_crafted}x** {name} added to your pet collection!", inline=False)
+            else:
+                embed.add_field(name="Result", value=f"**{total_crafted}x** {name}", inline=False)
             await interaction.followup.send(embed=embed)
         except Exception as e:
             await interaction.followup.send("An error occurred while crafting.", ephemeral=True)
@@ -136,46 +181,7 @@ class CraftingCommands(commands.Cog):
 
     @craft.autocomplete("item")
     async def craft_autocomplete(self, interaction: discord.Interaction, current: str):
-        q = (current or "").strip().lower()
-        recipes = await self._load_all_recipes()
-        if not recipes:
-            return []
-        
-        if not hasattr(self, "_trie_ready"):
-            names = {}
-            for rid in recipes.keys():
-                try:
-                    obj = await self.bot.game_data.get_item(rid)
-                    names[rid] = obj.name if obj and getattr(obj, "name", None) else rid.replace("_", " ").title()
-                except:
-                    names[rid] = rid.replace("_", " ").title()
-
-            self._names = names
-
-            self._trie = _Trie()
-            for rid, disp in names.items():
-                self._trie.insert(disp.lower(), rid)
-                self._trie.insert(rid.lower(), rid)
-
-            self._trie_ready = True
-
-        if not q:
-            out = list(self._names.keys())[:25]
-            out = sorted(out, key=lambda rid: self._names[rid].lower())
-            return [app_commands.Choice(name=self._names[rid], value=rid) for rid in out]
-
-        from_prefix = self._trie.search_prefix(q)
-        seen = set(from_prefix)
-
-        partial = [rid for rid in self._names if q in rid.lower() or q in self._names[rid].lower()]
-        for rid in partial:
-            if rid not in seen:
-                from_prefix.append(rid)
-
-        from_prefix.sort(key=lambda rid: self._names[rid].lower())
-        from_prefix = from_prefix[:25]
-
-        return [app_commands.Choice(name=self._names[rid], value=rid) for rid in from_prefix]
+        return await recipe_autocomplete(interaction, current)
 
     async def paginate(self, interaction, pages: List[discord.Embed]):
         for i, p in enumerate(pages):
@@ -218,6 +224,7 @@ class CraftingCommands(commands.Cog):
                 if filter_type and obj and getattr(obj, "type", None) and obj.type.lower() != filter_type.lower():
                     continue
                 name = obj.name if obj and getattr(obj, "name", None) else item_id.replace("_", " ").title()
+                name = f"{recipe['output_amount']}x {name}" if isinstance(entry, dict) and entry.get('output_amount', 1) > 1 else name
                 line = ", ".join([f"{amt}x {ing.replace('_', ' ').title()}" for ing, amt in recipe.items()])
                 batch.append((name, line))
                 if len(batch) == 10:

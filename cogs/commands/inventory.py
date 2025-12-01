@@ -23,12 +23,12 @@ class InventoryView(View):
         total_pages = math.ceil(len(self.items_dict) / self.items_per_page)
         
         if self.page > 0:
-            prev_button = Button(label="◀️ Previous", style=discord.ButtonStyle.gray)
+            prev_button = Button(label="Previous", style=discord.ButtonStyle.primary)
             prev_button.callback = self.previous_page
             self.add_item(prev_button)
         
         if self.page < total_pages - 1:
-            next_button = Button(label="Next ▶️", style=discord.ButtonStyle.gray)
+            next_button = Button(label="Next", style=discord.ButtonStyle.primary)
             next_button.callback = self.next_page
             self.add_item(next_button)
     

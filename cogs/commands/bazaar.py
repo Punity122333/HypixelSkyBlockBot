@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord import app_commands
 from collections import defaultdict
 from typing import List, Dict
+from utils.autocomplete import item_autocomplete
+from utils.systems.economy_system import EconomySystem
 
 class BazaarPaginationView(discord.ui.View):
     def __init__(self, items_list: List[Dict], items_per_page: int = 24):
@@ -89,7 +91,11 @@ class BazaarCommands(commands.Cog):
             embed.add_field(name="📊 Avg Price (10)", value=f"{avg_price:.1f} coins", inline=True)
         
         await interaction.followup.send(embed=embed)
-    
+
+    @bz_prices.autocomplete('item_id')
+    async def bz_prices_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
     @app_commands.command(name="bz_buy", description="Instantly buy items from bazaar")
     @app_commands.describe(item_id="Item to buy", amount="Amount to buy")
     async def bz_buy(self, interaction: discord.Interaction, item_id: str, amount: int):
@@ -118,7 +124,11 @@ class BazaarCommands(commands.Cog):
                 color=discord.Color.red()
             )
         await interaction.followup.send(embed=embed, ephemeral=not success)
-    
+
+    @bz_buy.autocomplete('item_id')
+    async def bz_buy_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
     @app_commands.command(name="bz_sell", description="Instantly sell items to bazaar")
     @app_commands.describe(item_id="Item to sell", amount="Amount to sell")
     async def bz_sell(self, interaction: discord.Interaction, item_id: str, amount: int):
@@ -148,7 +158,11 @@ class BazaarCommands(commands.Cog):
             )
         
         await interaction.followup.send(embed=embed, ephemeral=not success)
-    
+
+    @bz_sell.autocomplete('item_id')
+    async def bz_sell_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
     @app_commands.command(name="bz_order_buy", description="Place a buy order")
     @app_commands.describe(item_id="Item to buy", price="Price per item", amount="Amount to buy")
     async def bz_order_buy(self, interaction: discord.Interaction, item_id: str, price: float, amount: int):
@@ -182,7 +196,11 @@ class BazaarCommands(commands.Cog):
             )
         
         await interaction.followup.send(embed=embed, ephemeral=not success)
-    
+
+    @bz_order_buy.autocomplete('item_id')
+    async def bz_order_buy_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
     @app_commands.command(name="bz_order_sell", description="Place a sell order")
     @app_commands.describe(item_id="Item to sell", price="Price per item", amount="Amount to sell")
     async def bz_order_sell(self, interaction: discord.Interaction, item_id: str, price: float, amount: int):
@@ -215,7 +233,11 @@ class BazaarCommands(commands.Cog):
             )
         
         await interaction.followup.send(embed=embed, ephemeral=not success)
-    
+
+    @bz_order_sell.autocomplete('item_id')
+    async def bz_order_sell_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+
     @app_commands.command(name="bz_myorders", description="View your active orders")
     async def bz_myorders(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -273,10 +295,8 @@ class BazaarCommands(commands.Cog):
     async def bz_list(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        # Get all items from database (now dicts)
         all_items = await self.bot.game_data.get_all_items()
 
-        # Get all bazaar products
         bazaar_products = await self.bot.db.get_all_bazaar_products()
         bazaar_dict = {p['product_id']: p for p in bazaar_products}
 
@@ -285,21 +305,19 @@ class BazaarCommands(commands.Cog):
             item_id = item.get("item_id")
             item_type = item.get("type")
 
-            # skip non-tradeables
             if item_type in ["PET", "MINION"]:
                 continue
             name = item.get("name", "")
             if "from" in name.lower():
                 continue
 
-            # bazaar live prices
             if item_id in bazaar_dict:
                 product = bazaar_dict[item_id]
                 buy_price = product["buy_price"]
                 sell_price = product["sell_price"]
                 price_source = "live"
             else:
-                # fallback
+
                 base = item.get("default_bazaar_price", 0)
                 buy_price = base * 1.1
                 sell_price = base * 0.9
@@ -313,10 +331,8 @@ class BazaarCommands(commands.Cog):
                 "source": price_source
             })
 
-        # sort by buy price
         items_list.sort(key=lambda x: x["buy_price"])
 
-        # send paginated embed
         if items_list:
             view = BazaarPaginationView(items_list)
             await interaction.followup.send(embed=view.get_page_embed(), view=view)

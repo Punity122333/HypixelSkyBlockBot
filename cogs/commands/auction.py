@@ -13,9 +13,10 @@ class AuctionCommands(commands.Cog):
         item_id="The item to auction",
         starting_bid="Starting bid amount",
         duration_hours="Duration in hours (1-48)",
+        amount="Amount of the item to auction",
         bin_price="Buy it now price (optional)"
     )
-    async def ah_create(self, interaction: discord.Interaction, item_id: str, starting_bid: int, duration_hours: int, bin_price: int = 0):
+    async def ah_create(self, interaction: discord.Interaction, item_id: str, starting_bid: int, duration_hours: int, amount: int = 1, bin_price: int = 0):
         await interaction.response.defer()
         
         player = await self.bot.player_manager.get_or_create_player(
@@ -40,7 +41,7 @@ class AuctionCommands(commands.Cog):
         
         duration_seconds = duration_hours * 3600
         auction_id = await self.bot.db.create_auction(
-            interaction.user.id, item_id, {'count': 1}, starting_bid, duration_seconds, bin_price if bin_price > 0 else None
+            interaction.user.id, item_id, starting_bid, bin_price if bin_price > 0 else None, duration_seconds, bin_price > 0, amount
         )
         
         progression = await self.bot.db.get_player_progression(interaction.user.id)
@@ -52,7 +53,7 @@ class AuctionCommands(commands.Cog):
         
         embed = discord.Embed(
             title="✅ Auction Created!",
-            description=f"Your {item.name} is now listed!",
+            description=f"Your **{amount}x** **{item.name}** is now listed!",
             color=discord.Color.green()
         )
         embed.add_field(name="Starting Bid", value=f"{starting_bid:,} coins", inline=True)
@@ -124,7 +125,7 @@ class AuctionCommands(commands.Cog):
                     value += f"BIN: {auction['buy_now_price']:,} coins"
                 
                 embed.add_field(
-                    name=f"#{auction['id']} - {item.name}",
+                    name=f"#{auction['id']} - {auction['amount']}x {item.name}",
                     value=value,
                     inline=False
                 )
@@ -147,15 +148,14 @@ class AuctionCommands(commands.Cog):
         await self.bot.db.update_player(interaction.user.id, coins=player['coins'] - bid_amount)
         
         success = await self.bot.db.place_bid(interaction.user.id, auction_id, bid_amount)
-        
         if not success:
             await self.bot.db.update_player(interaction.user.id, coins=player['coins'])
-            await interaction.followup.send("❌ Failed to place bid! Auction may have ended or your bid is too low.", ephemeral=True)
+            await interaction.followup.send(f"❌ Failed to place bid! {success}", ephemeral=True)
             return
         
         embed = discord.Embed(
             title="✅ Bid Placed!",
-            description=f"You bid {bid_amount:,} coins on auction #{auction_id}",
+            description=f"You bid **{bid_amount:,}** coins on auction #**{auction_id}**!",
             color=discord.Color.green()
         )
         
@@ -212,7 +212,7 @@ class AuctionCommands(commands.Cog):
                 value += f"Ends in: {hours}h {minutes}m"
                 
                 embed.add_field(
-                    name=f"#{auction['id']} - {item.name}",
+                    name=f"#{auction['id']} - {auction['amount']}x {item.name}",
                     value=value,
                     inline=False
                 )

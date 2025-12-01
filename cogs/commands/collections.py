@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from typing import Dict, List, Optional
+from utils.autocomplete import item_autocomplete
 
 class CollectionCommands(commands.Cog):
     def __init__(self, bot):
@@ -65,15 +66,15 @@ class CollectionCommands(commands.Cog):
                 amount = await self.bot.db.get_collection(interaction.user.id, item_id)
                 tier = await self.get_tier_for_amount(item_id, amount)
                 
-                if amount > 0 or tier > 0:
-                    display_name = item_id.replace('_', ' ').title()
-                    tiers = await self.bot.game_data.get_collection_tier_requirements(item_id)
-                    
-                    if tier < 10 and tiers and tier < len(tiers):
-                        next_req = tiers[tier]
-                        category_text += f"{display_name} {tier}/10: {amount:,}/{next_req:,}\n"
-                    else:
-                        category_text += f"{display_name} MAX: {amount:,}\n"
+                # Show all items in the category, not just ones with progress
+                display_name = item_id.replace('_', ' ').title()
+                tiers = await self.bot.game_data.get_collection_tier_requirements(item_id)
+                
+                if tier < 10 and tiers and tier < len(tiers):
+                    next_req = tiers[tier]
+                    category_text += f"{display_name} {tier}/10: {amount:,}/{next_req:,}\n"
+                else:
+                    category_text += f"{display_name} MAX: {amount:,}\n"
             
             if category_text:
                 cat_emoji = {'farming': '🌾', 'mining': '⛏️', 'foraging': '🪓', 'combat': '⚔️'}
@@ -98,6 +99,7 @@ class CollectionCommands(commands.Cog):
         item_id = item.lower().replace(' ', '_')
         
         tiers = await self.bot.game_data.get_collection_tier_requirements(item_id)
+        
         if not tiers:
             await interaction.followup.send(f"❌ Collection not found for '{item}'!", ephemeral=True)
             return
@@ -144,6 +146,10 @@ class CollectionCommands(commands.Cog):
         
         await interaction.followup.send(embed=embed)
 
+    @collection_info.autocomplete('item')
+    async def collection_info_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
+    
     @app_commands.command(name="collection_rewards", description="View collection tier rewards and category bonuses")
     async def collection_rewards(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -237,6 +243,10 @@ class CollectionCommands(commands.Cog):
                 )
         
         await interaction.followup.send(embed=embed)
+
+    @collection_leaderboard.autocomplete('item')
+    async def collection_leaderboard_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await item_autocomplete(interaction, current)
 
 async def setup(bot):
     await bot.add_cog(CollectionCommands(bot))
