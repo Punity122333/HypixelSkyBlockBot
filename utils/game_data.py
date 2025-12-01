@@ -198,7 +198,8 @@ class GameData:
         return {
             'recipe_id': recipe_data['recipe_id'],
             'output_item': recipe_data['output_item'],
-            'ingredients': json.loads(recipe_data['ingredients']) if recipe_data['ingredients'] else {}
+            'ingredients': json.loads(recipe_data['ingredients']) if recipe_data['ingredients'] else {},
+            'output_amount': recipe_data.get('output_amount', 1) if isinstance(recipe_data, dict) else (recipe_data[3] if len(recipe_data) > 3 else 1)
         }
     
     async def can_craft(self, user_id: int, item_id: str) -> Tuple[bool, Optional[str]]:
@@ -225,16 +226,18 @@ class GameData:
             return {'success': False, 'error': 'Recipe not found'}
         
         ingredients = recipe['ingredients']
+        output_amount = recipe.get('output_amount', 1)
         
         for ingredient_id, required_amount in ingredients.items():
             await self.db.remove_item_from_inventory(user_id, ingredient_id, required_amount)
         
-        await self.db.add_item_to_inventory(user_id, item_id, 1)
+        await self.db.add_item_to_inventory(user_id, item_id, output_amount)
         
         return {
             'success': True,
             'item_id': item_id,
-            'ingredients_used': ingredients
+            'ingredients_used': ingredients,
+            'output_amount': output_amount
         }
     
     def clear_cache(self):
@@ -451,6 +454,10 @@ class GameData:
                     row_dict['ingredients'] = json.loads(row_dict['ingredients'])
                 except Exception:
                     row_dict['ingredients'] = {}
+            
+            # Ensure output_amount is present and defaults to 1
+            if 'output_amount' not in row_dict or row_dict['output_amount'] is None:
+                row_dict['output_amount'] = 1
 
             recipes[row_dict['recipe_id']] = row_dict
 

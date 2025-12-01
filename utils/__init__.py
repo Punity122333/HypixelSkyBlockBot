@@ -8,6 +8,17 @@ from .systems.economy_system import EconomySystem
 from .systems.dungeon_system import DungeonSystem
 from .systems.progression_system import ProgressionSystem
 from .systems.market_system import MarketSystem
+from .systems.party_system import PartySystem
+from .systems.puzzle_system import PuzzleSystem, Puzzle, PuzzleType
+from .systems.scaling_system import GradientScaling, DungeonScaling
+from .autocomplete import (
+    item_autocomplete,
+    recipe_autocomplete,
+    pet_autocomplete,
+    mob_autocomplete,
+    location_autocomplete,
+    GlobalAutocomplete
+)
 
 __all__ = [
     'StatCalculator',
@@ -19,5 +30,17 @@ __all__ = [
     'GameData',
     'ProgressionSystem',
     'MarketSystem',
-    'EventEffects'
+    'PartySystem',
+    'PuzzleSystem',
+    'Puzzle',
+    'PuzzleType',
+    'GradientScaling',
+    'DungeonScaling',
+    'EventEffects',
+    'item_autocomplete',
+    'recipe_autocomplete',
+    'pet_autocomplete',
+    'mob_autocomplete',
+    'location_autocomplete',
+    'GlobalAutocomplete'
 ]

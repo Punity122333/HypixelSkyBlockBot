@@ -1,7 +1,7 @@
 import random
 import json
 from typing import Dict, List, Optional, Any, Tuple
-from ..stat_calculator import ComprehensiveStatCalculator
+from ..stat_calculator import StatCalculator
 from .combat_system import CombatSystem
 
 
@@ -211,7 +211,7 @@ class DungeonSystem:
         total_damage_dealt = 0
         total_damage_taken = 0
         
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id, context='dungeon')
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
         player_health = stats['health']
         
         for mob in mobs:
@@ -274,7 +274,7 @@ class DungeonSystem:
     
     @classmethod
     async def _clear_trap_room(cls, db, user_id: int, room: Dict[str, Any]) -> Dict[str, Any]:
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id, context='dungeon')
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
         
         trap_damage = room['difficulty'] * 50
         damage_taken = CombatSystem._calculate_mob_damage(trap_damage, stats['defense'])

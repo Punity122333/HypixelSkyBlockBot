@@ -387,23 +387,36 @@ class GameDataManager:
         return floor_data
     
     async def get_crafting_recipe(self, item_id: str) -> Optional[Dict]:
+        # First check database for recipe with output_amount
+        if self.db.conn:
+            cursor = await self.db.conn.execute(
+                'SELECT * FROM crafting_recipes WHERE output_item = ?', (item_id,)
+            )
+            recipe_data = await cursor.fetchone()
+            if recipe_data:
+                return {
+                    'ingredients': json.loads(recipe_data['ingredients']) if recipe_data['ingredients'] else {},
+                    'output_amount': recipe_data.get('output_amount', 1) if isinstance(recipe_data, dict) else (recipe_data[3] if len(recipe_data) > 3 else 1)
+                }
+        
+        # Fallback to item's craft_recipe
         item = await self.get_item(item_id)
         if item and item.craft_recipe:
-            return {'ingredients': item.craft_recipe}
+            return {'ingredients': item.craft_recipe, 'output_amount': 1}
         return None
     
     async def get_all_crafting_recipes(self) -> dict[str, dict]:
         if not self.db.conn:
             return {}
 
-        cursor = await self.db.conn.execute('SELECT output_item, ingredients FROM crafting_recipes')
+        cursor = await self.db.conn.execute('SELECT output_item, ingredients, output_amount FROM crafting_recipes')
         rows = await cursor.fetchall()
         recipes = {}
 
         for row in rows:
-            # row is a sqlite row object or tuple
             output_item = row['output_item'] if isinstance(row, dict) else row[0]
             ingredients = row['ingredients'] if isinstance(row, dict) else row[1]
+            output_amount = row['output_amount'] if isinstance(row, dict) and 'output_amount' in row else (row[2] if len(row) > 2 else 1)
 
             if not output_item or not ingredients:
                 continue
@@ -414,7 +427,10 @@ class GameDataManager:
                 continue
 
             if isinstance(ingredients_dict, dict):
-                recipes[output_item] = ingredients_dict
+                recipes[output_item] = {
+                    'ingredients': ingredients_dict,
+                    'output_amount': output_amount if output_amount else 1
+                }
 
         return recipes
     
@@ -439,6 +455,16 @@ class GameDataManager:
             result[tool_type] = tiers
         
         return result
+    
+    async def get_xp_table(self):
+        # fetch all rows from the DB
+        rows = await self.db.get_xp_table()  # returns list of tuples like [(item_id, base_xp), ...]
+        
+        # convert to dictionary
+        xp_table = {item_id: base_xp for item_id, base_xp in rows}
+        
+        return xp_table
+
     
     async def get_gathering_drops(self, gathering_type: str, resource_type: str) -> List[Dict[str, Any]]:
         drops_data = await self.db.get_gathering_drops(gathering_type, resource_type)
@@ -507,6 +533,12 @@ class GameDataManager:
     
     async def get_game_pet(self, pet_id: str) -> Optional[Dict]:
         return await self.db.get_game_pet(pet_id)
+    
+    async def _try_drop_pet(self, mob_id: str, magic_find: float) -> Optional[Tuple[str, str]]:
+        return await self.db._try_drop_pet(mob_id, magic_find)
+    
+    async def add_game_pet(self, pet_id: str, pet_type: str, rarity: str, stats: Dict, max_level: int, description: str):
+        return await self.db.add_game_pet(pet_id, pet_type, rarity, stats, max_level, description)
     
     def clear_cache(self):
         self._items_cache.clear()

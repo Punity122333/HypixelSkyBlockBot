@@ -532,12 +532,22 @@ async def generate_merchant_deals(db: 'GameDatabase', game_data: Any):
         merchant = random.choice(merchants)
         
         all_items = await game_data.get_all_items()
-        tradeable_items = list(all_items.keys())[:100]
-        item_id = random.choice(tradeable_items)
+        if isinstance(all_items, dict):
+            tradeable_items = list(all_items.keys())[:100]
+            item_id = random.choice(tradeable_items) if tradeable_items else None
+            item = all_items.get(item_id) if item_id else None
+        elif isinstance(all_items, list) and all_items:
+            tradeable_items = all_items[:100]
+            item = random.choice(tradeable_items) if tradeable_items else None
+            item_id = item.get('item_id') if isinstance(item, dict) else getattr(item, 'id', None)
+        else:
+            return
         
-        item = all_items.get(item_id)
-        if item:
-            base_price = item.default_bazaar_price
+        if item and item_id:
+            if isinstance(item, dict):
+                base_price = item.get('default_bazaar_price', 100)
+            else:
+                base_price = getattr(item, 'default_bazaar_price', 100)
             
             deal_type = random.choice(['buy', 'sell'])
             quantity = random.randint(1, 10)
@@ -549,7 +559,7 @@ async def generate_merchant_deals(db: 'GameDatabase', game_data: Any):
             
             duration = random.randint(600, 3600)
             
-            await db.create_merchant_deal(item_id, price, quantity, duration)
+            await db.create_merchant_deal(str(item_id), price, quantity, duration)
 
 async def run_market_simulation(db: 'GameDatabase', market: MarketSystem):
     try:

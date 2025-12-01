@@ -1,6 +1,103 @@
 import random
 from typing import List, Tuple, Dict
 
+default_loot = {
+            'entrance': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.3, 'min_amount': 1, 'max_amount': 3},
+                {'item_id': 'undead_essence', 'drop_chance': 0.4, 'min_amount': 1, 'max_amount': 5},
+            ],
+            'floor_1': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.4, 'min_amount': 2, 'max_amount': 5},
+                {'item_id': 'undead_essence', 'drop_chance': 0.5, 'min_amount': 2, 'max_amount': 8},
+                {'item_id': 'bonzo_staff_fragment', 'drop_chance': 0.05, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'floor_2': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.5, 'min_amount': 3, 'max_amount': 8},
+                {'item_id': 'undead_essence', 'drop_chance': 0.6, 'min_amount': 3, 'max_amount': 10},
+                {'item_id': 'scarf_fragment', 'drop_chance': 0.05, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'floor_3': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.6, 'min_amount': 5, 'max_amount': 12},
+                {'item_id': 'undead_essence', 'drop_chance': 0.7, 'min_amount': 5, 'max_amount': 15},
+                {'item_id': 'professor_fragment', 'drop_chance': 0.05, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'floor_4': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.7, 'min_amount': 8, 'max_amount': 16},
+                {'item_id': 'undead_essence', 'drop_chance': 0.8, 'min_amount': 8, 'max_amount': 20},
+                {'item_id': 'spirit_bone', 'drop_chance': 0.08, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'floor_5': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.8, 'min_amount': 10, 'max_amount': 25},
+                {'item_id': 'undead_essence', 'drop_chance': 0.9, 'min_amount': 10, 'max_amount': 30},
+                {'item_id': 'livid_dagger', 'drop_chance': 0.02, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'shadow_fury', 'drop_chance': 0.01, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'floor_6': [
+                {'item_id': 'wither_essence', 'drop_chance': 0.9, 'min_amount': 15, 'max_amount': 35},
+                {'item_id': 'undead_essence', 'drop_chance': 1.0, 'min_amount': 15, 'max_amount': 40},
+                {'item_id': 'giant_sword', 'drop_chance': 0.01, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'necromancer_lord_armor_piece', 'drop_chance': 0.03, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'floor_7': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 20, 'max_amount': 50},
+                {'item_id': 'undead_essence', 'drop_chance': 1.0, 'min_amount': 20, 'max_amount': 60},
+                {'item_id': 'necron_blade', 'drop_chance': 0.005, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'wither_armor_piece', 'drop_chance': 0.02, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm1': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 30, 'max_amount': 60},
+                {'item_id': 'master_star', 'drop_chance': 0.1, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm2': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 35, 'max_amount': 70},
+                {'item_id': 'master_star', 'drop_chance': 0.12, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm3': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 40, 'max_amount': 80},
+                {'item_id': 'master_star', 'drop_chance': 0.15, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm4': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 45, 'max_amount': 90},
+                {'item_id': 'master_star', 'drop_chance': 0.18, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm5': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 50, 'max_amount': 100},
+                {'item_id': 'master_star', 'drop_chance': 0.2, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'shadow_fury', 'drop_chance': 0.02, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm6': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 60, 'max_amount': 120},
+                {'item_id': 'master_star', 'drop_chance': 0.25, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'giant_sword', 'drop_chance': 0.02, 'min_amount': 1, 'max_amount': 1},
+            ],
+            'm7': [
+                {'item_id': 'wither_essence', 'drop_chance': 1.0, 'min_amount': 80, 'max_amount': 150},
+                {'item_id': 'master_star', 'drop_chance': 0.3, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'claymore', 'drop_chance': 0.01, 'min_amount': 1, 'max_amount': 1},
+                {'item_id': 'hyperion', 'drop_chance': 0.001, 'min_amount': 1, 'max_amount': 1},
+            ],
+        }
+
+PET_DROP_TABLE = {
+    'zombie': {'pet': 'zombie', 'base_chance': 0.002, 'rarities': ['COMMON', 'UNCOMMON', 'RARE']},
+    'skeleton': {'pet': 'skeleton', 'base_chance': 0.002, 'rarities': ['COMMON', 'UNCOMMON', 'RARE']},
+    'spider': {'pet': 'spider', 'base_chance': 0.002, 'rarities': ['COMMON', 'UNCOMMON', 'RARE']},
+    'enderman': {'pet': 'enderman', 'base_chance': 0.001, 'rarities': ['RARE', 'EPIC', 'LEGENDARY']},
+    'blaze': {'pet': 'blaze', 'base_chance': 0.001, 'rarities': ['RARE', 'EPIC', 'LEGENDARY']},
+    'magma_cube': {'pet': 'magma_cube', 'base_chance': 0.0015, 'rarities': ['UNCOMMON', 'RARE', 'EPIC']},
+    'wolf': {'pet': 'wolf', 'base_chance': 0.003, 'rarities': ['COMMON', 'UNCOMMON', 'RARE', 'EPIC']},
+    'wither_skeleton': {'pet': 'wither_skeleton', 'base_chance': 0.0005, 'rarities': ['EPIC', 'LEGENDARY']},
+    'pigman': {'pet': 'pigman', 'base_chance': 0.0008, 'rarities': ['EPIC', 'LEGENDARY']},
+    'ghast': {'pet': 'ghast', 'base_chance': 0.0008, 'rarities': ['RARE', 'EPIC', 'LEGENDARY']},
+    'ender_dragon': {'pet': 'dragon', 'base_chance': 0.0001, 'rarities': ['LEGENDARY']},
+    'zealot': {'pet': 'enderman', 'base_chance': 0.005, 'rarities': ['EPIC', 'LEGENDARY']},
+    'broodfather': {'pet': 'spider', 'base_chance': 0.01, 'rarities': ['EPIC', 'LEGENDARY']},
+    'sven': {'pet': 'wolf', 'base_chance': 0.01, 'rarities': ['LEGENDARY']},
+    'revenant': {'pet': 'zombie', 'base_chance': 0.008, 'rarities': ['EPIC', 'LEGENDARY']},
+    'necron': {'pet': 'wither_skeleton', 'base_chance': 0.005, 'rarities': ['LEGENDARY']},
+    'goldor': {'pet': 'golden_dragon', 'base_chance': 0.003, 'rarities': ['LEGENDARY']},
+}
+
 MOB_LOOT_TABLES = {
     'Zombie': {
         'common': [('rotten_flesh', 1, 3), ('bone', 0, 2)],

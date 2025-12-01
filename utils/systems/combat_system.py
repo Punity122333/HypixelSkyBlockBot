@@ -1,20 +1,27 @@
 import random
 import json
 from typing import Dict, List, Tuple, Optional, Any
-from ..comprehensive_stat_calculator import ComprehensiveStatCalculator
+from ..stat_calculator import StatCalculator
 
 
 class CombatSystem:
     
     @classmethod
     async def calculate_player_damage(cls, db, user_id: int, target_defense: int = 0) -> Dict[str, float]:
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id)
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
         
         weapon_damage = await cls._get_equipped_weapon_damage(db, user_id)
         
-        is_crit = random.random() * 100 < ComprehensiveStatCalculator.get_crit_chance(stats)
+        is_crit = random.random() * 100 < StatCalculator.get_crit_chance(stats)
         
-        base_damage = ComprehensiveStatCalculator.calculate_damage(stats, weapon_damage, is_crit)
+        base_damage = StatCalculator.calculate_damage(stats, weapon_damage, is_crit)
+        
+        skills = await db.get_skills(user_id)
+        combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
+        combat_level = combat_skill['level'] if combat_skill else 0
+        
+        skill_multiplier = 1.0 + (combat_level * 0.1)
+        base_damage *= skill_multiplier
         
         defense_multiplier = 1.0 - (target_defense / (target_defense + 100))
         final_damage = base_damage * defense_multiplier
@@ -24,7 +31,9 @@ class CombatSystem:
             'is_crit': is_crit,
             'base_damage': base_damage,
             'weapon_damage': weapon_damage,
-            'defense_reduction': 1.0 - defense_multiplier
+            'defense_reduction': 1.0 - defense_multiplier,
+            'combat_level': combat_level,
+            'skill_multiplier': skill_multiplier
         }
     
     @classmethod
@@ -70,7 +79,7 @@ class CombatSystem:
         mob_damage = mob_data['damage']
         mob_defense = 0
         
-        player_stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id)
+        player_stats = await StatCalculator.calculate_full_stats(db, user_id)
         player_health = player_stats['health']
         
         turns = 0
@@ -131,22 +140,27 @@ class CombatSystem:
         base_coins = mob_data['coins']
         base_xp = mob_data['xp']
         
-        player_stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id)
-        drop_multiplier = ComprehensiveStatCalculator.calculate_drop_multiplier(player_stats)
+        player_stats = await StatCalculator.calculate_full_stats(db, user_id)
+        drop_multiplier = StatCalculator.calculate_drop_multiplier(player_stats)
+        
+        skills = await db.get_skills(user_id)
+        combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
+        combat_level = combat_skill['level'] if combat_skill else 0
         
         coins = int(base_coins * drop_multiplier * random.uniform(0.8, 1.2))
         xp = int(base_xp * random.uniform(0.9, 1.1))
         
-        drops = await cls._roll_mob_drops(db, mob_data['mob_id'], drop_multiplier)
+        drops = await cls._roll_mob_drops(db, mob_data['mob_id'], drop_multiplier, combat_level)
         
         return {
             'coins': coins,
             'xp': xp,
-            'drops': drops
+            'drops': drops,
+            'combat_level': combat_level
         }
     
     @classmethod
-    async def _roll_mob_drops(cls, db, mob_id: str, drop_multiplier: float) -> List[Dict[str, Any]]:
+    async def _roll_mob_drops(cls, db, mob_id: str, drop_multiplier: float, combat_level: int = 0) -> List[Dict[str, Any]]:
         if not db.conn:
             return []
         
@@ -156,6 +170,8 @@ class CombatSystem:
         loot_tables = await cursor.fetchall()
         
         drops = []
+        
+        skill_drop_multiplier = 1.0 + (combat_level * 0.05)
         
         for loot_table in loot_tables:
             rarity = loot_table['rarity']
@@ -180,9 +196,10 @@ class CombatSystem:
                         min_amt = item_entry.get('min', 1)
                         max_amt = item_entry.get('max', 1)
                         amount = random.randint(min_amt, max_amt)
+                        amount = int(amount * skill_drop_multiplier)
                     else:
                         item_id = item_entry
-                        amount = 1
+                        amount = max(1, int(1 * skill_drop_multiplier))
                     
                     drops.append({
                         'item_id': item_id,
@@ -223,10 +240,10 @@ class CombatSystem:
     
     @classmethod
     async def calculate_ability_damage(cls, db, user_id: int, ability_multiplier: float) -> float:
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id)
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
         weapon_damage = await cls._get_equipped_weapon_damage(db, user_id)
-        
-        base_damage = ComprehensiveStatCalculator.calculate_damage(stats, weapon_damage, False)
+
+        base_damage = StatCalculator.calculate_damage(stats, weapon_damage, False)
         ability_damage = base_damage * ability_multiplier * (1 + stats.get('ability_damage', 0) / 100)
         
         return ability_damage

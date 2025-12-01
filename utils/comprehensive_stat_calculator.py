@@ -141,23 +141,233 @@ class ComprehensiveStatCalculator:
     @classmethod
     async def _apply_armor_set_bonus(cls, equipped_armor: Dict, stats: Dict):
         armor_names = [item['name'] for item in equipped_armor.values()]
+        armor_ids = [item['item_id'] for item in equipped_armor.values()]
         
-        if all('Ender' in name for name in armor_names):
-            stats['health'] += 100
-            stats['defense'] += 100
-        elif all('Diamond' in name for name in armor_names):
-            stats['health'] += 50
-            stats['defense'] += 50
-        elif all('Wise' in name for name in armor_names):
-            stats['intelligence'] += 200
-        elif all('Strong' in name for name in armor_names):
-            stats['strength'] += 100
-        elif all('Superior' in name for name in armor_names):
-            stats['health'] += 100
-            stats['strength'] += 50
-            stats['crit_damage'] += 50
-            stats['intelligence'] += 50
-            stats['defense'] += 50
+        set_bonuses = cls._get_set_bonuses()
+        
+        for set_name, bonus_data in set_bonuses.items():
+            if bonus_data.get('check_name', False):
+                if all(set_name.lower() in name.lower() for name in armor_names):
+                    for stat, value in bonus_data.get('stats', {}).items():
+                        if stat in stats:
+                            stats[stat] += value
+                    break
+            else:
+                set_ids = bonus_data.get('ids', [])
+                if set_ids and all(any(sid in aid for sid in set_ids) for aid in armor_ids):
+                    for stat, value in bonus_data.get('stats', {}).items():
+                        if stat in stats:
+                            stats[stat] += value
+                    break
+        else:
+            if all('Ender' in name for name in armor_names):
+                stats['health'] += 100
+                stats['defense'] += 100
+            elif all('Diamond' in name for name in armor_names):
+                stats['health'] += 50
+                stats['defense'] += 50
+            elif all('Wise' in name for name in armor_names):
+                stats['intelligence'] += 200
+            elif all('Strong' in name for name in armor_names):
+                stats['strength'] += 100
+            elif all('Superior' in name for name in armor_names):
+                stats['health'] += 100
+                stats['strength'] += 50
+                stats['crit_damage'] += 50
+                stats['intelligence'] += 50
+                stats['defense'] += 50
+    
+    @classmethod
+    def _get_set_bonuses(cls) -> Dict[str, Dict]:
+        return {
+            'Superior Dragon': {
+                'check_name': True,
+                'stats': {
+                    'health': 100,
+                    'strength': 50,
+                    'crit_damage': 50,
+                    'intelligence': 50,
+                    'defense': 50,
+                    'speed': 10
+                }
+            },
+            'Strong Dragon': {
+                'check_name': True,
+                'stats': {
+                    'strength': 100,
+                    'crit_damage': 25
+                }
+            },
+            'Wise Dragon': {
+                'check_name': True,
+                'stats': {
+                    'intelligence': 200,
+                    'ability_damage': 25
+                }
+            },
+            'Young Dragon': {
+                'check_name': True,
+                'stats': {
+                    'speed': 100,
+                    'health': 50
+                }
+            },
+            'Old Dragon': {
+                'check_name': True,
+                'stats': {
+                    'health': 200,
+                    'defense': 100
+                }
+            },
+            'Protector Dragon': {
+                'check_name': True,
+                'stats': {
+                    'defense': 150,
+                    'health': 100
+                }
+            },
+            'Unstable Dragon': {
+                'check_name': True,
+                'stats': {
+                    'crit_chance': 15,
+                    'crit_damage': 50,
+                    'strength': 50
+                }
+            },
+            'Holy Dragon': {
+                'check_name': True,
+                'stats': {
+                    'health': 150,
+                    'defense': 75,
+                    'true_defense': 25
+                }
+            },
+            'Frozen Blaze': {
+                'check_name': True,
+                'stats': {
+                    'strength': 75,
+                    'crit_damage': 50,
+                    'intelligence': 50
+                }
+            },
+            'Perfect': {
+                'check_name': True,
+                'stats': {
+                    'defense': 200,
+                    'true_defense': 50,
+                    'health': 100
+                }
+            },
+            'Necron': {
+                'check_name': True,
+                'stats': {
+                    'strength': 100,
+                    'crit_damage': 100,
+                    'ferocity': 10
+                }
+            },
+            'Storm': {
+                'check_name': True,
+                'stats': {
+                    'intelligence': 300,
+                    'ability_damage': 50
+                }
+            },
+            'Goldor': {
+                'check_name': True,
+                'stats': {
+                    'defense': 300,
+                    'health': 200,
+                    'true_defense': 30
+                }
+            },
+            'Maxor': {
+                'check_name': True,
+                'stats': {
+                    'speed': 150,
+                    'attack_speed': 50
+                }
+            },
+            'Crimson': {
+                'check_name': True,
+                'stats': {
+                    'health': 100,
+                    'strength': 50,
+                    'ferocity': 10
+                }
+            },
+            'Terror': {
+                'check_name': True,
+                'stats': {
+                    'ferocity': 25,
+                    'strength': 75
+                }
+            },
+            'Aurora': {
+                'check_name': True,
+                'stats': {
+                    'intelligence': 150,
+                    'health': 100
+                }
+            },
+            'Fervor': {
+                'check_name': True,
+                'stats': {
+                    'health': 75,
+                    'strength': 25,
+                    'speed': 25
+                }
+            },
+            'Hollow': {
+                'check_name': True,
+                'stats': {
+                    'mining_speed': 100,
+                    'mining_fortune': 50
+                }
+            },
+            'Sorrow': {
+                'check_name': True,
+                'stats': {
+                    'magic_find': 50,
+                    'pet_luck': 25
+                }
+            },
+            'Ender': {
+                'check_name': True,
+                'stats': {
+                    'health': 100,
+                    'defense': 100
+                }
+            },
+            'Lapis': {
+                'check_name': True,
+                'stats': {
+                    'health': 60,
+                    'defense': 40
+                }
+            },
+            'Emerald': {
+                'check_name': True,
+                'stats': {
+                    'health': 100,
+                    'defense': 50
+                }
+            },
+            'Miner': {
+                'check_name': True,
+                'stats': {
+                    'mining_speed': 50,
+                    'defense': 50
+                }
+            },
+            'Farmer': {
+                'check_name': True,
+                'stats': {
+                    'farming_fortune': 50,
+                    'health': 50
+                }
+            }
+        }
     
     @classmethod
     async def _apply_weapon_stats(cls, db, user_id: int, stats: Dict):
@@ -246,6 +456,185 @@ class ComprehensiveStatCalculator:
             scaled_value = int(base_value * (level / 100))
             if stat in stats:
                 stats[stat] += scaled_value
+        
+        pet_bonuses = cls._get_pet_bonuses()
+        pet_key = pet_type.lower()
+        if pet_key in pet_bonuses:
+            bonus_config = pet_bonuses[pet_key]
+            rarity_multipliers = {
+                'COMMON': 0.2,
+                'UNCOMMON': 0.4,
+                'RARE': 0.6,
+                'EPIC': 0.8,
+                'LEGENDARY': 1.0,
+                'MYTHIC': 1.2
+            }
+            multiplier = rarity_multipliers.get(rarity.upper(), 0.5) * (level / 100)
+            
+            for stat, base_bonus in bonus_config.get('level_bonus', {}).items():
+                if stat in stats:
+                    stats[stat] += int(base_bonus * multiplier * 100)
+    
+    @classmethod
+    def _get_pet_bonuses(cls) -> Dict[str, Dict]:
+        return {
+            'wolf': {
+                'level_bonus': {
+                    'strength': 0.5,
+                    'crit_damage': 0.5,
+                    'ferocity': 0.1
+                }
+            },
+            'enderman': {
+                'level_bonus': {
+                    'crit_damage': 0.75
+                }
+            },
+            'phoenix': {
+                'level_bonus': {
+                    'strength': 0.25,
+                    'intelligence': 0.5
+                }
+            },
+            'dragon': {
+                'level_bonus': {
+                    'strength': 0.5,
+                    'crit_damage': 0.5,
+                    'crit_chance': 0.1
+                }
+            },
+            'bee': {
+                'level_bonus': {
+                    'farming_fortune': 0.5,
+                    'intelligence': 0.2
+                }
+            },
+            'elephant': {
+                'level_bonus': {
+                    'mining_fortune': 0.5,
+                    'defense': 0.25
+                }
+            },
+            'giraffe': {
+                'level_bonus': {
+                    'foraging_fortune': 0.5,
+                    'health': 0.25
+                }
+            },
+            'dolphin': {
+                'level_bonus': {
+                    'fishing_speed': 0.5,
+                    'sea_creature_chance': 0.1
+                }
+            },
+            'rabbit': {
+                'level_bonus': {
+                    'speed': 0.5,
+                    'health': 0.1
+                }
+            },
+            'sheep': {
+                'level_bonus': {
+                    'intelligence': 0.5,
+                    'ability_damage': 0.25
+                }
+            },
+            'pigman': {
+                'level_bonus': {
+                    'strength': 0.4,
+                    'defense': 0.2,
+                    'ferocity': 0.2
+                }
+            },
+            'bal': {
+                'level_bonus': {
+                    'mining_speed': 0.5,
+                    'mining_fortune': 0.3
+                }
+            },
+            'blaze': {
+                'level_bonus': {
+                    'strength': 0.3,
+                    'intelligence': 0.3
+                }
+            },
+            'silverfish': {
+                'level_bonus': {
+                    'mining_speed': 0.4,
+                    'defense': 0.2
+                }
+            },
+            'tiger': {
+                'level_bonus': {
+                    'strength': 0.5,
+                    'ferocity': 0.4,
+                    'crit_chance': 0.05
+                }
+            },
+            'lion': {
+                'level_bonus': {
+                    'strength': 0.6,
+                    'speed': 0.3,
+                    'ferocity': 0.3
+                }
+            },
+            'monkey': {
+                'level_bonus': {
+                    'intelligence': 0.4,
+                    'speed': 0.2
+                }
+            },
+            'parrot': {
+                'level_bonus': {
+                    'intelligence': 0.4,
+                    'crit_damage': 0.3
+                }
+            },
+            'turtle': {
+                'level_bonus': {
+                    'defense': 0.5,
+                    'health': 0.4
+                }
+            },
+            'zombie': {
+                'level_bonus': {
+                    'health': 0.3,
+                    'strength': 0.2
+                }
+            },
+            'skeleton': {
+                'level_bonus': {
+                    'crit_chance': 0.15,
+                    'crit_damage': 0.3
+                }
+            },
+            'spider': {
+                'level_bonus': {
+                    'crit_chance': 0.2,
+                    'strength': 0.2
+                }
+            },
+            'wither_skeleton': {
+                'level_bonus': {
+                    'strength': 0.4,
+                    'crit_damage': 0.4,
+                    'defense': 0.2
+                }
+            },
+            'golden_dragon': {
+                'level_bonus': {
+                    'strength': 0.6,
+                    'magic_find': 0.3
+                }
+            },
+            'ender_dragon': {
+                'level_bonus': {
+                    'strength': 0.5,
+                    'crit_damage': 0.5,
+                    'crit_chance': 0.15
+                }
+            }
+        }
     
     @classmethod
     async def _apply_reforge_stats(cls, db, user_id: int, stats: Dict):

@@ -1,7 +1,7 @@
 import random
 import json
 from typing import Dict, List, Optional, Any
-from ..stat_calculator import ComprehensiveStatCalculator
+from ..stat_calculator import StatCalculator
 
 
 class GatheringSystem:
@@ -22,36 +22,52 @@ class GatheringSystem:
                 'error': f'Missing required tool: {tool_type}'
             }
         
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id)
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
         
         gathering_skill = cls._get_gathering_skill(tool_type)
         
+        skills = await db.get_skills(user_id)
+        skill_data = next((s for s in skills if s['skill_name'] == gathering_skill), None)
+        skill_level = skill_data['level'] if skill_data else 0
+        
+        skill_yield_multiplier = 1.0 + (skill_level * 0.15)
+        skill_speed_multiplier = max(0.5, 1.0 - (skill_level * 0.01))
+        
         if gathering_skill == 'mining':
-            yield_amount = ComprehensiveStatCalculator.calculate_mining_yield(stats, 1)
-            gather_speed = ComprehensiveStatCalculator.calculate_mining_speed(stats, base_time)
+            yield_amount = StatCalculator.calculate_mining_yield(stats, 1)
+            gather_speed = StatCalculator.calculate_mining_speed(stats, base_time)
         elif gathering_skill == 'farming':
-            yield_amount = ComprehensiveStatCalculator.calculate_farming_yield(stats, 1)
+            yield_amount = StatCalculator.calculate_farming_yield(stats, 1)
             gather_speed = base_time
         elif gathering_skill == 'foraging':
-            yield_amount = ComprehensiveStatCalculator.calculate_foraging_yield(stats, 1)
+            yield_amount = StatCalculator.calculate_foraging_yield(stats, 1)
             gather_speed = base_time
         elif gathering_skill == 'fishing':
             yield_amount = 1
-            gather_speed = ComprehensiveStatCalculator.calculate_fishing_speed(stats, base_time)
+            gather_speed = StatCalculator.calculate_fishing_speed(stats, base_time)
         else:
             yield_amount = 1
             gather_speed = base_time
         
+        yield_amount = int(yield_amount * skill_yield_multiplier)
+        gather_speed = gather_speed * skill_speed_multiplier
+        
+        stats['user_id'] = user_id
         drops = await cls._generate_gathering_drops(db, gathering_skill, resource_type, yield_amount, stats)
         
         xp_gained = cls._calculate_gathering_xp(yield_amount, resource_type)
+        
+        skill_drop_multiplier = 1.0 + (skill_level * 0.05)
         
         return {
             'success': True,
             'drops': drops,
             'xp': xp_gained,
             'time_taken': gather_speed,
-            'skill': gathering_skill
+            'skill': gathering_skill,
+            'skill_level': skill_level,
+            'skill_yield_multiplier': skill_yield_multiplier,
+            'skill_drop_multiplier': skill_drop_multiplier
         }
     
     @classmethod
@@ -70,6 +86,12 @@ class GatheringSystem:
                                        base_amount: int, stats: Dict) -> List[Dict[str, Any]]:
         drops = []
         
+        skills = await db.get_skills(stats.get('user_id', 0)) if 'user_id' in stats else []
+        skill_data = next((s for s in skills if s['skill_name'] == gathering_type), None)
+        skill_level = skill_data['level'] if skill_data else 0
+        
+        skill_drop_multiplier = 1.0 + (skill_level * 0.05)
+        
         drops.append({
             'item_id': resource_type,
             'amount': base_amount,
@@ -84,7 +106,7 @@ class GatheringSystem:
         ''', (gathering_type, resource_type))
         drop_configs = await cursor.fetchall()
         
-        drop_multiplier = ComprehensiveStatCalculator.calculate_drop_multiplier(stats)
+        drop_multiplier = StatCalculator.calculate_drop_multiplier(stats)
         
         for drop_config in drop_configs:
             drop_chance = drop_config['drop_chance'] * drop_multiplier
@@ -93,6 +115,7 @@ class GatheringSystem:
                 min_amt = drop_config['min_amt']
                 max_amt = drop_config['max_amt']
                 amount = random.randint(min_amt, max_amt)
+                amount = int(amount * skill_drop_multiplier)
                 
                 drops.append({
                     'item_id': drop_config['item_id'],
@@ -105,21 +128,27 @@ class GatheringSystem:
     @classmethod
     def _calculate_gathering_xp(cls, amount: int, resource_type: str) -> int:
         base_xp_map = {
-            'cobblestone': 2,
-            'coal': 5,
-            'iron_ingot': 10,
-            'gold_ingot': 20,
-            'diamond': 50,
-            'wheat': 3,
-            'carrot': 3,
-            'potato': 3,
-            'sugar_cane': 4,
-            'pumpkin': 5,
-            'melon': 5,
-            'oak_wood': 5,
-            'jungle_wood': 6,
-            'dark_oak_wood': 7
+            # Mining
+            'cobblestone': 5,    # cheap/basic, small XP
+            'coal': 10,          # slightly better
+            'iron_ingot': 20,    # mid-tier
+            'gold_ingot': 30,    # higher-tier
+            'diamond': 50,       # rare, big XP
+
+            # Farming
+            'wheat': 15,         # small crop XP
+            'carrot': 15,
+            'potato': 15,
+            'sugar_cane': 20,    # slightly better
+            'pumpkin': 25,
+            'melon': 25,
+
+            # Foraging / wood
+            'oak_wood': 20,      # basic wood
+            'jungle_wood': 25,
+            'dark_oak_wood': 30
         }
+
         
         base_xp = base_xp_map.get(resource_type, 1)
         return base_xp * amount
@@ -138,12 +167,21 @@ class GatheringSystem:
     
     @classmethod
     async def fish(cls, db, user_id: int) -> Dict[str, Any]:
-        stats = await ComprehensiveStatCalculator.calculate_full_stats(db, user_id)
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
+        
+        skills = await db.get_skills(user_id)
+        fishing_skill = next((s for s in skills if s['skill_name'] == 'fishing'), None)
+        fishing_level = fishing_skill['level'] if fishing_skill else 0
+        
+        skill_speed_multiplier = max(0.5, 1.0 - (fishing_level * 0.01))
+        skill_luck_bonus = fishing_level * 0.5
         
         base_time = 20.0
-        fishing_time = ComprehensiveStatCalculator.calculate_fishing_speed(stats, base_time)
+        fishing_time = StatCalculator.calculate_fishing_speed(stats, base_time)
+        fishing_time *= skill_speed_multiplier
         
-        sea_creature_chance = ComprehensiveStatCalculator.calculate_sea_creature_chance(stats)
+        sea_creature_chance = StatCalculator.calculate_sea_creature_chance(stats)
+        sea_creature_chance += skill_luck_bonus
         
         is_sea_creature = random.random() * 100 < sea_creature_chance
         
@@ -153,6 +191,7 @@ class GatheringSystem:
             catch = await cls._generate_fish_drop(db, stats)
         
         xp_gained = catch.get('xp', 10)
+        xp_gained = int(xp_gained * (1.0 + fishing_level * 0.01))
         
         return {
             'success': True,
@@ -160,12 +199,14 @@ class GatheringSystem:
             'xp': xp_gained,
             'time_taken': fishing_time,
             'is_sea_creature': is_sea_creature,
-            'skill': 'fishing'
+            'skill': 'fishing',
+            'skill_level': fishing_level,
+            'skill_speed_multiplier': skill_speed_multiplier
         }
     
     @classmethod
     async def _generate_fish_drop(cls, db, stats: Dict) -> Dict[str, Any]:
-        drop_multiplier = ComprehensiveStatCalculator.calculate_drop_multiplier(stats)
+        drop_multiplier = StatCalculator.calculate_drop_multiplier(stats)
         
         rarity_roll = random.random()
         
