@@ -1,0 +1,37 @@
+🏪 Bazaar Guide
+
+The Bazaar is a commodity market where you can instantly buy and sell items or place orders!
+
+💰 INSTANT TRANSACTIONS:
+- /bz_buy <item> <amount> - Buy instantly at sell price
+- /bz_sell <item> <amount> - Sell instantly at buy price
+
+📋 PLACING ORDERS:
+- /bz_order_buy <item> <price> <amount> - Place a buy order
+- /bz_order_sell <item> <price> <amount> - Place a sell order
+
+📊 MANAGING ORDERS:
+- /bz_myorders - View your active orders
+- /bz_cancel <order_id> - Cancel an order
+
+🔍 CHECKING PRICES:
+- /bz_prices <item> - See current buy/sell prices
+- /bz_list - Browse all bazaar items
+
+💡 FLIPPING TIPS:
+1. Buy low, sell high
+2. Place buy orders below market price
+3. Place sell orders above market price
+4. Check /flip_stats to track your profits
+5. Use /market_trends to see what's moving
+
+📈 ADVANCED STRATEGIES:
+- Watch for price spikes during events
+- Stock up on items before demand increases
+- Flip common materials for consistent profit
+- Use buy orders overnight to catch cheap deals
+
+⚠️ FEES:
+Small fees apply to bazaar transactions to maintain the economy.
+
+Use /economy_overview to see bazaar trends and market health!

@@ -24,19 +24,23 @@ class SkillsDB(DatabaseCore):
         await self.commit()
 
     async def get_collection(self, user_id: int, collection_name: str) -> int:
+        # Normalize collection name to lowercase snake_case
+        normalized_name = collection_name.lower().replace(' ', '_')
         row = await self.fetchone(
             'SELECT amount FROM collections WHERE user_id = ? AND collection_name = ?',
-            (user_id, collection_name)
+            (user_id, normalized_name)
         )
         return row['amount'] if row else 0
 
     async def add_collection(self, user_id: int, collection_name: str, amount: int):
+        # Normalize collection name to lowercase snake_case
+        normalized_name = collection_name.lower().replace(' ', '_')
         await self.execute(
             '''INSERT INTO collections (user_id, collection_name, amount)
                VALUES (?, ?, ?)
                ON CONFLICT(user_id, collection_name) 
                DO UPDATE SET amount = amount + ?''',
-            (user_id, collection_name, amount, amount)
+            (user_id, normalized_name, amount, amount)
         )
         await self.commit()
 
@@ -97,10 +101,10 @@ class SkillsDB(DatabaseCore):
 
     async def update_slayer_xp(self, user_id: int, slayer_type: str, xp_gain: int):
         await self.execute(
-            '''INSERT INTO player_slayer_progress (user_id, slayer_type, xp)
-               VALUES (?, ?, ?)
+            '''INSERT INTO player_slayer_progress (user_id, slayer_type, xp, total_kills)
+               VALUES (?, ?, ?, 0)
                ON CONFLICT(user_id, slayer_type)
-               DO UPDATE SET xp = xp + ?''',
+               DO UPDATE SET xp = xp + ?, total_kills = total_kills + 1''',
             (user_id, slayer_type, xp_gain, xp_gain)
         )
         await self.commit()

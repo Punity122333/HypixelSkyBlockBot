@@ -1,0 +1,43 @@
+📚 Getting Started with SkyBlock Bot
+
+Welcome to SkyBlock! This guide will help you begin your adventure.
+
+🎯 FIRST STEPS:
+1. Use /claim_starter_pack to get your initial items and coins
+2. Start with /mine to gather basic resources
+3. Use /farm to grow crops for coins
+4. Check /profile to see your stats
+
+💰 EARNING COINS:
+- Mining cobblestone and ores
+- Farming wheat and other crops
+- Selling items on the bazaar (/bz_sell)
+- Trading with other players
+- Completing quests
+
+⚔️ COMBAT:
+- Start with /fight at easy locations
+- Level up your combat skill
+- Upgrade your weapons and armor
+- Eventually challenge dungeons and slayers
+
+📊 SKILLS:
+Each activity levels up a specific skill:
+- Mining → Mining skill
+- Farming → Farming skill
+- Fighting → Combat skill
+- And more!
+
+🎒 INVENTORY:
+- /inventory - View your items
+- /enderchest - Extra storage
+- /accessories - Talisman bag
+
+💡 TIPS:
+- Focus on one skill early on
+- Save coins for better tools
+- Join the auction house for deals
+- Collect fairy souls for permanent bonuses
+- Check /leaderboard to see top players
+
+Need more help? Use /wiki <topic> for specific guides!

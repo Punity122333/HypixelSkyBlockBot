@@ -1,0 +1,39 @@
+✨ Fairy Souls Guide
+
+Fairy Souls are collectible items hidden throughout SkyBlock that grant permanent stat bonuses.
+
+💎 BONUSES PER SOUL:
+Each fairy soul collected gives:
+- +3 ❤️ Health
+- +2 ✨ Mana
+
+📍 TOTAL AVAILABLE: 242 fairy souls
+
+🔍 HOW TO FIND:
+Use /search_fairy_soul to search for fairy souls. There's a chance to find one each time you search!
+
+📊 CHECK PROGRESS:
+Use /fairy_souls to see:
+- How many you've collected
+- Your current bonuses
+- How many remain
+
+🗺️ LOCATIONS:
+Fairy souls can be found throughout the SkyBlock world in various locations:
+- Villages
+- Forests
+- Mountains  
+- Caves
+- Deserts
+- And more hidden spots!
+
+💡 TIPS:
+- Search regularly for better chances
+- Fairy souls provide permanent stats
+- The more you collect, the stronger you become
+- Each location can only be collected once
+
+⚠️ NOTE:
+Fairy souls found in dungeons DO NOT count toward your permanent collection. Only souls found in the overworld locations give permanent bonuses!
+
+View your island with /island to see your fairy soul count!

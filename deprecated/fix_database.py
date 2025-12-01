@@ -136,6 +136,7 @@ async def add_missing_tables():
                 slayer_type TEXT NOT NULL,
                 xp INTEGER DEFAULT 0,
                 level INTEGER DEFAULT 0,
+                total_kills INTEGER DEFAULT 0,
                 PRIMARY KEY (user_id, slayer_type),
                 FOREIGN KEY (user_id) REFERENCES players(user_id) ON DELETE CASCADE
             )

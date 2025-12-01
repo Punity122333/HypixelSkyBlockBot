@@ -1,0 +1,159 @@
+⚔️ Combat Guide
+
+Master combat to defeat powerful enemies, earn valuable loot, and level up your Combat skill!
+
+🎮 COMBAT BASICS:
+Use /fight <location> to enter combat at various locations throughout SkyBlock.
+
+❤️ STATS THAT MATTER:
+
+HEALTH: Your HP - don't let it reach 0!
+DEFENSE: Reduces damage taken
+STRENGTH: Increases damage dealt
+CRIT CHANCE: Chance for critical hits
+CRIT DAMAGE: Multiplier for critical hits
+
+⚔️ WEAPONS:
+
+PROGRESSION:
+1. Wooden Sword (Starter)
+2. Stone Sword
+3. Iron Sword
+4. Diamond Sword
+5. Enchanted Weapons
+6. Special Weapons (Dungeon drops, etc.)
+
+🛡️ ARMOR:
+
+SETS:
+- Leather Armor (Basic)
+- Chainmail Armor
+- Iron Armor
+- Diamond Armor
+- Special Sets (Various bonuses)
+
+TIP: Complete armor sets give bonus stats!
+
+📍 COMBAT LOCATIONS:
+
+Use /combat_locations to see all areas!
+
+EASY:
+- Spider's Den
+- Graveyard
+- Barn
+
+MEDIUM:
+- Deep Caverns
+- Coal Mine
+- Savanna Woodland
+
+HARD:
+- End Island
+- Crimson Isle
+- Stronghold
+
+🎯 MONSTERS:
+
+Each location has different mobs:
+- Zombies (Common)
+- Spiders (Common)
+- Endermen (Medium)
+- Skeletons (Medium)
+- Blazes (Hard)
+- Dragons (Very Hard)
+
+💎 LOOT SYSTEM:
+
+DROPS:
+- Coins
+- Items
+- Weapons
+- Armor pieces
+- Enchantment books
+- Rare materials
+
+MAGIC FIND:
+Higher Magic Find = Better loot chances!
+
+🏆 ADVANCED COMBAT:
+
+DUNGEONS:
+Run /dungeon for instanced combat with great rewards!
+
+SLAYERS:
+Fight /slayer bosses for exclusive drops and XP!
+
+BOSSES:
+Use /boss to challenge world bosses!
+
+📊 LEVELING COMBAT:
+
+Gain Combat XP by:
+- Killing mobs
+- Completing dungeons
+- Defeating slayers
+- Fighting bosses
+
+Higher Combat level unlocks:
+- Better locations
+- Stronger enemies
+- More XP per kill
+- Better loot
+
+💡 COMBAT TIPS:
+
+1. GEAR UP:
+   ✓ Always wear armor
+   ✓ Upgrade weapons regularly
+   ✓ Enchant your equipment
+   ✓ Use reforges
+
+2. PREPARATION:
+   ✓ Bring healing items
+   ✓ Check your stats
+   ✓ Know the enemy type
+   ✓ Have escape plan
+
+3. STRATEGY:
+   ✓ Dodge attacks when possible
+   ✓ Use critical hits
+   ✓ Target weak enemies first
+   ✓ Know when to retreat
+
+4. PROFITS:
+   ✓ Sell common drops on bazaar
+   ✓ Keep rare items
+   ✓ Complete combat collections
+   ✓ Farm specific mobs for their drops
+
+🎁 REWARDS:
+
+COMBAT COLLECTIONS:
+- Rotten Flesh
+- Bones
+- String
+- Ender Pearls
+- Blaze Rods
+
+COMBAT ACHIEVEMENTS:
+- First Kill
+- 100 Kills
+- 1,000 Kills
+- Kill Every Mob Type
+- Defeat All Bosses
+
+📈 PROGRESSION PATH:
+
+1. Start with /fight in easy areas
+2. Level up Combat skill to 10
+3. Get Diamond Armor and Sword
+4. Unlock medium difficulty areas
+5. Try your first dungeon
+6. Fight slayer bosses
+7. Challenge world bosses
+8. Master all combat locations!
+
+Use /combat_stats to track your progress!
+
+Remember: Combat is dangerous but rewarding. Prepare well and fight smart!

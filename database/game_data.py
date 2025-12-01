@@ -239,13 +239,13 @@ class GameDataDB:
             return recipe
         return None
 
-    async def add_crafting_recipe(self, recipe_id: str, output_item: str, ingredients: Dict):
+    async def add_crafting_recipe(self, recipe_id: str, output_item: str, ingredients: Dict, output_amount: int = 1):
         if not self.conn:
             return
         await self.conn.execute('''
-            INSERT OR REPLACE INTO crafting_recipes (recipe_id, output_item, ingredients)
-            VALUES (?, ?, ?)
-        ''', (recipe_id, output_item, json.dumps(ingredients)))
+            INSERT OR REPLACE INTO crafting_recipes (recipe_id, output_item, ingredients, output_amount)
+            VALUES (?, ?, ?, ?)
+        ''', (recipe_id, output_item, json.dumps(ingredients), output_amount))
         await self.conn.commit()
 
     async def get_all_tool_tiers(self):

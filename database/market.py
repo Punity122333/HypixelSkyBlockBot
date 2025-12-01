@@ -5,13 +5,13 @@ import time
 
 class MarketDB(DatabaseCore):
     async def create_auction(self, seller_id: int, item_id: str, starting_bid: int, 
-                           buy_now_price: Optional[int], duration: int, bin: bool = False):
+                           buy_now_price: Optional[int], duration: int, bin: bool = False, amount: int = 1):
         end_time = int(time.time()) + duration
         cursor = await self.execute(
-            '''INSERT INTO auction_house (seller_id, starting_bid, current_bid, buy_now_price,
-                                         end_time, bin, created_at)
-               VALUES (?, ?, 0, ?, ?, ?, ?)''',
-            (seller_id, starting_bid, buy_now_price, end_time, 1 if bin else 0, int(time.time()))
+            '''INSERT INTO auction_house (seller_id, item_id, starting_bid, current_bid, buy_now_price,
+                                         end_time, bin, created_at, amount)
+               VALUES (?, ?, ?, 0, ?, ?, ?, ?)''',
+            (seller_id, item_id, starting_bid, buy_now_price, end_time, 1 if bin else 0, int(time.time()), amount)
         )
         auction_id = cursor.lastrowid
         
@@ -148,3 +148,23 @@ class MarketDB(DatabaseCore):
             (symbol, limit)
         )
         return [dict(row) for row in rows]
+
+    async def place_bid(self, user_id: int, auction_id: int, bid_amount: int) -> bool:
+        auction = await self.fetchone(
+            '''SELECT ah.*, ai.item_id, ai.amount
+               FROM auction_house ah
+               JOIN auction_items ai ON ah.id = ai.auction_id
+               WHERE ah.id = ? AND ah.ended = 0''',
+            (auction_id,)
+        )
+        if not auction:
+            return False
+        min_bid = max(auction['starting_bid'], auction['current_bid'] + 1)
+        if bid_amount < min_bid:
+            return False
+        await self.execute(
+            'UPDATE auction_house SET current_bid = ?, highest_bidder_id = ? WHERE id = ?',
+            (bid_amount, user_id, auction_id)
+        )
+        await self.commit()
+        return True
