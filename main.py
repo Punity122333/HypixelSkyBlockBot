@@ -8,6 +8,7 @@ from utils.player_manager import PlayerManager
 from utils.systems.market_system import MarketSystem, run_market_simulation
 from utils.data.game_data import GameDataManager
 from utils.command_sync import CommandSyncManager
+from utils.backup_manager import BackupManager
 import pathlib
 import traceback
 import asyncio
@@ -32,6 +33,7 @@ class SkyblockBot(commands.Bot):
         self.game_data: GameDataManager
         self.market_task: Optional[asyncio.Task] = None
         self.sync_manager: CommandSyncManager
+        self.backup_manager: BackupManager
 
     async def setup_hook(self) -> None:
         print('🔄 Starting setup...')
@@ -99,6 +101,10 @@ class SkyblockBot(commands.Bot):
         
         print('🤖 Starting market simulation...')
         self.market_task = self.loop.create_task(self.market_simulation_loop())
+        
+        print('💾 Starting backup manager...')
+        self.backup_manager = BackupManager("skyblock.db", backup_dir="backups", interval_hours=6, max_backups=10)
+        self.backup_manager.start(self.loop)
 
     async def market_simulation_loop(self):
         await self.wait_until_ready()
@@ -150,6 +156,8 @@ async def shutdown():
     print('\n🛑 Shutting down...')
     if bot.market_task:
         bot.market_task.cancel()
+    if hasattr(bot, 'backup_manager'):
+        bot.backup_manager.stop()
     if bot.db:
         await bot.db.close()
     print('✅ Cleanup complete')
