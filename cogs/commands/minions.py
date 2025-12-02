@@ -54,13 +54,13 @@ class MinionView(View):
         self.clear_items()
         
         if self.page > 0:
-            prev_button = Button(label="◀️ Previous", style=discord.ButtonStyle.gray)
+            prev_button = Button(label="Previous", style=discord.ButtonStyle.gray)
             prev_button.callback = self.previous_page
             self.add_item(prev_button)
         
         total_pages = math.ceil(len(self.minions) / self.items_per_page)
         if self.page < total_pages - 1:
-            next_button = Button(label="Next ▶️", style=discord.ButtonStyle.gray)
+            next_button = Button(label="Next", style=discord.ButtonStyle.gray)
             next_button.callback = self.next_page
             self.add_item(next_button)
     
@@ -130,9 +130,113 @@ class MinionView(View):
         
         return embed
 
+class MinionMenuView(discord.ui.View):
+    def __init__(self, bot, user_id, minions):
+        super().__init__(timeout=180)
+        self.bot = bot
+        self.user_id = user_id
+        self.minions = minions
+        self.page = 0
+        self.items_per_page = 5
+    
+    async def get_embed(self):
+        embed = discord.Embed(
+            title="🤖 Your Minions",
+            description=f"You have {len(self.minions)} minions working for you",
+            color=discord.Color.blue()
+        )
+        
+        start_idx = self.page * self.items_per_page
+        end_idx = min(start_idx + self.items_per_page, len(self.minions))
+        
+        for minion in self.minions[start_idx:end_idx]:
+            minion_type = minion['minion_type']
+            tier = minion['tier']
+            slot = minion['island_slot']
+            storage = minion['storage']
+            
+            minion_info = await get_minion_data_from_db(self.bot.game_data, minion_type)
+            produces = minion_info.get('produces', minion_type)
+            base_speed = minion_info.get('speed', 60)
+            
+            speed = base_speed / tier
+            
+            from collections import defaultdict
+            storage_counts = defaultdict(int)
+            for item in storage:
+                storage_counts[item.get('item_id', 'unknown')] += item.get('amount', 1)
+            
+            storage_text = ""
+            if storage_counts:
+                for item_id, count in list(storage_counts.items())[:3]:
+                    storage_text += f"{count}x {item_id.replace('_', ' ').title()}, "
+                storage_text = storage_text.rstrip(', ')
+            else:
+                storage_text = "Empty"
+            
+            embed.add_field(
+                name=f"Slot {slot}: {minion_type.title()} Minion (Tier {tier})",
+                value=f"Produces: {produces.replace('_', ' ').title()}\nSpeed: {speed:.1f}s per action\nStorage: {storage_text}\nID: {minion['id']}",
+                inline=False
+            )
+        
+        total_pages = math.ceil(len(self.minions) / self.items_per_page) if len(self.minions) > 0 else 1
+        embed.set_footer(text=f"Page {self.page + 1}/{total_pages} • Use buttons to manage minions")
+        
+        return embed
+    
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, row=0)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.page > 0:
+            self.page -= 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, row=0)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        total_pages = math.ceil(len(self.minions) / self.items_per_page)
+        if self.page < total_pages - 1:
+            self.page += 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="Refresh", style=discord.ButtonStyle.blurple, row=0)
+    async def refresh_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.minions = await self.bot.db.get_user_minions(self.user_id)
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+
 class MinionCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    @app_commands.command(name="minions", description="View and manage your minions")
+    async def minions(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
+        )
+        
+        minions = await self.bot.db.get_user_minions(interaction.user.id)
+        
+        view = MinionMenuView(self.bot, interaction.user.id, minions)
+        embed = await view.get_embed()
+        
+        await interaction.followup.send(embed=embed, view=view)
 
     @app_commands.command(name="minion_place", description="Place a minion on your island")
     @app_commands.describe(minion_type="Type of minion to place", slot="Island slot (1-25)")

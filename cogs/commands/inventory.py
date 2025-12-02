@@ -1,67 +1,58 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from discord.ui import View, Button
 from collections import defaultdict
-import math
 
-class InventoryView(View):
-    def __init__(self, items_dict, user_id, username, bot):
+class InventoryMenuView(discord.ui.View):
+    def __init__(self, bot, user_id, username):
         super().__init__(timeout=180)
-        self.items_dict = items_dict
+        self.bot = bot
         self.user_id = user_id
         self.username = username
-        self.bot = bot
+        self.current_view = 'inventory'
         self.page = 0
-        self.items_per_page = 15
-        
-        self.add_buttons()
+        self.items_per_page = 10
+        self.total_pages = 1
     
-    def add_buttons(self):
-        self.clear_items()
-        
-        total_pages = math.ceil(len(self.items_dict) / self.items_per_page)
-        
-        if self.page > 0:
-            prev_button = Button(label="Previous", style=discord.ButtonStyle.primary)
-            prev_button.callback = self.previous_page
-            self.add_item(prev_button)
-        
-        if self.page < total_pages - 1:
-            next_button = Button(label="Next", style=discord.ButtonStyle.primary)
-            next_button.callback = self.next_page
-            self.add_item(next_button)
+    async def get_embed(self):
+        if self.current_view == 'inventory':
+            return await self.get_inventory_embed()
+        elif self.current_view == 'enderchest':
+            return await self.get_enderchest_embed()
+        elif self.current_view == 'wardrobe':
+            return await self.get_wardrobe_embed()
+        elif self.current_view == 'accessories':
+            return await self.get_accessories_embed()
+        else:
+            return await self.get_inventory_embed()
     
-    async def previous_page(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
-            return
+    async def get_inventory_embed(self):
+        items = await self.bot.db.get_inventory(self.user_id)
         
-        self.page -= 1
-        self.add_buttons()
-        embed = await self.create_embed()
-        await interaction.response.edit_message(embed=embed, view=self)
-    
-    async def next_page(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
-            return
+        if not items:
+            self.total_pages = 1
+            embed = discord.Embed(
+                title=f"🎒 {self.username}'s Inventory",
+                description="Your inventory is empty!\n\nUse `/starter_pack` to get some items, or start gathering!",
+                color=discord.Color.blue()
+            )
+            return embed
         
-        self.page += 1
-        self.add_buttons()
-        embed = await self.create_embed()
-        await interaction.response.edit_message(embed=embed, view=self)
-    
-    async def create_embed(self):
+        item_counts = defaultdict(int)
+        for item_data in items:
+            item_counts[item_data['item_id']] += 1
+        
         embed = discord.Embed(
             title=f"🎒 {self.username}'s Inventory",
-            description=f"Total unique items: {len(self.items_dict)}",
+            description=f"Total unique items: {len(item_counts)}",
             color=discord.Color.blue()
         )
         
-        items_list = sorted(self.items_dict.items(), key=lambda x: x[1], reverse=True)
-        start_idx = self.page * self.items_per_page
-        end_idx = min(start_idx + self.items_per_page, len(items_list))
+        items_list = sorted(item_counts.items(), key=lambda x: x[1], reverse=True)
+        
+        start = self.page * self.items_per_page
+        end = start + self.items_per_page
+        page_items = items_list[start:end]
         
         rarity_emojis = {
             'COMMON': '⬜',
@@ -73,74 +64,33 @@ class InventoryView(View):
             'DIVINE': '🌟'
         }
         
-        for item_id, count in items_list[start_idx:end_idx]:
+        for item_id, count in page_items:
             item = await self.bot.game_data.get_item(item_id)
             if item:
                 rarity_emoji = rarity_emojis.get(item.rarity, '⬜')
                 item_name = f"{rarity_emoji} {item.name}"
-                item_type = f"{item.type.lower()} • `{item_id}`"
             else:
                 item_name = item_id.replace('_', ' ').title()
-                item_type = f"`{item_id}`"
             
             embed.add_field(
                 name=f"{item_name} x{count:,}",
-                value=item_type if item_type else "\u200b",
+                value=f"`{item_id}`",
                 inline=True
             )
         
-        total_pages = math.ceil(len(items_list) / self.items_per_page)
-        embed.set_footer(text=f"Page {self.page + 1}/{total_pages if total_pages > 0 else 1} • Total items: {sum(self.items_dict.values()):,}")
-        
+        self.total_pages = (len(items_list) + self.items_per_page - 1) // self.items_per_page if items_list else 1
+        embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages} • Use buttons to navigate")
         return embed
-
-class InventoryCommands(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @app_commands.command(name="inventory", description="View your inventory")
-    async def inventory(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        items = await self.bot.db.get_inventory(interaction.user.id)
-        
-        if not items:
-            embed = discord.Embed(
-                title=f"🎒 {interaction.user.name}'s Inventory",
-                description="Your inventory is empty!\n\nUse `/starter_pack` to get some items, or start gathering with:\n• `/mine` - Mining\n• `/farm` - Farming\n• `/forage` - Foraging\n• `/fish` - Fishing\n• `/combat_mobs` - Combat",
-                color=discord.Color.blue()
-            )
-            await interaction.followup.send(embed=embed)
-            return
-        
-        item_counts = defaultdict(int)
-        for item_data in items:
-            item_counts[item_data['item_id']] += 1
-        
-        view = InventoryView(dict(item_counts), interaction.user.id, interaction.user.name, self.bot)
-        embed = await view.create_embed()
-        
-        await interaction.followup.send(embed=embed, view=view)
-
-    @app_commands.command(name="enderchest", description="View your ender chest")
-    async def enderchest(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
+    
+    async def get_enderchest_embed(self):
+        self.total_pages = 1
         async with self.bot.db.conn.execute(
-            'SELECT * FROM enderchest WHERE user_id = ?', (interaction.user.id,)
+            'SELECT * FROM enderchest WHERE user_id = ?', (self.user_id,)
         ) as cursor:
             items = await cursor.fetchall()
         
         embed = discord.Embed(
-            title=f"📦 {interaction.user.name}'s Ender Chest",
+            title=f"📦 {self.username}'s Ender Chest",
             description="Secure storage for valuable items",
             color=discord.Color.purple()
         )
@@ -154,7 +104,7 @@ class InventoryCommands(commands.Cog):
                 item_counts[item_id] += 1
             
             items_text = ""
-            for item_id, count in sorted(item_counts.items(), key=lambda x: x[1], reverse=True)[:20]:
+            for item_id, count in sorted(item_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
                 item_obj = await self.bot.game_data.get_item(item_id)
                 if item_obj:
                     items_text += f"• {item_obj.name}: {count}x\n"
@@ -166,25 +116,18 @@ class InventoryCommands(commands.Cog):
         else:
             embed.add_field(name="Storage", value="0/54 slots used\nYour ender chest is empty!", inline=False)
         
-        embed.set_footer(text="Ender chest keeps items safe even if you lose them!")
-        
-        await interaction.followup.send(embed=embed)
-
-    @app_commands.command(name="wardrobe", description="View and manage your wardrobe")
-    async def wardrobe(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
+        embed.set_footer(text="Ender chest keeps items safe!")
+        return embed
+    
+    async def get_wardrobe_embed(self):
+        self.total_pages = 1
         async with self.bot.db.conn.execute(
-            'SELECT * FROM wardrobe WHERE user_id = ? ORDER BY slot', (interaction.user.id,)
+            'SELECT * FROM wardrobe WHERE user_id = ? ORDER BY slot', (self.user_id,)
         ) as cursor:
             wardrobe_items = await cursor.fetchall()
         
         embed = discord.Embed(
-            title=f"👔 {interaction.user.name}'s Wardrobe",
+            title=f"👔 {self.username}'s Wardrobe",
             description="Quickly swap between armor sets!",
             color=discord.Color.green()
         )
@@ -195,29 +138,22 @@ class InventoryCommands(commands.Cog):
         else:
             embed.add_field(
                 name="Empty Wardrobe",
-                value="You don't have any armor sets saved!\n\nSave armor sets to quickly switch between them.",
+                value="You don't have any armor sets saved!",
                 inline=False
             )
         
-        embed.set_footer(text="Use armor to save sets to your wardrobe")
-        
-        await interaction.followup.send(embed=embed)
-
-    @app_commands.command(name="accessories", description="View your accessory bag")
-    async def accessories(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
+        embed.set_footer(text="Save armor sets to quickly switch")
+        return embed
+    
+    async def get_accessories_embed(self):
+        self.total_pages = 1
         async with self.bot.db.conn.execute(
-            'SELECT * FROM accessory_bag WHERE user_id = ?', (interaction.user.id,)
+            'SELECT * FROM accessory_bag WHERE user_id = ?', (self.user_id,)
         ) as cursor:
             accessories = await cursor.fetchall()
         
         embed = discord.Embed(
-            title=f"💎 {interaction.user.name}'s Accessories",
+            title=f"💎 {self.username}'s Accessories",
             description="Your accessory bag and talismans",
             color=discord.Color.gold()
         )
@@ -226,48 +162,130 @@ class InventoryCommands(commands.Cog):
             embed.add_field(name="Accessories", value=f"{len(accessories)}/54 slots used", inline=True)
             
             total_stats = defaultdict(int)
-            item_counts = defaultdict(int)
             rarity_counts = defaultdict(int)
             
             for acc in accessories:
                 item_id = acc[2]
                 item = await self.bot.game_data.get_item(item_id)
                 if item:
-                    item_counts[item.name] += 1
                     rarity_counts[item.rarity] += 1
                     for stat, value in item.stats.items():
                         total_stats[stat] += value
             
             if total_stats:
-                stats_text = "\n".join([f"+{value} {stat.replace('_', ' ').title()}" for stat, value in total_stats.items()])
+                stats_text = "\n".join([f"+{value} {stat.replace('_', ' ').title()}" for stat, value in list(total_stats.items())[:5]])
                 embed.add_field(name="Total Stats", value=stats_text, inline=True)
-            
-            if rarity_counts:
-                for rarity in ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY']:
-                    if rarity in rarity_counts:
-                        items_of_rarity = []
-                        for item_id in item_counts.keys():
-                            item_obj = await self.bot.game_data.get_item(item_id)
-                            if item_obj and item_obj.rarity == rarity:
-                                items_of_rarity.append(item_obj.name)
-                        
-                        if items_of_rarity:
-                            embed.add_field(
-                                name=f"{rarity.title()} ({rarity_counts[rarity]})",
-                                value="\n".join(items_of_rarity[:5]),
-                                inline=True
-                            )
         else:
-            embed.add_field(
-                name="Empty Bag",
-                value="You don't have any accessories!\n\nAccessories provide permanent stat bonuses.",
-                inline=False
-            )
+            embed.add_field(name="Empty Bag", value="No accessories equipped!", inline=False)
         
-        embed.set_footer(text="Accessories provide permanent stat boosts!")
+        embed.set_footer(text="Accessories provide permanent stat bonuses")
+        return embed
+    
+    def _update_buttons(self):
+        self.clear_items()
         
-        await interaction.followup.send(embed=embed)
+        self.add_item(self.inventory_button)
+        self.add_item(self.enderchest_button)
+        self.add_item(self.wardrobe_button)
+        self.add_item(self.accessories_button)
+        
+        if self.current_view == 'inventory' and self.total_pages > 1:
+            self.add_item(self.prev_button)
+            self.add_item(self.next_button)
+    
+    @discord.ui.button(label="🎒 Inventory", style=discord.ButtonStyle.blurple, row=0)
+    async def inventory_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'inventory'
+        self.page = 0
+        embed = await self.get_embed()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    @discord.ui.button(label="📦 Ender Chest", style=discord.ButtonStyle.gray, row=0)
+    async def enderchest_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'enderchest'
+        self.page = 0
+        embed = await self.get_embed()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    @discord.ui.button(label="👔 Wardrobe", style=discord.ButtonStyle.green, row=0)
+    async def wardrobe_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'wardrobe'
+        self.page = 0
+        embed = await self.get_embed()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    @discord.ui.button(label="💎 Accessories", style=discord.ButtonStyle.gray, row=0)
+    async def accessories_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'accessories'
+        self.page = 0
+        embed = await self.get_embed()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, row=1)
+    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.page > 0:
+            self.page -= 1
+            embed = await self.get_embed()
+            self._update_buttons()
+            await interaction.response.edit_message(embed=embed, view=self)
+        else:
+            await interaction.response.defer()
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, row=1)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.page < self.total_pages - 1:
+            self.page += 1
+            embed = await self.get_embed()
+            self._update_buttons()
+            await interaction.response.edit_message(embed=embed, view=self)
+        else:
+            await interaction.response.defer()
+
+class InventoryCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="inventory", description="View your inventory and storage")
+    async def inventory(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
+        )
+        
+        view = InventoryMenuView(self.bot, interaction.user.id, interaction.user.name)
+        embed = await view.get_embed()
+        view._update_buttons()
+        
+        await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(InventoryCommands(bot))
-

@@ -32,6 +32,9 @@ class BeginCommands(commands.Cog):
         
         await self.bot.db.add_item_to_inventory(interaction.user.id, 'wooden_sword', 1)
         await self.bot.db.add_item_to_inventory(interaction.user.id, 'wooden_pickaxe', 1)
+        await self.bot.db.add_item_to_inventory(interaction.user.id, 'wooden_hoe', 1)
+        await self.bot.db.add_item_to_inventory(interaction.user.id, 'wooden_axe', 1)
+        await self.bot.db.add_item_to_inventory(interaction.user.id, 'wooden_fishing_rod', 1)
         
         await self.bot.db.update_progression(
             interaction.user.id,
@@ -47,7 +50,7 @@ class BeginCommands(commands.Cog):
         
         embed.add_field(
             name="Starting Equipment",
-            value="• Wooden Sword (for basic combat)\n• Wooden Pickaxe (for mining)",
+            value="• Wooden Sword (for basic combat)\n• Wooden Pickaxe (for mining)\n• Wooden Hoe (for farming)\n• Wooden Axe (for chopping wood)\n• Wooden Fishing Rod (for fishing)",
             inline=False
         )
         

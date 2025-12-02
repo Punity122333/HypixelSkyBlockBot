@@ -2,115 +2,146 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import time
-import json
+from utils.autocomplete import item_autocomplete
+from utils.systems.economy_system import EconomySystem
 
-class AuctionCommands(commands.Cog):
+class AuctionCreateModal(discord.ui.Modal, title="Create Auction"):
+    item_id = discord.ui.TextInput(label="Item ID", placeholder="Enter item ID", required=True)
+    amount = discord.ui.TextInput(label="Amount", placeholder="Enter amount (default: 1)", required=False, default="1")
+    starting_bid = discord.ui.TextInput(label="Starting Bid", placeholder="Enter starting bid", required=True)
+    duration_hours = discord.ui.TextInput(label="Duration (hours)", placeholder="1-48 hours", required=True)
+    bin_price = discord.ui.TextInput(label="BIN Price (optional)", placeholder="Buy it now price", required=False)
+    
     def __init__(self, bot):
+        super().__init__()
         self.bot = bot
-
-    @app_commands.command(name="ah_create", description="Create an auction")
-    @app_commands.describe(
-        item_id="The item to auction",
-        starting_bid="Starting bid amount",
-        duration_hours="Duration in hours (1-48)",
-        amount="Amount of the item to auction",
-        bin_price="Buy it now price (optional)"
-    )
-    async def ah_create(self, interaction: discord.Interaction, item_id: str, starting_bid: int, duration_hours: int, amount: int = 1, bin_price: int = 0):
+    
+    async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        item = await self.bot.game_data.get_item(item_id)
+        try:
+            amount = int(self.amount.value) if self.amount.value else 1
+            starting_bid = int(self.starting_bid.value)
+            duration_hours = int(self.duration_hours.value)
+            bin_price = int(self.bin_price.value) if self.bin_price.value else 0
+        except ValueError:
+            await interaction.followup.send("❌ Invalid input values!", ephemeral=True)
+            return
+        # Fix: Use a local variable for normalized item_id
+        item_id_normalized = self.item_id.value.lower().replace(" ", "_")
+        item = await self.bot.game_data.get_item(item_id_normalized)
         if not item:
-            await interaction.followup.send("❌ Invalid item ID!", ephemeral=True)
+            await interaction.followup.send("❌ Invalid item!", ephemeral=True)
             return
         
         if duration_hours < 1 or duration_hours > 48:
             await interaction.followup.send("❌ Duration must be between 1 and 48 hours!", ephemeral=True)
             return
         
-        item_count = await self.bot.db.get_item_count(interaction.user.id, item_id)
-        if item_count < 1:
-            await interaction.followup.send(f"❌ You don't have any {item.name}!", ephemeral=True)
+        item_count = await self.bot.db.get_item_count(interaction.user.id, item_id_normalized)
+        if item_count < amount:
+            await interaction.followup.send(f"❌ You don't have enough {item.name}!", ephemeral=True)
             return
         
-        await self.bot.db.remove_item_from_inventory(interaction.user.id, item_id, 1)
+        result = await EconomySystem.create_auction(self.bot.db, interaction.user.id, item_id_normalized, amount, starting_bid, duration_hours, bin_price if bin_price > 0 else None)
         
-        duration_seconds = duration_hours * 3600
-        auction_id = await self.bot.db.create_auction(
-            interaction.user.id, item_id, starting_bid, bin_price if bin_price > 0 else None, duration_seconds, bin_price > 0, amount
-        )
-        
-        progression = await self.bot.db.get_player_progression(interaction.user.id)
-        if not progression or not progression.get('first_auction_date'):
-            await self.bot.db.update_progression(
-                interaction.user.id,
-                first_auction_date=int(time.time())
-            )
-        
-        embed = discord.Embed(
-            title="✅ Auction Created!",
-            description=f"Your **{amount}x** **{item.name}** is now listed!",
-            color=discord.Color.green()
-        )
-        embed.add_field(name="Starting Bid", value=f"{starting_bid:,} coins", inline=True)
-        embed.add_field(name="Duration", value=f"{duration_hours} hours", inline=True)
-        if bin_price > 0:
-            embed.add_field(name="BIN Price", value=f"{bin_price:,} coins", inline=True)
-        embed.add_field(name="Auction ID", value=f"#{auction_id}", inline=False)
-        
-        await interaction.followup.send(embed=embed)
+        if result['success']:
+            await self.bot.db.remove_item_from_inventory(interaction.user.id, item_id_normalized, amount)
+            embed = discord.Embed(title="✅ Auction Created!", color=discord.Color.green())
+            embed.add_field(name="Item", value=f"{amount}x {item.name}", inline=True)
+            embed.add_field(name="Starting Bid", value=f"{starting_bid:,} coins", inline=True)
+            if bin_price > 0:
+                embed.add_field(name="BIN Price", value=f"{bin_price:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send(f"❌ {result.get('error', 'Failed to create auction')}", ephemeral=True)
+
+class AuctionBidModal(discord.ui.Modal, title="Place Bid"):
+    auction_id = discord.ui.TextInput(label="Auction ID", placeholder="Enter auction ID", required=True)
+    bid_amount = discord.ui.TextInput(label="Bid Amount", placeholder="Enter your bid", required=True)
     
-    @ah_create.autocomplete('item_id')
-    async def ah_create_autocomplete(self, interaction: discord.Interaction, current: str):
-        try:
-            inventory = await self.bot.db.get_inventory(interaction.user.id)
-            
-            if not inventory:
-                return []
-            
-            from collections import defaultdict
-            item_counts = defaultdict(int)
-            for item_data in inventory:
-                item_counts[item_data['item_id']] += 1
-            
-            choices = []
-            for item_id, count in item_counts.items():
-                item = await self.bot.game_data.get_item(item_id)
-                if item and item.type not in ['PET', 'MINION']:
-                    if current.lower() in item.name.lower() or current.lower() in item_id.lower():
-                        choices.append(
-                            app_commands.Choice(
-                                name=f"{item.name} (x{count})",
-                                value=item_id
-                            )
-                        )
-            
-            choices.sort(key=lambda x: x.name)
-            return choices[:25]
-        except Exception as e:
-            print(f"Error in ah_create autocomplete: {e}")
-            return []
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
     
-    @app_commands.command(name="ah_browse", description="Browse active auctions")
-    async def ah_browse(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        try:
+            auction_id = int(self.auction_id.value)
+            bid_amount = int(self.bid_amount.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid input values!", ephemeral=True)
+            return
         
-        auctions = await self.bot.db.get_active_auctions(20)
+        result = await EconomySystem.place_bid(self.bot.db, interaction.user.id, auction_id, bid_amount)
         
+        if result['success']:
+            embed = discord.Embed(title="✅ Bid Placed!", color=discord.Color.green())
+            embed.add_field(name="Auction", value=f"#{auction_id}", inline=True)
+            embed.add_field(name="Bid Amount", value=f"{bid_amount:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send(f"❌ {result.get('error', 'Bid failed')}", ephemeral=True)
+
+class AuctionBINModal(discord.ui.Modal, title="Buy Instantly"):
+    auction_id = discord.ui.TextInput(label="Auction ID", placeholder="Enter auction ID", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            auction_id = int(self.auction_id.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid auction ID!", ephemeral=True)
+            return
+        
+        result = await EconomySystem.buy_bin(self.bot.db, interaction.user.id, auction_id)
+        
+        if result['success']:
+            embed = discord.Embed(title="✅ Purchase Successful!", color=discord.Color.green())
+            embed.add_field(name="Item", value=f"{result['amount']}x {result['item_id'].replace('_', ' ').title()}", inline=True)
+            embed.add_field(name="Price", value=f"{result['price']:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send(f"❌ {result.get('error', 'Purchase failed')}", ephemeral=True)
+
+class AuctionMenuView(discord.ui.View):
+    def __init__(self, bot, user_id):
+        super().__init__(timeout=180)
+        self.bot = bot
+        self.user_id = user_id
+        self.current_page = 0
+        self.auctions = []
+        self.current_view = 'browse'
+    
+    async def load_auctions(self):
+        self.auctions = await self.bot.db.get_active_auctions(50)
+    
+    async def get_embed(self):
+        if self.current_view == 'browse':
+            return await self.get_browse_embed()
+        elif self.current_view == 'my_auctions':
+            return await self.get_my_auctions_embed()
+        else:
+            return await self.get_browse_embed()
+    
+    async def get_browse_embed(self):
         embed = discord.Embed(
             title="🔨 Auction House",
-            description=f"Showing {len(auctions)} active auctions",
+            description=f"Browse and interact with auctions",
             color=discord.Color.gold()
         )
         
-        if not auctions:
-            embed.description = "No active auctions! Use `/ah_create` to list an item."
+        start = self.current_page * 5
+        end = start + 5
+        page_auctions = self.auctions[start:end]
+        
+        if not page_auctions:
+            embed.description = "No active auctions! Create one to get started."
         else:
-            for auction in auctions[:10]:
+            for auction in page_auctions:
                 item = await self.bot.game_data.get_item(auction['item_id'])
                 if not item:
                     continue
@@ -130,94 +161,128 @@ class AuctionCommands(commands.Cog):
                     inline=False
                 )
         
-        await interaction.followup.send(embed=embed)
+        total_pages = (len(self.auctions) + 4) // 5
+        embed.set_footer(text=f"Page {self.current_page + 1}/{max(1, total_pages)}")
+        return embed
     
-    @app_commands.command(name="ah_bid", description="Place a bid on an auction")
-    @app_commands.describe(auction_id="The auction ID", bid_amount="Your bid amount")
-    async def ah_bid(self, interaction: discord.Interaction, auction_id: int, bid_amount: int):
-        await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        if player['coins'] < bid_amount:
-            await interaction.followup.send(f"❌ Not enough coins! You need {bid_amount:,} coins.", ephemeral=True)
-            return
-        
-        await self.bot.db.update_player(interaction.user.id, coins=player['coins'] - bid_amount)
-        
-        success = await self.bot.db.place_bid(interaction.user.id, auction_id, bid_amount)
-        if not success:
-            await self.bot.db.update_player(interaction.user.id, coins=player['coins'])
-            await interaction.followup.send(f"❌ Failed to place bid! {success}", ephemeral=True)
-            return
+    async def get_my_auctions_embed(self):
+        if self.bot.db.conn:
+            async with self.bot.db.conn.execute('''
+                SELECT ah.*, ai.item_id, ai.amount
+                FROM auction_house ah
+                JOIN auction_items ai ON ah.id = ai.auction_id
+                WHERE ah.seller_id = ? AND ah.ended = 0
+                ORDER BY ah.created_at DESC
+            ''', (self.user_id,)) as cursor:
+                my_auctions = await cursor.fetchall()
+        else:
+            my_auctions = []
         
         embed = discord.Embed(
-            title="✅ Bid Placed!",
-            description=f"You bid **{bid_amount:,}** coins on auction #**{auction_id}**!",
-            color=discord.Color.green()
-        )
-        
-        await interaction.followup.send(embed=embed)
-    
-    @app_commands.command(name="ah_bin", description="Buy an auction instantly")
-    @app_commands.describe(auction_id="The auction ID to buy")
-    async def ah_bin(self, interaction: discord.Interaction, auction_id: int):
-        await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        success = await self.bot.db.buy_bin(interaction.user.id, auction_id, 0)
-        
-        if not success:
-            await interaction.followup.send("❌ Failed to buy! Auction may not be a BIN or you don't have enough coins.", ephemeral=True)
-            return
-        
-        embed = discord.Embed(
-            title="✅ Purchase Complete!",
-            description=f"You bought auction #{auction_id}!",
-            color=discord.Color.green()
-        )
-        
-        await interaction.followup.send(embed=embed)
-    
-    @app_commands.command(name="ah_my", description="View your auctions")
-    async def ah_my(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        auctions = await self.bot.db.get_user_auctions(interaction.user.id)
-        
-        embed = discord.Embed(
-            title=f"📜 {interaction.user.name}'s Auctions",
-            description=f"You have {len(auctions)} active auctions",
+            title="📜 Your Auctions",
+            description=f"You have {len(my_auctions)} active auctions",
             color=discord.Color.blue()
         )
         
-        if not auctions:
-            embed.description = "No active auctions! Use `/ah_create` to list an item."
+        if not my_auctions:
+            embed.description = "No active auctions! Use commands to create one."
         else:
-            for auction in auctions:
+            for auction in my_auctions[:10]:
                 item = await self.bot.game_data.get_item(auction['item_id'])
-                if not item:
-                    continue
-                
-                time_left = auction['end_time'] - int(time.time())
-                hours = time_left // 3600
-                minutes = (time_left % 3600) // 60
-                
-                value = f"Current Bid: {auction['current_bid']:,} coins\n"
-                value += f"Ends in: {hours}h {minutes}m"
-                
-                embed.add_field(
-                    name=f"#{auction['id']} - {auction['amount']}x {item.name}",
-                    value=value,
-                    inline=False
-                )
+                if item:
+                    value = f"Current Bid: {auction['current_bid']:,} coins"
+                    if auction['bin']:
+                        value += f"\nBIN: {auction['buy_now_price']:,} coins"
+                    embed.add_field(name=f"#{auction['id']} - {auction['amount']}x {item.name}", value=value, inline=False)
         
-        await interaction.followup.send(embed=embed)
+        return embed
+    
+    @discord.ui.button(label="🔨 Browse", style=discord.ButtonStyle.blurple, row=0)
+    async def browse_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'browse'
+        self.current_page = 0
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="📜 My Auctions", style=discord.ButtonStyle.green, row=0)
+    async def my_auctions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'my_auctions'
+        self.current_page = 0
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, row=1)
+    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.current_page > 0:
+            self.current_page -= 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, row=1)
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        total_pages = (len(self.auctions) + 4) // 5
+        if self.current_page < total_pages - 1:
+            self.current_page += 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="➕ Create", style=discord.ButtonStyle.green, row=2)
+    async def create_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(AuctionCreateModal(self.bot))
+    
+    @discord.ui.button(label="💰 Bid", style=discord.ButtonStyle.blurple, row=2)
+    async def bid_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(AuctionBidModal(self.bot))
+    
+    @discord.ui.button(label="⚡ Buy Now", style=discord.ButtonStyle.red, row=2)
+    async def bin_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(AuctionBINModal(self.bot))
+
+class AuctionCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="auction", description="Access the Auction House")
+    async def auction(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
+        )
+        
+        view = AuctionMenuView(self.bot, interaction.user.id)
+        await view.load_auctions()
+        embed = await view.get_embed()
+        
+        await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(AuctionCommands(bot))

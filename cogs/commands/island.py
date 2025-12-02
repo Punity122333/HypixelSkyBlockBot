@@ -3,20 +3,18 @@ from discord.ext import commands
 from discord import app_commands
 import random
 
-class IslandCommands(commands.Cog):
-    def __init__(self, bot):
+class IslandMenuView(discord.ui.View):
+    def __init__(self, bot, user_id, username):
+        super().__init__(timeout=180)
         self.bot = bot
-
-    @app_commands.command(name="island", description="Visit your private island")
-    async def island(self, interaction: discord.Interaction):
-        await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        souls = await self.bot.db.get_fairy_souls(interaction.user.id)
+        self.user_id = user_id
+        self.username = username
+    
+    async def get_embed(self):
+        souls = await self.bot.db.get_fairy_souls(self.user_id)
         
         embed = discord.Embed(
-            title=f"🏝️ {interaction.user.name}'s Island",
+            title=f"🏝️ {self.username}'s Island",
             description="Your personal island in SkyBlock!",
             color=discord.Color.green()
         )
@@ -31,7 +29,121 @@ class IslandCommands(commands.Cog):
             inline=False
         )
         
-        embed.set_footer(text="Use /search_fairy_soul to find fairy souls!")
+        embed.set_footer(text="Use buttons below to interact with your island")
+        return embed
+    
+    @discord.ui.button(label="Search Fairy Soul", style=discord.ButtonStyle.blurple, row=0)
+    async def search_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.defer()
+        
+        collected_locations_data = await self.bot.db.get_fairy_soul_locations(self.user_id)
+        
+        collected_locations = []
+        if collected_locations_data:
+            if isinstance(collected_locations_data, list):
+                collected_locations = [loc if isinstance(loc, str) else loc.get('location', '') for loc in collected_locations_data if loc]
+        
+        all_locations_data = await self.bot.game_data.get_all_fairy_soul_locations()
+        all_locations = []
+        if all_locations_data:
+            if isinstance(all_locations_data, list):
+                all_locations = [loc if isinstance(loc, str) else loc.get('location', '') for loc in all_locations_data if loc]
+        
+        uncollected = [loc for loc in all_locations if loc and loc not in collected_locations]
+        
+        if not uncollected:
+            await interaction.followup.send("✨ You've collected all available fairy souls!", ephemeral=True)
+            return
+        
+        found_chance = random.random()
+        
+        if found_chance < 0.3:
+            location = random.choice(uncollected)
+            success = await self.bot.db.collect_fairy_soul(self.user_id, location)
+            
+            if success:
+                total_souls = await self.bot.db.get_fairy_souls(self.user_id)
+                
+                health_bonus = total_souls * 3
+                mana_bonus = total_souls * 2
+                
+                player = await self.bot.db.get_player(self.user_id)
+                base_health = 100
+                base_mana = 20
+                
+                await self.bot.db.update_player(
+                    self.user_id,
+                    max_health=base_health + health_bonus,
+                    max_mana=base_mana + mana_bonus
+                )
+                
+                await interaction.followup.send(f"✨ **Fairy Soul Found!**\nYou found a fairy soul at **{location.replace('_', ' ')}**!\nTotal Souls: {total_souls}/{len(all_locations)}", ephemeral=True)
+            else:
+                await interaction.followup.send("✨ You've already collected this fairy soul!", ephemeral=True)
+        else:
+            await interaction.followup.send("🔍 You searched but didn't find a fairy soul this time. Keep searching!", ephemeral=True)
+    
+    @discord.ui.button(label="Fairy Soul Progress", style=discord.ButtonStyle.green, row=0)
+    async def progress_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        souls = await self.bot.db.get_fairy_souls(self.user_id)
+        
+        health_bonus = souls * 3
+        mana_bonus = souls * 2
+        
+        progress_pct = (souls / 242) * 100
+        
+        embed = discord.Embed(
+            title="✨ Fairy Souls",
+            description="Collect fairy souls for permanent stat bonuses!",
+            color=discord.Color.purple()
+        )
+        
+        embed.add_field(name="Collected", value=f"{souls} / 242", inline=True)
+        embed.add_field(name="Progress", value=f"{progress_pct:.1f}%", inline=True)
+        embed.add_field(name="Remaining", value=f"{242 - souls}", inline=True)
+        
+        embed.add_field(
+            name="Current Bonuses",
+            value=f"+{health_bonus} ❤️ Health\n+{mana_bonus} ✨ Mana",
+            inline=False
+        )
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="Refresh", style=discord.ButtonStyle.gray, row=0)
+    async def refresh_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+
+class IslandCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="island", description="Visit and manage your private island")
+    async def island_menu(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
+        )
+        
+        view = IslandMenuView(self.bot, interaction.user.id, interaction.user.name)
+        embed = await view.get_embed()
+        
+        await interaction.followup.send(embed=embed, view=view)
+
+
         
         await interaction.response.send_message(embed=embed)
 

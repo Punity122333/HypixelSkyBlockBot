@@ -1,251 +1,224 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from collections import defaultdict
-from typing import List, Dict
 from utils.autocomplete import item_autocomplete
 from utils.systems.economy_system import EconomySystem
 
-class BazaarPaginationView(discord.ui.View):
-    def __init__(self, items_list: List[Dict], items_per_page: int = 24):
-        super().__init__(timeout=180)
-        self.items_list = items_list
-        self.items_per_page = items_per_page
-        self.current_page = 0
-        self.max_page = (len(items_list) - 1) // items_per_page
+class BazaarBuyModal(discord.ui.Modal, title="Buy from Bazaar"):
+    item_id = discord.ui.TextInput(label="Item ID", placeholder="Enter item ID", required=True)
+    amount = discord.ui.TextInput(label="Amount", placeholder="Enter amount to buy", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            amount = int(self.amount.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid amount!", ephemeral=True)
+            return
         
-    def get_page_embed(self) -> discord.Embed:
+        result = await EconomySystem.instant_buy_bazaar(self.bot.db, interaction.user.id, self.item_id.value, amount)
+        
+        if result['success']:
+            embed = discord.Embed(title="✅ Purchase Successful!", color=discord.Color.green())
+            embed.add_field(name="Item", value=f"{amount}x {self.item_id.value.replace('_', ' ').title()}", inline=True)
+            embed.add_field(name="Total Cost", value=f"{result['total_cost']:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send(f"❌ {result.get('error', 'Transaction failed')}", ephemeral=True)
+
+class BazaarSellModal(discord.ui.Modal, title="Sell to Bazaar"):
+    item_id = discord.ui.TextInput(label="Item ID", placeholder="Enter item ID", required=True)
+    amount = discord.ui.TextInput(label="Amount", placeholder="Enter amount to sell", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            amount = int(self.amount.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid amount!", ephemeral=True)
+            return
+        
+        result = await EconomySystem.instant_sell_bazaar(self.bot.db, interaction.user.id, self.item_id.value, amount)
+        
+        if result['success']:
+            embed = discord.Embed(title="✅ Sale Successful!", color=discord.Color.green())
+            embed.add_field(name="Item", value=f"{amount}x {self.item_id.value.replace('_', ' ').title()}", inline=True)
+            embed.add_field(name="Total Value", value=f"{result['total_value']:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send(f"❌ {result.get('error', 'Transaction failed')}", ephemeral=True)
+
+class BazaarOrderModal(discord.ui.Modal, title="Place Bazaar Order"):
+    order_type = discord.ui.TextInput(label="Order Type (BUY or SELL)", placeholder="BUY or SELL", required=True)
+    item_id = discord.ui.TextInput(label="Item ID", placeholder="Enter item ID", required=True)
+    price = discord.ui.TextInput(label="Price per item", placeholder="Enter price", required=True)
+    amount = discord.ui.TextInput(label="Amount", placeholder="Enter amount", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            amount = int(self.amount.value)
+            price = float(self.price.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid amount or price!", ephemeral=True)
+            return
+        
+        order_type = self.order_type.value.upper()
+        if order_type not in ['BUY', 'SELL']:
+            await interaction.followup.send("❌ Order type must be BUY or SELL!", ephemeral=True)
+            return
+        
+        result = await EconomySystem.create_bazaar_order(self.bot.db, interaction.user.id, self.item_id.value, order_type, amount, price)
+        
+        if result['success']:
+            embed = discord.Embed(title="✅ Order Placed!", color=discord.Color.green())
+            embed.add_field(name="Type", value=order_type, inline=True)
+            embed.add_field(name="Item", value=f"{amount}x {self.item_id.value.replace('_', ' ').title()}", inline=True)
+            embed.add_field(name="Price", value=f"{price:.1f} coins each", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send(f"❌ {result.get('error', 'Order failed')}", ephemeral=True)
+
+class BazaarCancelModal(discord.ui.Modal, title="Cancel Order"):
+    order_id = discord.ui.TextInput(label="Order ID", placeholder="Enter order ID to cancel", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            order_id = int(self.order_id.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid order ID!", ephemeral=True)
+            return
+        
+        await self.bot.db.cancel_bazaar_order(order_id)
+        
+        embed = discord.Embed(title="✅ Order Cancelled!", description=f"Order #{order_id} has been cancelled", color=discord.Color.green())
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+class BazaarMenuView(discord.ui.View):
+    def __init__(self, bot, user_id):
+        super().__init__(timeout=180)
+        self.bot = bot
+        self.user_id = user_id
+        self.current_view = 'main'
+        self.page = 0
+        self.items_per_page = 10
+        self.items_list = []
+        self._update_buttons()
+    
+    async def load_items(self):
+        all_items = await self.bot.game_data.get_all_items()
+        bazaar_products = await self.bot.db.get_all_bazaar_products()
+        bazaar_dict = {p['product_id']: p for p in bazaar_products}
+        
+        self.items_list = []
+        for item in all_items:
+            item_id = item.get("item_id")
+            item_type = item.get("type")
+            
+            if item_type in ["PET", "MINION"]:
+                continue
+            name = item.get("name", "")
+            if "from" in name.lower():
+                continue
+            
+            if item_id in bazaar_dict:
+                product = bazaar_dict[item_id]
+                buy_price = product["buy_price"]
+                sell_price = product["sell_price"]
+            else:
+                base = item.get("default_bazaar_price", 0)
+                buy_price = base * 1.1
+                sell_price = base * 0.9
+            
+            self.items_list.append({
+                "name": item.get("name"),
+                "id": item_id,
+                "buy_price": buy_price,
+                "sell_price": sell_price
+            })
+        
+        self.items_list.sort(key=lambda x: x["buy_price"])
+    
+    async def get_embed(self):
+        if self.current_view == 'main':
+            return await self.get_main_embed()
+        elif self.current_view == 'browse':
+            return await self.get_browse_embed()
+        elif self.current_view == 'orders':
+            return await self.get_orders_embed()
+        else:
+            return await self.get_main_embed()
+    
+    async def get_main_embed(self):
+        orders = await self.bot.db.get_user_bazaar_orders(self.user_id)
+        
+        embed = discord.Embed(
+            title="🏪 Bazaar",
+            description="Trade items instantly or place orders",
+            color=discord.Color.gold()
+        )
+        
+        if orders:
+            buy_orders = [o for o in orders if o['order_type'] == 'BUY']
+            sell_orders = [o for o in orders if o['order_type'] == 'SELL']
+            embed.add_field(name="Active Orders", value=f"{len(buy_orders)} Buy | {len(sell_orders)} Sell", inline=False)
+        else:
+            embed.add_field(name="Active Orders", value="No active orders", inline=False)
+        
+        embed.set_footer(text="Use buttons below to interact with the bazaar")
+        return embed
+    
+    async def get_browse_embed(self):
+        if not self.items_list:
+            await self.load_items()
+        
         embed = discord.Embed(
             title="🏪 Bazaar Items",
             description="Available items on the bazaar",
             color=discord.Color.gold()
         )
         
-        start_idx = self.current_page * self.items_per_page
-        end_idx = min(start_idx + self.items_per_page, len(self.items_list))
+        start = self.page * self.items_per_page
+        end = min(start + self.items_per_page, len(self.items_list))
+        page_items = self.items_list[start:end]
         
-        for item_data in self.items_list[start_idx:end_idx]:
-            price_indicator = "📊" if item_data['source'] == "live" else "🏷️"
+        for item_data in page_items:
+            name = item_data["name"]
+            buy = item_data["buy_price"]
+            sell = item_data["sell_price"]
+            item_id = item_data["id"]
             embed.add_field(
-                name=f"{price_indicator} {item_data['name']}",
-                value=f"Buy: {item_data['buy_price']:.1f}\nSell: {item_data['sell_price']:.1f}",
+                name=name,
+                value=f"Buy: {buy:.1f} | Sell: {sell:.1f}\n`{item_id}`",
                 inline=True
             )
         
-        embed.set_footer(text=f"Page {self.current_page + 1}/{self.max_page + 1} | Showing {start_idx + 1}-{end_idx} of {len(self.items_list)} items | 📊 = Live Price | 🏷️ = Default Price")
+        total_pages = (len(self.items_list) + self.items_per_page - 1) // self.items_per_page if self.items_list else 1
+        embed.set_footer(text=f"Page {self.page + 1}/{total_pages}")
         return embed
     
-    @discord.ui.button(label="◀️ Previous", style=discord.ButtonStyle.primary, custom_id="prev_page")
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.current_page > 0:
-            self.current_page -= 1
-            await interaction.response.edit_message(embed=self.get_page_embed(), view=self)
-        else:
-            await interaction.response.defer()
-    
-    @discord.ui.button(label="Next ▶️", style=discord.ButtonStyle.primary, custom_id="next_page")
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.current_page < self.max_page:
-            self.current_page += 1
-            await interaction.response.edit_message(embed=self.get_page_embed(), view=self)
-        else:
-            await interaction.response.defer()
-
-class BazaarCommands(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @app_commands.command(name="bz_prices", description="View bazaar prices for an item")
-    @app_commands.describe(item_id="The item ID to check")
-    async def bz_prices(self, interaction: discord.Interaction, item_id: str):
-        await interaction.response.defer()
-        
-        item = await self.bot.game_data.get_item(item_id)
-        if not item:
-            await interaction.followup.send("❌ Invalid item ID!", ephemeral=True)
-            return
-        
-        product = await self.bot.db.get_bazaar_product(item_id)
-        
-        if not product:
-            await interaction.followup.send("❌ This item is not on the bazaar!", ephemeral=True)
-            return
+    async def get_orders_embed(self):
+        orders = await self.bot.db.get_user_bazaar_orders(self.user_id)
         
         embed = discord.Embed(
-            title=f"🏪 {item.name}",
-            description="Current Bazaar Prices",
-            color=discord.Color.blue()
-        )
-        
-        embed.add_field(name="💵 Buy Price", value=f"{product['buy_price']:.1f} coins", inline=True)
-        embed.add_field(name="💸 Sell Price", value=f"{product['sell_price']:.1f} coins", inline=True)
-        embed.add_field(name="📊 Spread", value=f"{(product['buy_price'] - product['sell_price']):.1f} coins", inline=True)
-        
-        embed.add_field(name="📈 Buy Orders", value=f"{product['buy_volume']:,}", inline=True)
-        embed.add_field(name="📉 Sell Orders", value=f"{product['sell_volume']:,}", inline=True)
-        embed.add_field(name="🏷️ Base Price", value=f"{item.default_bazaar_price:.1f} coins", inline=True)
-        
-        history = await self.bot.db.get_market_history(item_id, 10)
-        if history:
-            avg_price = sum(h['price'] for h in history) / len(history)
-            embed.add_field(name="📊 Avg Price (10)", value=f"{avg_price:.1f} coins", inline=True)
-        
-        await interaction.followup.send(embed=embed)
-
-    @bz_prices.autocomplete('item_id')
-    async def bz_prices_autocomplete(self, interaction: discord.Interaction, current: str):
-        return await item_autocomplete(interaction, current)
-
-    @app_commands.command(name="bz_buy", description="Instantly buy items from bazaar")
-    @app_commands.describe(item_id="Item to buy", amount="Amount to buy")
-    async def bz_buy(self, interaction: discord.Interaction, item_id: str, amount: int):
-        item_id = item_id.lower().replace(" ", "_")
-        await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        success, message = await self.bot.market_system.instant_buy(interaction.user.id, item_id, amount)
-        
-        if success:
-            item_obj = await self.bot.game_data.get_item(item_id)
-            item_name = item_obj.name if item_obj and getattr(item_obj, "name", None) else item_id.replace("_", " ").title()
-            item_name = f"**{item_name}**"
-            embed = discord.Embed(
-                title=f"✅ Purchase Complete!",
-                description=f"You bought **{amount}x** {item_name} from the bazaar.",
-                color=discord.Color.green()
-            )
-        else:
-            embed = discord.Embed(
-                title="❌ Purchase Failed!",
-                description=message,
-                color=discord.Color.red()
-            )
-        await interaction.followup.send(embed=embed, ephemeral=not success)
-
-    @bz_buy.autocomplete('item_id')
-    async def bz_buy_autocomplete(self, interaction: discord.Interaction, current: str):
-        return await item_autocomplete(interaction, current)
-
-    @app_commands.command(name="bz_sell", description="Instantly sell items to bazaar")
-    @app_commands.describe(item_id="Item to sell", amount="Amount to sell")
-    async def bz_sell(self, interaction: discord.Interaction, item_id: str, amount: int):
-        item_id = item_id.lower().replace(" ", "_")
-        await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        success, message = await self.bot.market_system.instant_sell(interaction.user.id, item_id, amount)
-        
-        if success:
-            item_obj = await self.bot.game_data.get_item(item_id)
-            item_name = item_obj.name if item_obj and getattr(item_obj, "name", None) else item_id.replace("_", " ").title()
-            item_name = f"**{item_name}**"
-            embed = discord.Embed(
-                title="✅ Sale Complete!",
-                description=f"You sold **{amount}x** {item_name} to the bazaar.",
-                color=discord.Color.green()
-            )
-        else:
-            embed = discord.Embed(
-                title="❌ Sale Failed!",
-                description=message,
-                color=discord.Color.red()
-            )
-        
-        await interaction.followup.send(embed=embed, ephemeral=not success)
-
-    @bz_sell.autocomplete('item_id')
-    async def bz_sell_autocomplete(self, interaction: discord.Interaction, current: str):
-        return await item_autocomplete(interaction, current)
-
-    @app_commands.command(name="bz_order_buy", description="Place a buy order")
-    @app_commands.describe(item_id="Item to buy", price="Price per item", amount="Amount to buy")
-    async def bz_order_buy(self, interaction: discord.Interaction, item_id: str, price: float, amount: int):
-        item_id = item_id.lower().replace(" ", "_")
-        await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        item = await self.bot.game_data.get_item(item_id)
-        if not item:
-            await interaction.followup.send("❌ Invalid item ID!", ephemeral=True)
-            return
-        
-        item_name = item.name if getattr(item, "name", None) else item_id.replace("_", " ").title()
-        item_name = f"**{item_name}**"
-        success, message = await self.bot.market_system.create_buy_order(interaction.user.id, item_id, price, amount)
-        
-        if success:
-            embed = discord.Embed(
-                title="✅ Buy Order Created!",
-                description=f"You placed a buy order for **{amount}x** {item_name} at {price:.1f} coins each.",
-                color=discord.Color.green()
-            )
-        else:
-            embed = discord.Embed(
-                title="❌ Order Failed!",
-                description=message,
-                color=discord.Color.red()
-            )
-        
-        await interaction.followup.send(embed=embed, ephemeral=not success)
-
-    @bz_order_buy.autocomplete('item_id')
-    async def bz_order_buy_autocomplete(self, interaction: discord.Interaction, current: str):
-        return await item_autocomplete(interaction, current)
-
-    @app_commands.command(name="bz_order_sell", description="Place a sell order")
-    @app_commands.describe(item_id="Item to sell", price="Price per item", amount="Amount to sell")
-    async def bz_order_sell(self, interaction: discord.Interaction, item_id: str, price: float, amount: int):
-        await interaction.response.defer()
-        item_id = item_id.lower().replace(" ", "_")
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        item = await self.bot.game_data.get_item(item_id)
-        if not item:
-            await interaction.followup.send("❌ Invalid item ID!", ephemeral=True)
-            return
-        
-        item_name = item.name if getattr(item, "name", None) else item_id.replace("_", " ").title()
-        item_name = f"**{item_name}**"
-        success, message = await self.bot.market_system.create_sell_order(interaction.user.id, item_id, price, amount)
-        
-        if success:
-            embed = discord.Embed(
-                title="✅ Sell Order Created!",
-                description=f"You placed a sell order for **{amount}x** {item_name} at {price:.1f} coins each.",
-                color=discord.Color.green()
-            )
-        else:
-            embed = discord.Embed(
-                title="❌ Order Failed!",
-                description=message,
-                color=discord.Color.red()
-            )
-        
-        await interaction.followup.send(embed=embed, ephemeral=not success)
-
-    @bz_order_sell.autocomplete('item_id')
-    async def bz_order_sell_autocomplete(self, interaction: discord.Interaction, current: str):
-        return await item_autocomplete(interaction, current)
-
-    @app_commands.command(name="bz_myorders", description="View your active orders")
-    async def bz_myorders(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        orders = await self.bot.db.get_user_bazaar_orders(interaction.user.id)
-        
-        embed = discord.Embed(
-            title=f"📊 {interaction.user.name}'s Bazaar Orders",
+            title=f"📊 Your Bazaar Orders",
             description=f"You have {len(orders)} active orders",
             color=discord.Color.blue()
         )
@@ -274,75 +247,136 @@ class BazaarCommands(commands.Cog):
                 if sell_text:
                     embed.add_field(name="💸 Sell Orders", value=sell_text, inline=False)
         
-        await interaction.followup.send(embed=embed)
+        return embed
     
-    @app_commands.command(name="bz_cancel", description="Cancel an order")
-    @app_commands.describe(order_id="The order ID to cancel")
-    async def bz_cancel(self, interaction: discord.Interaction, order_id: int):
+    @discord.ui.button(label="🏠 Main", style=discord.ButtonStyle.blurple, row=0)
+    async def main_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'main'
+        self.page = 0
+        self._update_buttons()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="📋 Browse", style=discord.ButtonStyle.green, row=0)
+    async def browse_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'browse'
+        self.page = 0
+        self._update_buttons()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="📊 My Orders", style=discord.ButtonStyle.gray, row=0)
+    async def orders_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'orders'
+        self.page = 0
+        self._update_buttons()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    def _update_buttons(self):
+        self.clear_items()
+        
+        self.add_item(self.main_button)
+        self.add_item(self.browse_button)
+        self.add_item(self.orders_button)
+        
+        if self.current_view == 'browse' and self.items_list:
+            total_pages = (len(self.items_list) + self.items_per_page - 1) // self.items_per_page
+            if total_pages > 1:
+                self.add_item(self.prev_button)
+                self.add_item(self.next_button)
+        
+        self.add_item(self.buy_button)
+        self.add_item(self.sell_button)
+        self.add_item(self.order_button)
+        self.add_item(self.cancel_button)
+    
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, row=1)
+    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.page > 0:
+            self.page -= 1
+            self._update_buttons()
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, row=1)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.current_view == 'browse' and self.items_list:
+            total_pages = (len(self.items_list) + self.items_per_page - 1) // self.items_per_page
+            if self.page < total_pages - 1:
+                self.page += 1
+                self._update_buttons()
+                await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+                return
+        
+        await interaction.response.defer()
+    
+    @discord.ui.button(label="💰 Buy", style=discord.ButtonStyle.green, row=2)
+    async def buy_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(BazaarBuyModal(self.bot))
+    
+    @discord.ui.button(label="💸 Sell", style=discord.ButtonStyle.red, row=2)
+    async def sell_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(BazaarSellModal(self.bot))
+    
+    @discord.ui.button(label="📝 Order", style=discord.ButtonStyle.blurple, row=2)
+    async def order_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(BazaarOrderModal(self.bot))
+    
+    @discord.ui.button(label="❌ Cancel Order", style=discord.ButtonStyle.gray, row=2)
+    async def cancel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(BazaarCancelModal(self.bot))
+
+class BazaarCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="bazaar", description="Access the Bazaar with all features")
+    async def bazaar(self, interaction: discord.Interaction):
         await interaction.response.defer()
         
-        await self.bot.db.cancel_bazaar_order(order_id)
-        
-        embed = discord.Embed(
-            title="✅ Order Cancelled!",
-            description=f"Order #{order_id} has been cancelled",
-            color=discord.Color.green()
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
         )
         
-        await interaction.followup.send(embed=embed)
-    
-    @app_commands.command(name="bz_list", description="List bazaar items")
-    async def bz_list(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        all_items = await self.bot.game_data.get_all_items()
-
-        bazaar_products = await self.bot.db.get_all_bazaar_products()
-        bazaar_dict = {p['product_id']: p for p in bazaar_products}
-
-        items_list = []
-        for item in all_items:
-            item_id = item.get("item_id")
-            item_type = item.get("type")
-
-            if item_type in ["PET", "MINION"]:
-                continue
-            name = item.get("name", "")
-            if "from" in name.lower():
-                continue
-
-            if item_id in bazaar_dict:
-                product = bazaar_dict[item_id]
-                buy_price = product["buy_price"]
-                sell_price = product["sell_price"]
-                price_source = "live"
-            else:
-
-                base = item.get("default_bazaar_price", 0)
-                buy_price = base * 1.1
-                sell_price = base * 0.9
-                price_source = "default"
-
-            items_list.append({
-                "name": item.get("name"),
-                "id": item_id,
-                "buy_price": buy_price,
-                "sell_price": sell_price,
-                "source": price_source
-            })
-
-        items_list.sort(key=lambda x: x["buy_price"])
-
-        if items_list:
-            view = BazaarPaginationView(items_list)
-            await interaction.followup.send(embed=view.get_page_embed(), view=view)
-        else:
-            embed = discord.Embed(
-                title="🏪 Bazaar Items",
-                description="No items available on the bazaar",
-                color=discord.Color.gold()
-            )
-            await interaction.followup.send(embed=embed)
+        view = BazaarMenuView(self.bot, interaction.user.id)
+        embed = await view.get_embed()
+        
+        await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(BazaarCommands(bot))

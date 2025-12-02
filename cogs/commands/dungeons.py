@@ -611,27 +611,5 @@ class DungeonCommands(commands.Cog):
         
         await interaction.followup.send(embed=embed)
 
-    @app_commands.command(name="party", description="Create or join a dungeon party")
-    async def party(self, interaction: discord.Interaction):
-        embed = discord.Embed(
-            title="👥 Party System",
-            description="Create or join a party to run dungeons together!",
-            color=discord.Color.blue()
-        )
-        
-        embed.add_field(
-            name="Commands",
-            value="`/party_create` - Create a new party\n`/party_invite @user` - Invite someone\n`/party_list` - View your party\n`/party_leave` - Leave party\n`/party_kick @user` - Kick a member (leader only)\n`/party_disband` - Disband party (leader only)",
-            inline=False
-        )
-        
-        party = PartySystem.get_party(interaction.user.id)
-        if party:
-            members_text = "\n".join([f"{'👑 ' if m['user_id'] == party['leader_id'] else ''}**{m['username']}**" for m in party['members']])
-            embed.add_field(name="Your Current Party", value=members_text, inline=False)
-            embed.add_field(name="Party Status", value="🏰 In Dungeon" if party['in_dungeon'] else "⏳ In Lobby", inline=True)
-        
-        await interaction.response.send_message(embed=embed)
-
 async def setup(bot):
     await bot.add_cog(DungeonCommands(bot))

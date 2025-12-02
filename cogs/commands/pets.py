@@ -26,12 +26,12 @@ class PetSelectView(View):
         end_idx = min(start_idx + self.items_per_page, len(self.pets))
         
         if self.page > 0:
-            prev_button = Button(label="◀️ Previous", style=discord.ButtonStyle.gray)
+            prev_button = Button(label="Previous", style=discord.ButtonStyle.gray)
             prev_button.callback = self.previous_page
             self.add_item(prev_button)
         
         if end_idx < len(self.pets):
-            next_button = Button(label="Next ▶️", style=discord.ButtonStyle.gray)
+            next_button = Button(label="Next", style=discord.ButtonStyle.gray)
             next_button.callback = self.next_page
             self.add_item(next_button)
     

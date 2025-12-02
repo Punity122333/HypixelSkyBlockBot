@@ -9,118 +9,91 @@ import matplotlib.pyplot as plt
 import io
 from datetime import datetime
 
-class StockMarketCommands(commands.Cog):
+class StockBuyModal(discord.ui.Modal, title="Buy Stock"):
+    symbol = discord.ui.TextInput(label="Stock Symbol", placeholder="e.g., ENCH", required=True)
+    shares = discord.ui.TextInput(label="Shares", placeholder="Number of shares", required=True)
+    
     def __init__(self, bot):
+        super().__init__()
         self.bot = bot
-
-    async def paginate_embed(self, interaction: discord.Interaction, embeds: List[discord.Embed]):
-        current = 0
-        total = len(embeds)
-
-        class Paginator(discord.ui.View):
-            def __init__(self):
-                super().__init__(timeout=180)
-
-            @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary)
-            async def previous(self, interaction_inner: discord.Interaction, button: discord.ui.Button):
-                nonlocal current
-                current = (current - 1) % total
-                await interaction_inner.response.edit_message(embed=embeds[current], view=self)
-
-            @discord.ui.button(label="Next", style=discord.ButtonStyle.primary)
-            async def next(self, interaction_inner: discord.Interaction, button: discord.ui.Button):
-                nonlocal current
-                current = (current + 1) % total
-                await interaction_inner.response.edit_message(embed=embeds[current], view=self)
-
-        # Use followup if interaction has been deferred, otherwise use response
-        if interaction.response.is_done():
-            await interaction.followup.send(embed=embeds[current], view=Paginator())
-        else:
-            await interaction.response.send_message(embed=embeds[current], view=Paginator())
-
-    @app_commands.command(name="stocks", description="View the stock market")
-    async def stocks(self, interaction: discord.Interaction):
+    
+    async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        stocks = await self.bot.db.get_all_stocks()
-        
-        if not stocks:
-            embed = discord.Embed(
-                title="📈 SkyBlock Stock Exchange",
-                description="No stocks available at the moment.",
-                color=discord.Color.blue()
-            )
-            await interaction.followup.send(embed=embed)
+        symbol = self.symbol.value.upper()
+        try:
+            shares = int(self.shares.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid number of shares!", ephemeral=True)
             return
         
-        embeds: List[discord.Embed] = []
-        per_page = 4
-        pages = math.ceil(len(stocks) / per_page)
-
-        for i in range(pages):
+        player = await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
+        stock = await self.bot.db.get_stock(symbol)
+        if not stock:
+            await interaction.followup.send("❌ Invalid stock symbol!", ephemeral=True)
+            return
+        total_cost = int(stock['current_price'] * shares)
+        if player['coins'] < total_cost:
+            await interaction.followup.send(f"❌ Not enough coins! Need {total_cost:,} coins.", ephemeral=True)
+            return
+        success = await self.bot.db.buy_stock(interaction.user.id, symbol, shares, stock['current_price'])
+        if success:
             embed = discord.Embed(
-                title="📈 SkyBlock Stock Exchange",
-                description="Live stock prices and market data",
-                color=discord.Color.blue()
+                title="✅ Stock Purchase Complete!",
+                color=discord.Color.green()
             )
-            for stock in stocks[i * per_page:(i + 1) * per_page]:
-                change = ((stock['current_price'] - stock['opening_price']) / stock['opening_price']) * 100
-                emoji = "📈" if change > 0 else "📉" if change < 0 else "➡️"
-                value = f"**${stock['current_price']:.2f}** {emoji}\nChange: {change:+.2f}%\nVol: {stock['volume']:,}\nHigh: ${stock['daily_high']:.2f} | Low: ${stock['daily_low']:.2f}"
-                embed.add_field(name=f"{stock['symbol']} - {stock['company_name']}", value=value, inline=True)
-            embed.set_footer(text="Use /stock_buy or /stock_sell to trade stocks")
-            embeds.append(embed)
-
-        await self.paginate_embed(interaction, embeds)
-
-    @app_commands.command(name="portfolio", description="View your stock portfolio")
-    async def portfolio(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
-        stocks = await self.bot.db.get_player_stocks(interaction.user.id)
-        embeds: List[discord.Embed] = []
-        per_page = 4
-
-        if not stocks:
-            embed = discord.Embed(
-                title=f"📊 {interaction.user.name}'s Portfolio",
-                description="You don't own any stocks yet! Use `/stock_buy` to get started.",
-                color=discord.Color.gold()
-            )
-            embeds.append(embed)
+            embed.add_field(name=f"Bought {shares} shares of {symbol}", value="\u200b", inline=False)
+            embed.add_field(name="Price per Share", value=f"${stock['current_price']:.2f}", inline=True)
+            embed.add_field(name="Total Cost", value=f"{total_cost:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
         else:
-            pages = math.ceil(len(stocks) / per_page)
-            for i in range(pages):
-                embed = discord.Embed(
-                    title=f"📊 {interaction.user.name}'s Portfolio",
-                    description="Your stock holdings and performance",
-                    color=discord.Color.gold()
-                )
-                total_value = 0
-                total_invested = 0
-                for stock in stocks[i * per_page:(i + 1) * per_page]:
-                    current_value = stock['shares'] * stock['current_price']
-                    invested_value = stock['shares'] * stock['avg_buy_price']
-                    profit = current_value - invested_value
-                    profit_percent = (profit / invested_value) * 100 if invested_value > 0 else 0
-                    total_value += current_value
-                    total_invested += invested_value
-                    emoji = "🟢" if profit > 0 else "🔴" if profit < 0 else "⚪"
-                    value = f"Shares: {stock['shares']}\nAvg Buy: ${stock['avg_buy_price']:.2f}\nCurrent: ${stock['current_price']:.2f}\nValue: {int(current_value):,} coins\nP/L: {int(profit):,} ({profit_percent:+.2f}%) {emoji}"
-                    embed.add_field(name=f"{stock['stock_symbol']} - {stock['company_name']}", value=value, inline=True)
-                total_profit = total_value - total_invested
-                total_profit_percent = (total_profit / total_invested) * 100 if total_invested > 0 else 0
-                summary = f"**Total Value:** {int(total_value):,} coins\n**Total Invested:** {int(total_invested):,} coins\n**Total P/L:** {int(total_profit):,} coins ({total_profit_percent:+.2f}%)"
-                embed.add_field(name="Portfolio Summary", value=summary, inline=False)
-                embeds.append(embed)
+            await interaction.followup.send("❌ Purchase failed!", ephemeral=True)
 
-        await self.paginate_embed(interaction, embeds)
-
-    @app_commands.command(name="stock_info", description="Get detailed information about a stock")
-    @app_commands.describe(symbol="Stock symbol")
-    async def stock_info(self, interaction: discord.Interaction, symbol: str):
+class StockSellModal(discord.ui.Modal, title="Sell Stock"):
+    symbol = discord.ui.TextInput(label="Stock Symbol", placeholder="e.g., ENCH", required=True)
+    shares = discord.ui.TextInput(label="Shares", placeholder="Number of shares", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        symbol = symbol.upper()
+        symbol = self.symbol.value.upper()
+        try:
+            shares = int(self.shares.value)
+        except ValueError:
+            await interaction.followup.send("❌ Invalid number of shares!", ephemeral=True)
+            return
+        
+        player = await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
+        stock = await self.bot.db.get_stock(symbol)
+        if not stock:
+            await interaction.followup.send("❌ Invalid stock symbol!", ephemeral=True)
+            return
+        success = await self.bot.db.sell_stock(interaction.user.id, symbol, shares, stock['current_price'])
+        if success:
+            total_gain = int(stock['current_price'] * shares)
+            embed = discord.Embed(
+                title="✅ Stock Sale Complete!",
+                color=discord.Color.green()
+            )
+            embed.add_field(name=f"Sold {shares} shares of {symbol}", value="\u200b", inline=False)
+            embed.add_field(name="Price per Share", value=f"${stock['current_price']:.2f}", inline=True)
+            embed.add_field(name="Total Gained", value=f"{total_gain:,} coins", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.followup.send("❌ Sale failed! You don't have enough shares.", ephemeral=True)
+
+class StockInfoModal(discord.ui.Modal, title="Stock Information"):
+    symbol = discord.ui.TextInput(label="Stock Symbol", placeholder="e.g., ENCH", required=True)
+    
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        symbol = self.symbol.value.upper()
         stock = await self.bot.db.get_stock(symbol)
         if not stock:
             await interaction.followup.send("❌ Invalid stock symbol!", ephemeral=True)
@@ -176,7 +149,7 @@ class StockMarketCommands(commands.Cog):
                 file = discord.File(buffer, filename=f"{symbol}_chart.png")
                 embed.set_image(url=f"attachment://{symbol}_chart.png")
                 
-                await interaction.followup.send(embed=embed, file=file)
+                await interaction.followup.send(embed=embed, file=file, ephemeral=True)
                 return
             except Exception as e:
                 print(f"Chart generation error: {e}")
@@ -189,58 +162,157 @@ class StockMarketCommands(commands.Cog):
                 history_text += f"${h['price']:.2f} ({minutes_ago}m ago)\n"
             embed.add_field(name="Recent Prices", value=history_text, inline=False)
 
-        await interaction.followup.send(embed=embed)
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @app_commands.command(name="stock_buy", description="Buy stocks")
-    @app_commands.describe(symbol="Stock symbol", shares="Number of shares")
-    async def stock_buy(self, interaction: discord.Interaction, symbol: str, shares: int):
-        await interaction.response.defer()
-        symbol = symbol.upper()
-        player = await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
-        stock = await self.bot.db.get_stock(symbol)
-        if not stock:
-            await interaction.followup.send("❌ Invalid stock symbol!", ephemeral=True)
-            return
-        total_cost = int(stock['current_price'] * shares)
-        if player['coins'] < total_cost:
-            await interaction.followup.send(f"❌ Not enough coins! Need {total_cost:,} coins.", ephemeral=True)
-            return
-        success = await self.bot.db.buy_stock(interaction.user.id, symbol, shares, stock['current_price'])
-        if success:
-            embed = discord.Embed(
-                title="✅ Stock Purchase Complete!",
-                color=discord.Color.green()
-            )
-            embed.add_field(name=f"Bought {shares} shares of {symbol}", value="\u200b", inline=False)
-            embed.add_field(name="Price per Share", value=f"${stock['current_price']:.2f}", inline=True)
-            embed.add_field(name="Total Cost", value=f"{total_cost:,} coins", inline=True)
-            await interaction.followup.send(embed=embed)
+class StockMenuView(discord.ui.View):
+    def __init__(self, bot, user_id):
+        super().__init__(timeout=180)
+        self.bot = bot
+        self.user_id = user_id
+        self.current_page = 0
+        self.stocks = []
+    
+    async def load_stocks(self):
+        self.stocks = await self.bot.db.get_all_stocks()
+    
+    async def get_embed(self):
+        embed = discord.Embed(
+            title="📈 SkyBlock Stock Exchange",
+            description="View and trade stocks",
+            color=discord.Color.blue()
+        )
+        
+        per_page = 4
+        start = self.current_page * per_page
+        end = start + per_page
+        page_stocks = self.stocks[start:end]
+        
+        if not page_stocks:
+            embed.description = "No stocks available at the moment."
         else:
-            await interaction.followup.send("❌ Purchase failed!", ephemeral=True)
+            for stock in page_stocks:
+                change = ((stock['current_price'] - stock['opening_price']) / stock['opening_price']) * 100
+                emoji = "📈" if change > 0 else "📉" if change < 0 else "➡️"
+                value = f"**${stock['current_price']:.2f}** {emoji}\nChange: {change:+.2f}%\nVol: {stock['volume']:,}\nHigh: ${stock['daily_high']:.2f} | Low: ${stock['daily_low']:.2f}"
+                embed.add_field(name=f"{stock['symbol']} - {stock['company_name']}", value=value, inline=True)
+        
+        total_pages = math.ceil(len(self.stocks) / per_page) if len(self.stocks) > 0 else 1
+        embed.set_footer(text=f"Page {self.current_page + 1}/{total_pages}")
+        return embed
+    
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, row=0)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.current_page > 0:
+            self.current_page -= 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, row=0)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        per_page = 4
+        total_pages = math.ceil(len(self.stocks) / per_page)
+        if self.current_page < total_pages - 1:
+            self.current_page += 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="My Portfolio", style=discord.ButtonStyle.green, row=0)
+    async def portfolio_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        stocks = await self.bot.db.get_player_stocks(self.user_id)
+        
+        embed = discord.Embed(
+            title=f"📊 {interaction.user.name}'s Portfolio",
+            description="Your stock holdings and performance",
+            color=discord.Color.gold()
+        )
+        
+        if not stocks:
+            embed.description = "You don't own any stocks yet!"
+        else:
+            total_value = 0
+            total_invested = 0
+            for stock in stocks[:5]:
+                current_value = stock['shares'] * stock['current_price']
+                invested_value = stock['shares'] * stock['avg_buy_price']
+                profit = current_value - invested_value
+                profit_percent = (profit / invested_value) * 100 if invested_value > 0 else 0
+                total_value += current_value
+                total_invested += invested_value
+                emoji = "🟢" if profit > 0 else "🔴" if profit < 0 else "⚪"
+                value = f"Shares: {stock['shares']}\nAvg Buy: ${stock['avg_buy_price']:.2f}\nCurrent: ${stock['current_price']:.2f}\nValue: {int(current_value):,} coins\nP/L: {int(profit):,} ({profit_percent:+.2f}%) {emoji}"
+                embed.add_field(name=f"{stock['stock_symbol']}", value=value, inline=True)
+            
+            total_profit = total_value - total_invested
+            total_profit_percent = (total_profit / total_invested) * 100 if total_invested > 0 else 0
+            summary = f"**Total Value:** {int(total_value):,} coins\n**Total Invested:** {int(total_invested):,} coins\n**Total P/L:** {int(total_profit):,} coins ({total_profit_percent:+.2f}%)"
+            embed.add_field(name="Portfolio Summary", value=summary, inline=False)
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="Refresh", style=discord.ButtonStyle.blurple, row=0)
+    async def refresh_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await self.load_stocks()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="💰 Buy", style=discord.ButtonStyle.green, row=1)
+    async def buy_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(StockBuyModal(self.bot))
+    
+    @discord.ui.button(label="💸 Sell", style=discord.ButtonStyle.red, row=1)
+    async def sell_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(StockSellModal(self.bot))
+    
+    @discord.ui.button(label="ℹ️ Info", style=discord.ButtonStyle.blurple, row=1)
+    async def info_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        await interaction.response.send_modal(StockInfoModal(self.bot))
 
-    @app_commands.command(name="stock_sell", description="Sell stocks")
-    @app_commands.describe(symbol="Stock symbol", shares="Number of shares")
-    async def stock_sell(self, interaction: discord.Interaction, symbol: str, shares: int):
+class StockMarketCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="stocks", description="Access the Stock Exchange")
+    async def stocks_menu(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        symbol = symbol.upper()
-        player = await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
-        stock = await self.bot.db.get_stock(symbol)
-        if not stock:
-            await interaction.followup.send("❌ Invalid stock symbol!", ephemeral=True)
-            return
-        success = await self.bot.db.sell_stock(interaction.user.id, symbol, shares, stock['current_price'])
-        if success:
-            total_gain = int(stock['current_price'] * shares)
-            embed = discord.Embed(
-                title="✅ Stock Sale Complete!",
-                color=discord.Color.green()
-            )
-            embed.add_field(name=f"Sold {shares} shares of {symbol}", value="\u200b", inline=False)
-            embed.add_field(name="Price per Share", value=f"${stock['current_price']:.2f}", inline=True)
-            embed.add_field(name="Total Gained", value=f"{total_gain:,} coins", inline=True)
-            await interaction.followup.send(embed=embed)
-        else:
-            await interaction.followup.send("❌ Sale failed! You don't have enough shares.", ephemeral=True)
+        
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
+        )
+        
+        view = StockMenuView(self.bot, interaction.user.id)
+        await view.load_stocks()
+        embed = await view.get_embed()
+        
+        await interaction.followup.send(embed=embed, view=view)
 
 
 async def setup(bot):

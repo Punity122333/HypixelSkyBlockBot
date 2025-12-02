@@ -1,67 +1,57 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from discord.ui import View, Button
 import math
 
-class LeaderboardView(View):
-    def __init__(self, category: str, data: list, user_id: int, user_rank: int, user_value: int):
+class LeaderboardMenuView(discord.ui.View):
+    def __init__(self, bot, user_id):
         super().__init__(timeout=180)
-        self.category = category
-        self.data = data
+        self.bot = bot
         self.user_id = user_id
-        self.user_rank = user_rank
-        self.user_value = user_value
+        self.current_category = 'coins'
         self.page = 0
         self.items_per_page = 10
-        
-        self.add_buttons()
+        self.data = []
+        self.user_rank = 0
+        self.user_value = 0
     
-    def add_buttons(self):
-        self.clear_items()
-        
-        if self.page > 0:
-            prev_button = Button(label="◀️ Previous", style=discord.ButtonStyle.gray)
-            prev_button.callback = self.previous_page
-            self.add_item(prev_button)
-        
-        total_pages = math.ceil(len(self.data) / self.items_per_page)
-        if self.page < total_pages - 1:
-            next_button = Button(label="Next ▶️", style=discord.ButtonStyle.gray)
-            next_button.callback = self.next_page
-            self.add_item(next_button)
+    async def load_data(self):
+        if self.current_category == 'coins':
+            if self.bot.db.conn:
+                async with self.bot.db.conn.execute('''
+                    SELECT user_id, username, coins FROM players ORDER BY coins DESC LIMIT 100
+                ''') as cursor:
+                    rows = await cursor.fetchall()
+                    self.data = [{'user_id': r[0], 'username': r[1], 'coins': r[2]} for r in rows]
+        elif self.current_category == 'networth':
+            if self.bot.db.conn:
+                async with self.bot.db.conn.execute('''
+                    SELECT user_id, username, (coins + bank) as networth FROM players ORDER BY networth DESC LIMIT 100
+                ''') as cursor:
+                    rows = await cursor.fetchall()
+                    self.data = [{'user_id': r[0], 'username': r[1], 'networth': r[2]} for r in rows]
+        elif self.current_category == 'skill_avg':
+            if self.bot.db.conn:
+                async with self.bot.db.conn.execute('''
+                    SELECT s.user_id, p.username, AVG(s.level) as skill_avg
+                    FROM player_skills s
+                    JOIN players p ON s.user_id = p.user_id
+                    GROUP BY s.user_id
+                    ORDER BY skill_avg DESC
+                    LIMIT 100
+                ''') as cursor:
+                    rows = await cursor.fetchall()
+                    self.data = [{'user_id': r[0], 'username': r[1], 'skill_avg': r[2]} for r in rows]
     
-    async def previous_page(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
-            return
-        
-        self.page -= 1
-        self.add_buttons()
-        embed = self.create_embed()
-        await interaction.response.edit_message(embed=embed, view=self)
-    
-    async def next_page(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
-            return
-        
-        self.page += 1
-        self.add_buttons()
-        embed = self.create_embed()
-        await interaction.response.edit_message(embed=embed, view=self)
-    
-    def create_embed(self):
+    async def get_embed(self):
         category_names = {
             'coins': '💰 Richest Players',
             'networth': '💎 Net Worth',
-            'skill_avg': '📚 Skill Average',
-            'catacombs': '🏰 Catacombs Level',
-            'slayer': '⚔️ Total Slayer XP'
+            'skill_avg': '📚 Skill Average'
         }
         
         embed = discord.Embed(
-            title=f"🏆 Leaderboard - {category_names.get(self.category, self.category.title())}",
+            title=f"🏆 Leaderboard - {category_names.get(self.current_category, self.current_category.title())}",
             color=discord.Color.gold()
         )
         
@@ -85,92 +75,97 @@ class LeaderboardView(View):
             
             username = entry.get('username', 'Unknown')
             
-            if self.category == 'coins':
+            if self.current_category == 'coins':
                 value = f"{entry.get('coins', 0):,} coins"
-            elif self.category == 'networth':
+            elif self.current_category == 'networth':
                 value = f"{entry.get('networth', 0):,} coins"
-            elif self.category == 'skill_avg':
+            elif self.current_category == 'skill_avg':
                 value = f"{entry.get('skill_avg', 0):.2f} avg"
-            elif self.category == 'catacombs':
-                value = f"Level {entry.get('catacombs_level', 0)}"
-            elif self.category == 'slayer':
-                value = f"{entry.get('total_slayer', 0):,} XP"
             else:
                 value = str(entry.get('value', 0))
             
             leaderboard_text += f"{medal} **{username}** - {value}\n"
         
-        embed.description = leaderboard_text if leaderboard_text else "No data available"
+        if leaderboard_text:
+            embed.description = leaderboard_text
+        else:
+            embed.description = "No leaderboard data available."
         
-        total_pages = math.ceil(len(self.data) / self.items_per_page)
-        embed.set_footer(text=f"Page {self.page + 1}/{total_pages} • Your rank: #{self.user_rank} ({self.user_value:,})")
-        
+        total_pages = math.ceil(len(self.data) / self.items_per_page) if self.data else 1
+        embed.set_footer(text=f"Page {self.page + 1}/{total_pages} • Use buttons to view different categories")
         return embed
+    
+    @discord.ui.button(label="💰 Coins", style=discord.ButtonStyle.blurple, row=0)
+    async def coins_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_category = 'coins'
+        self.page = 0
+        await self.load_data()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="💎 Net Worth", style=discord.ButtonStyle.green, row=0)
+    async def networth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_category = 'networth'
+        self.page = 0
+        await self.load_data()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="📚 Skills", style=discord.ButtonStyle.gray, row=0)
+    async def skills_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_category = 'skill_avg'
+        self.page = 0
+        await self.load_data()
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, row=1)
+    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        if self.page > 0:
+            self.page -= 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
+    
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, row=1)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        total_pages = math.ceil(len(self.data) / self.items_per_page) if self.data else 1
+        if self.page < total_pages - 1:
+            self.page += 1
+            await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+        else:
+            await interaction.response.defer()
 
 class LeaderboardCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="leaderboard", description="View leaderboards")
-    @app_commands.describe(category="Leaderboard category")
-    @app_commands.choices(category=[
-        app_commands.Choice(name="💰 Richest Players", value="coins"),
-        app_commands.Choice(name="💎 Net Worth", value="networth"),
-        app_commands.Choice(name="📚 Skill Average", value="skill_avg"),
-        app_commands.Choice(name="🏰 Catacombs Level", value="catacombs"),
-        app_commands.Choice(name="⚔️ Total Slayer XP", value="slayer"),
-    ])
-    async def leaderboard(self, interaction: discord.Interaction, category: str = "coins"):
+    @app_commands.command(name="leaderboard", description="View server leaderboards")
+    async def leaderboard(self, interaction: discord.Interaction):
         await interaction.response.defer()
         
-        await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        leaderboard_data = await self.bot.db.get_leaderboard(category, limit=100)
-        
-        if not leaderboard_data:
-            embed = discord.Embed(
-                title="🏆 Leaderboard",
-                description="No data available yet!",
-                color=discord.Color.gold()
-            )
-            await interaction.followup.send(embed=embed)
-            return
-        
-        user_rank = 0
-        user_value = 0
-        
-        for i, entry in enumerate(leaderboard_data):
-            if entry['user_id'] == interaction.user.id:
-                user_rank = i + 1
-                
-                if category == 'coins':
-                    user_value = entry.get('coins', 0)
-                elif category == 'networth':
-                    user_value = entry.get('networth', 0)
-                elif category == 'skill_avg':
-                    user_value = int(entry.get('skill_avg', 0) * 100)
-                elif category == 'catacombs':
-                    user_value = entry.get('catacombs_level', 0)
-                elif category == 'slayer':
-                    user_value = entry.get('total_slayer', 0)
-                break
-        
-        if user_rank == 0:
-            player = await self.bot.db.get_player(interaction.user.id)
-            if player:
-                if category == 'coins':
-                    user_value = player.get('coins', 0)
-                elif category == 'networth':
-                    user_value = player.get('coins', 0) + player.get('bank', 0)
-                user_rank = len(leaderboard_data) + 1
-        
-        view = LeaderboardView(category, leaderboard_data, interaction.user.id, user_rank, user_value)
-        embed = view.create_embed()
+        view = LeaderboardMenuView(self.bot, interaction.user.id)
+        await view.load_data()
+        embed = await view.get_embed()
         
         await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(LeaderboardCommands(bot))
-

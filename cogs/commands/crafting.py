@@ -224,7 +224,7 @@ class CraftingCommands(commands.Cog):
                 if filter_type and obj and getattr(obj, "type", None) and obj.type.lower() != filter_type.lower():
                     continue
                 name = obj.name if obj and getattr(obj, "name", None) else item_id.replace("_", " ").title()
-                name = f"{recipe['output_amount']}x {name}" if isinstance(entry, dict) and entry.get('output_amount', 1) > 1 else name
+                name = f"{name}" if isinstance(entry, dict) and entry.get('output_amount', 1) > 1 else name
                 line = ", ".join([f"{amt}x {ing.replace('_', ' ').title()}" for ing, amt in recipe.items()])
                 batch.append((name, line))
                 if len(batch) == 10:
@@ -250,8 +250,8 @@ class CraftingCommands(commands.Cog):
                 await interaction.followup.send("No recipes found.")
                 return
             await self.paginate(interaction, pages)
-        except Exception:
-            await interaction.followup.send("Failed to load recipes.", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"Failed to load recipes.\n {e}", ephemeral=True)
 
     @app_commands.command(name="reforge", description="Reforge items")
     async def reforge(self, interaction: discord.Interaction, reforge: str):

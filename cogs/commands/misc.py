@@ -100,12 +100,12 @@ class HelpView(View):
         self.clear_items()
         
         if self.page > 0:
-            prev_button = Button(label="◀️ Previous", style=discord.ButtonStyle.gray)
+            prev_button = Button(label="Previous", style=discord.ButtonStyle.gray)
             prev_button.callback = self.previous_page
             self.add_item(prev_button)
         
         if self.page < len(self.categories) - 1:
-            next_button = Button(label="Next ▶️", style=discord.ButtonStyle.gray)
+            next_button = Button(label="Next", style=discord.ButtonStyle.gray)
             next_button.callback = self.next_page
             self.add_item(next_button)
     
@@ -174,25 +174,25 @@ class WikiPaginationView(View):
         embed.set_footer(text=f"Page {self.current_page + 1}/{len(self.pages)}")
         return embed
     
-    @discord.ui.button(label="⏮️", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="First Page", style=discord.ButtonStyle.secondary)
     async def first_page(self, interaction: discord.Interaction, button: Button):
         self.current_page = 0
         self.update_buttons()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
-    
-    @discord.ui.button(label="◀️", style=discord.ButtonStyle.primary)
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary)
     async def prev_page(self, interaction: discord.Interaction, button: Button):
         self.current_page -= 1
         self.update_buttons()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
-    
-    @discord.ui.button(label="▶️", style=discord.ButtonStyle.primary)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary)
     async def next_page(self, interaction: discord.Interaction, button: Button):
         self.current_page += 1
         self.update_buttons()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
-    
-    @discord.ui.button(label="⏭️", style=discord.ButtonStyle.secondary)
+
+    @discord.ui.button(label="Last Page", style=discord.ButtonStyle.secondary)
     async def last_page(self, interaction: discord.Interaction, button: Button):
         self.current_page = len(self.pages) - 1
         self.update_buttons()

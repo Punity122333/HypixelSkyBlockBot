@@ -3,23 +3,29 @@ from discord.ext import commands
 from discord import app_commands
 from utils.stat_calculator import StatCalculator
 
-class ProfileCommands(commands.Cog):
-    def __init__(self, bot):
+class ProfileMenuView(discord.ui.View):
+    def __init__(self, bot, user_id, username):
+        super().__init__(timeout=180)
         self.bot = bot
-
-    @app_commands.command(name="profile", description="View your SkyBlock profile")
-    async def profile(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        player = await self.bot.player_manager.get_or_create_player(
-            interaction.user.id, interaction.user.name
-        )
-        
-        stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
-        skills = await self.bot.db.get_skills(interaction.user.id)
+        self.user_id = user_id
+        self.username = username
+        self.current_view = 'profile'
+    
+    async def get_embed(self):
+        if self.current_view == 'profile':
+            return await self.get_profile_embed()
+        elif self.current_view == 'stats':
+            return await self.get_stats_embed()
+        else:
+            return await self.get_profile_embed()
+    
+    async def get_profile_embed(self):
+        player = await self.bot.player_manager.get_player_fresh(self.user_id)
+        stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+        skills = await self.bot.db.get_skills(self.user_id)
         
         embed = discord.Embed(
-            title=f"📊 {interaction.user.name}'s Profile",
+            title=f"📊 {self.username}'s Profile",
             color=discord.Color.gold()
         )
         
@@ -40,29 +46,25 @@ class ProfileCommands(commands.Cog):
         total_wealth = player['coins'] + player['bank']
         embed.add_field(name="💎 Total Wealth", value=f"{total_wealth:,} coins", inline=False)
         
-        progression = await self.bot.db.get_player_progression(interaction.user.id)
+        progression = await self.bot.db.get_player_progression(self.user_id)
         if progression:
             import json
             achievements = len(json.loads(progression.get('achievements', '[]')))
             embed.add_field(name="🏆 Achievements", value=f"{achievements} unlocked", inline=True)
         
-        stocks = await self.bot.db.get_player_stocks(interaction.user.id)
+        stocks = await self.bot.db.get_player_stocks(self.user_id)
         if stocks:
             portfolio_value = sum(s['shares'] * s['current_price'] for s in stocks)
             embed.add_field(name="📈 Portfolio Value", value=f"{int(portfolio_value):,} coins", inline=True)
         
-        embed.set_footer(text="Keep playing to increase your stats and wealth!")
-        
-        await interaction.followup.send(embed=embed)
-
-    @app_commands.command(name="stats", description="View your detailed stats")
-    async def stats(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        
-        stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+        embed.set_footer(text="Use buttons to view detailed stats")
+        return embed
+    
+    async def get_stats_embed(self):
+        stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
 
         embed = discord.Embed(
-            title=f"📈 {interaction.user.name}'s Stats",
+            title=f"📈 {self.username}'s Stats",
             color=discord.Color.blue()
         )
         
@@ -82,7 +84,43 @@ class ProfileCommands(commands.Cog):
         embed.add_field(name="💢 Ferocity", value=str(int(stats.get('ferocity', 0))), inline=True)
         embed.add_field(name="⚡ Ability Damage", value=str(int(stats.get('ability_damage', 0))), inline=True)
         
-        await interaction.followup.send(embed=embed)
+        embed.set_footer(text="Use buttons to view profile overview")
+        return embed
+    
+    @discord.ui.button(label="📊 Profile", style=discord.ButtonStyle.blurple, row=0)
+    async def profile_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'profile'
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+    
+    @discord.ui.button(label="📈 Detailed Stats", style=discord.ButtonStyle.green, row=0)
+    async def stats_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.current_view = 'stats'
+        await interaction.response.edit_message(embed=await self.get_embed(), view=self)
+
+class ProfileCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="profile", description="View your SkyBlock profile")
+    async def profile(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        await self.bot.player_manager.get_or_create_player(
+            interaction.user.id, interaction.user.name
+        )
+        
+        view = ProfileMenuView(self.bot, interaction.user.id, interaction.user.name)
+        embed = await view.get_embed()
+        
+        await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(ProfileCommands(bot))
