@@ -129,8 +129,8 @@ class GatheringSystem:
     def _calculate_gathering_xp(cls, amount: int, resource_type: str) -> int:
         base_xp_map = {
             # Mining
-            'cobblestone': 5,    # cheap/basic, small XP
-            'coal': 10,          # slightly better
+            'cobblestone': 10,    # cheap/basic, small XP
+            'coal': 15,          # slightly better
             'iron_ingot': 20,    # mid-tier
             'gold_ingot': 30,    # higher-tier
             'diamond': 50,       # rare, big XP
@@ -173,7 +173,7 @@ class GatheringSystem:
         fishing_skill = next((s for s in skills if s['skill_name'] == 'fishing'), None)
         fishing_level = fishing_skill['level'] if fishing_skill else 0
         
-        skill_speed_multiplier = max(0.5, 1.0 - (fishing_level * 0.01))
+        skill_speed_multiplier = fishing_level * 0.02
         skill_luck_bonus = fishing_level * 0.5
         
         base_time = 20.0
