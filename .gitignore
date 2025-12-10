@@ -10,3 +10,4 @@ __pycache__/
 dist/
 build/
 .command_cache.json
+skyenv/
