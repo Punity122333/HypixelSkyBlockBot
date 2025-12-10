@@ -1,0 +1,12 @@
+skyblock.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.command_cache.json

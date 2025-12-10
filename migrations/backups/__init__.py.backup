@@ -1,0 +1,1308 @@
+from typing import Optional, Dict, List, Any
+import aiosqlite
+from .core import DatabaseCore
+from .players import PlayersDB
+from .skills import SkillsDB
+from .inventory import InventoryDB
+from .market import MarketDB
+from .game_data import GameDataDB
+from .world import WorldDB
+from .events import EventsDB
+import json
+import time 
+
+
+class GameDatabase:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self._core = DatabaseCore(db_path)
+        self.players = PlayersDB(db_path)
+        self.skills = SkillsDB(db_path)
+        self.inventory = InventoryDB(db_path)
+        self.market = MarketDB(db_path)
+        self.game_data = GameDataDB(db_path)
+        self.world = WorldDB(db_path)
+        self.events = EventsDB(db_path)
+        self.conn: Optional[aiosqlite.Connection] = None
+    
+    async def initialize(self):
+        await self._core.connect()
+        self.conn = self._core.conn
+        
+        await self.players.connect()
+        self.players.conn = self.conn
+        
+        await self.skills.connect()
+        self.skills.conn = self.conn
+        
+        await self.inventory.connect()
+        self.inventory.conn = self.conn
+        
+        await self.market.connect()
+        self.market.conn = self.conn
+        
+        await self.game_data.connect()
+        self.game_data.conn = self.conn
+        
+        await self.world.connect()
+        self.world.conn = self.conn
+        
+        await self.events.connect()
+        self.events.conn = self.conn
+    
+    async def close(self):
+        if self._core:
+            await self._core.close()
+    
+    async def create_player(self, user_id: int, username: str):
+        return await self.players.create_player(user_id, username)
+    
+    async def get_player(self, user_id: int):
+        return await self.players.get_player(user_id)
+    
+    async def update_player(self, user_id: int, **kwargs):
+        return await self.players.update_player(user_id, **kwargs)
+    
+    async def get_skills(self, user_id: int):
+        return await self.skills.get_skills(user_id)
+    
+    async def update_skill(self, user_id: int, skill_name: str, **kwargs):
+        return await self.skills.update_skill(user_id, skill_name, **kwargs)
+    
+    async def get_collection(self, user_id: int, collection_name: str):
+        return await self.skills.get_collection(user_id, collection_name)
+    
+    async def add_collection(self, user_id: int, collection_name: str, amount: int):
+        return await self.skills.add_collection(user_id, collection_name, amount)
+    
+    async def get_inventory(self, user_id: int):
+        return await self.inventory.get_inventory(user_id)
+    
+    async def add_item_to_inventory(self, user_id: int, item_id: str, amount: int = 1):
+        return await self.inventory.add_item_to_inventory(user_id, item_id, amount)
+    
+    async def remove_item_from_inventory(self, user_id: int, item_id: str, amount: int = 1):
+        return await self.inventory.remove_item_from_inventory(user_id, item_id, amount)
+    
+    async def get_item_count(self, user_id: int, item_id: str):
+        return await self.inventory.get_item_count(user_id, item_id)
+    
+    async def has_tool(self, user_id: int, tool_type: str):
+        return await self.inventory.has_tool(user_id, tool_type)
+    
+    async def get_tool_multiplier(self, user_id: int, tool_type: str):
+        return await self.inventory.get_tool_multiplier(user_id, tool_type)
+    
+    async def get_fairy_souls(self, user_id: int):
+        return await self.skills.get_fairy_souls(user_id)
+    
+    async def collect_fairy_soul(self, user_id: int, location: str):
+        return await self.skills.collect_fairy_soul(user_id, location)
+    
+    async def get_player_progression(self, user_id: int):
+        return await self.players.get_player_progression(user_id)
+    
+    async def update_progression(self, user_id: int, **kwargs):
+        return await self.players.update_progression(user_id, **kwargs)
+    
+    async def get_leaderboard(self, category: str, limit: int = 100):
+        return await self.players.get_leaderboard(category, limit)
+    
+    async def log_rare_drop(self, user_id: int, item_id: str, rarity: str, source: str):
+        return await self.players.log_rare_drop(user_id, item_id, rarity, source)
+    
+    async def get_active_auctions(self, limit: int = 100):
+        return await self.market.get_active_auctions(limit)
+    
+    async def get_bazaar_product(self, product_id: str):
+        return await self.market.get_bazaar_product(product_id)
+    
+    async def update_bazaar_product(self, product_id: str, buy_price: float, sell_price: float,
+                                   buy_volume: int, sell_volume: int):
+        return await self.market.update_bazaar_product(product_id, buy_price, sell_price, 
+                                                       buy_volume, sell_volume)
+    
+    async def execute_bazaar_transaction(self, buyer_id: int, seller_id: int, product_id: str,
+                                        amount: int, price: float):
+        return await self.market.execute_bazaar_transaction(buyer_id, seller_id, product_id,
+                                                            amount, price)
+    
+    async def get_all_stocks(self):
+        return await self.market.get_all_stocks()
+    
+    async def get_stock(self, symbol: str):
+        return await self.market.get_stock(symbol)
+    
+    async def get_player_stocks(self, user_id: int):
+        return await self.market.get_player_stocks(user_id)
+    
+    async def buy_stock(self, user_id: int, symbol: str, shares: int, price: float):
+        return await self.market.buy_stock(user_id, symbol, shares, price)
+    
+    async def sell_stock(self, user_id: int, symbol: str, shares: int, price: float):
+        return await self.market.sell_stock(user_id, symbol, shares, price)
+    
+    async def get_market_history(self, symbol: str, limit: int = 50):
+        return await self.market.get_market_history(symbol, limit)
+    
+    async def get_top_collections(self, collection_name: str, limit: int = 10):
+        return await self.skills.get_top_collections(collection_name, limit)
+    
+    async def unlock_achievement(self, user_id: int, achievement_id: str):
+        return await self.players.unlock_achievement(user_id, achievement_id)
+    
+    async def get_achievements(self, user_id: int):
+        return await self.players.get_achievements(user_id)
+    
+    async def unlock_location(self, user_id: int, location_id: str):
+        return await self.players.unlock_location(user_id, location_id)
+    
+    async def get_unlocked_locations(self, user_id: int):
+        return await self.players.get_unlocked_locations(user_id)
+    
+    async def init_bot_traders(self):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            CREATE TABLE IF NOT EXISTS bazaar_bots (
+                bot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id TEXT NOT NULL,
+                min_buy_price REAL,
+                max_sell_price REAL,
+                stock INTEGER DEFAULT 0,
+                created_at INTEGER DEFAULT 0
+            )
+        ''')
+        await self.conn.commit()
+    
+    async def init_auction_bots(self):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            CREATE TABLE IF NOT EXISTS auction_bots (
+                bot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                bot_name TEXT NOT NULL,
+                min_bid INTEGER,
+                max_bid INTEGER,
+                target_categories TEXT,
+                active INTEGER DEFAULT 1
+            )
+        ''')
+        await self.conn.commit()
+    
+    async def init_stock_market(self):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            CREATE TABLE IF NOT EXISTS stock_market (
+                symbol TEXT PRIMARY KEY,
+                current_price REAL,
+                change_percent REAL,
+                volume INTEGER,
+                last_update INTEGER
+            )
+        ''')
+        await self.conn.commit()
+    
+    async def get_active_merchant_deals(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM merchant_deals WHERE active = 1
+        ''')
+        return await cursor.fetchall()
+    
+    async def create_merchant_deal(self, item_id: str, price: int, stock: int, duration: int):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            INSERT INTO merchant_deals (item_id, price, stock, duration, created_at, active)
+            VALUES (?, ?, ?, ?, ?, 1)
+        ''', (item_id, price, stock, duration, int(time.time())))
+        await self.conn.commit()
+    
+    async def get_active_bot_traders(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM bazaar_bots WHERE stock > 0
+        ''')
+        return await cursor.fetchall()
+    
+    async def get_auction_bots(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM auction_bots WHERE active = 1
+        ''')
+        return await cursor.fetchall()
+    
+    async def end_expired_auctions(self):
+        if not self.conn:
+            return
+        import time
+        current_time = int(time.time())
+        await self.conn.execute('''
+            UPDATE auctions SET ended = 1 WHERE end_time <= ? AND ended = 0
+        ''', (current_time,))
+        await self.conn.commit()
+    
+    async def log_bazaar_flip(self, user_id: int, product_id: str, buy_price: float, sell_price: float, profit: float):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            INSERT INTO bazaar_flips (user_id, product_id, buy_price, sell_price, profit, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user_id, product_id, buy_price, sell_price, profit, int(time.time())))
+        await self.conn.commit()
+    
+    async def create_bazaar_order(self, user_id: int, product_id: str, order_type: str, amount: float, price: float):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            INSERT INTO bazaar_orders (user_id, product_id, order_type, amount, price, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user_id, product_id, order_type, amount, price, int(time.time())))
+        await self.conn.commit()
+    
+    async def buy_bin(self, user_id: int, auction_id: int, price: int):
+        if not self.conn:
+            return False
+        player = await self.get_player(user_id)
+        if not player or player['coins'] < price:
+            return False
+        
+        cursor = await self.conn.execute('''
+            SELECT * FROM auctions WHERE id = ? AND bin = 1 AND ended = 0
+        ''', (auction_id,))
+        auction = await cursor.fetchone()
+        
+        if not auction:
+            return False
+        
+        await self.update_player(user_id, coins=player['coins'] - price)
+        await self.add_item_to_inventory(user_id, auction['item_id'], auction['amount'])
+        
+        await self.conn.execute('''
+            UPDATE auctions SET ended = 1, winner_id = ? WHERE id = ?
+        ''', (user_id, auction_id))
+        await self.conn.commit()
+        return True
+    
+    async def update_auction_bot(self, bot_id: int, **kwargs):
+        if not self.conn:
+            return
+        fields = ', '.join([f"{k} = ?" for k in kwargs.keys()])
+        values = list(kwargs.values()) + [bot_id]
+        await self.conn.execute(f'''
+            UPDATE auction_bots SET {fields} WHERE bot_id = ?
+        ''', values)
+        await self.conn.commit()
+    
+    async def place_bid(self, user_id: int, auction_id: int, bid_amount: int):
+        if not self.conn:
+            return False
+        player = await self.get_player(user_id)
+        if not player or player['coins'] < bid_amount:
+            return False
+        
+        cursor = await self.conn.execute('''
+            SELECT * FROM auctions WHERE id = ? AND ended = 0
+        ''', (auction_id,))
+        auction = await cursor.fetchone()
+        
+        if not auction or bid_amount <= auction['current_bid']:
+            return False
+        
+        await self.conn.execute('''
+            UPDATE auctions SET current_bid = ?, winner_id = ? WHERE id = ?
+        ''', (bid_amount, user_id, auction_id))
+        await self.conn.commit()
+        return True
+    
+    async def get_top_flippers(self, limit: int = 10):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT user_id, SUM(profit) as total_profit
+            FROM bazaar_flips
+            GROUP BY user_id
+            ORDER BY total_profit DESC
+            LIMIT ?
+        ''', (limit,))
+        return await cursor.fetchall()
+    
+    async def get_top_category_collectors(self, category: str, limit: int = 1):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT user_id, amount
+            FROM collections
+            WHERE collection_name = ?
+            ORDER BY amount DESC
+            LIMIT ?
+        ''', (category, limit))
+        return await cursor.fetchall()
+    
+    async def get_quest(self, user_id: int, quest_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM player_quests WHERE user_id = ? AND quest_id = ?
+        ''', (user_id, quest_id))
+        return await cursor.fetchone()
+    
+    async def create_quest(self, user_id: int, quest_id: str, progress: int = 0):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            INSERT INTO player_quests (user_id, quest_id, progress, completed, started_at)
+            VALUES (?, ?, ?, 0, ?)
+        ''', (user_id, quest_id, progress, int(time.time())))
+        await self.conn.commit()
+    
+    async def get_user_quests(self, user_id: int):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM player_quests WHERE user_id = ?
+        ''', (user_id,))
+        return await cursor.fetchall()
+    
+    async def complete_quest(self, user_id: int, quest_id: str):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            UPDATE player_quests SET completed = 1, completed_at = ? WHERE user_id = ? AND quest_id = ?
+        ''', (int(time.time()), user_id, quest_id))
+        await self.conn.commit()
+    
+    async def get_active_pet(self, user_id: int):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM player_pets WHERE user_id = ? AND active = 1
+        ''', (user_id,))
+        return await cursor.fetchone()
+    
+    async def update_stock_price(self, symbol: str, price: float, change_percent: float, volume: int):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO stock_market (symbol, current_price, change_percent, volume, last_update)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (symbol, price, change_percent, volume, int(time.time())))
+        await self.conn.commit()
+    
+    async def add_minion(self, user_id: int, minion_type: str, tier: int = 1, island_slot: int = 1):
+        if not self.conn:
+            return
+        import time
+        await self.conn.execute('''
+            INSERT INTO player_minions (user_id, minion_type, tier, island_slot, storage, last_collected)
+            VALUES (?, ?, ?, ?, '[]', ?)
+        ''', (user_id, minion_type, tier, island_slot, int(time.time())))
+        await self.conn.commit()
+    
+    async def cancel_bazaar_order(self, order_id: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            DELETE FROM bazaar_orders WHERE id = ?
+        ''', (order_id,))
+        await self.conn.commit()
+    
+    async def claim_daily_reward(self, user_id: int):
+        if not self.conn:
+            return (0, 0)
+        import time
+        current_time = int(time.time())
+        
+        cursor = await self.conn.execute('''
+            SELECT last_daily_claim FROM players WHERE user_id = ?
+        ''', (user_id,))
+        result = await cursor.fetchone()
+        
+        if result and (current_time - result['last_daily_claim']) < 86400:
+            return (0, 0)
+        
+        coins = 5000
+        xp = 100
+        
+        await self.update_player(user_id, coins=coins, last_daily_claim=current_time)
+        return (coins, xp)
+    
+    async def claim_merchant_deal(self, user_id: int, deal_id: int):
+        if not self.conn:
+            return False
+        cursor = await self.conn.execute('''
+            SELECT * FROM merchant_deals WHERE id = ? AND active = 1
+        ''', (deal_id,))
+        deal = await cursor.fetchone()
+        
+        if not deal:
+            return False
+        
+        player = await self.get_player(user_id)
+        if player and player['coins'] >= deal['price']:
+            await self.update_player(user_id, coins=player['coins'] - deal['price'])
+            await self.add_item_to_inventory(user_id, deal['item_id'], 1)
+            
+            await self.conn.execute('''
+                UPDATE merchant_deals SET stock = stock - 1 WHERE id = ?
+            ''', (deal_id,))
+            await self.conn.commit()
+            return True
+        return False
+    
+    async def claim_quest_reward(self, user_id: int, quest_id: str):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            UPDATE player_quests SET claimed = 1, completed_at = ? WHERE user_id = ? AND quest_id = ?
+        ''', (int(time.time()), user_id, quest_id))
+        await self.conn.commit()
+    
+    async def delete_minion(self, minion_id: int, user_id: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            DELETE FROM player_minions WHERE id = ? AND user_id = ?
+        ''', (minion_id, user_id))
+        await self.conn.commit()
+    
+    async def equip_pet(self, user_id: int, pet_id: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            UPDATE player_pets SET active = 0 WHERE user_id = ?
+        ''', (user_id,))
+        await self.conn.execute('''
+            UPDATE player_pets SET active = 1 WHERE id = ?
+        ''', (pet_id,))
+        await self.conn.commit()
+        
+    async def unequip_pet(self, user_id: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            UPDATE player_pets SET active = 0 WHERE user_id = ?
+        ''', (user_id,))
+        await self.conn.commit()
+
+    
+    async def get_all_bazaar_products(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM bazaar_products
+        ''')
+        return await cursor.fetchall()
+    
+    async def get_fairy_soul_locations(self, user_id: int):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT location FROM collected_fairy_souls WHERE user_id = ?
+        ''', (user_id,))
+        collected = [row['location'] for row in await cursor.fetchall()]
+        
+        cursor = await self.conn.execute('''
+            SELECT location FROM fairy_soul_locations
+        ''')
+        all_locations = [row['location'] for row in await cursor.fetchall()]
+        
+        return [loc for loc in all_locations if loc not in collected]
+    
+    async def get_minion(self, minion_id: int):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM player_minions WHERE id = ?
+        ''', (minion_id,))
+        return await cursor.fetchone()
+    
+    async def get_user_auctions(self, user_id: int):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM auctions WHERE seller_id = ? AND ended = 0
+        ''', (user_id,))
+        return await cursor.fetchall()
+    
+    async def get_user_bazaar_orders(self, user_id: int):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM bazaar_orders WHERE user_id = ?
+        ''', (user_id,))
+        return await cursor.fetchall()
+    
+    async def get_user_minions(self, user_id: int):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM player_minions WHERE user_id = ?
+        ''', (user_id,))
+        return await cursor.fetchall()
+    
+    async def get_user_pets(self, user_id: int):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM player_pets WHERE user_id = ?
+        ''', (user_id,))
+        return await cursor.fetchall()
+    
+    async def update_collection(self, user_id: int, collection_name: str, amount: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT INTO collections (user_id, collection_name, amount)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, collection_name) DO UPDATE SET amount = amount + ?
+        ''', (user_id, collection_name, amount, amount))
+        await self.conn.commit()
+    
+    async def update_minion_storage(self, minion_id: int, storage: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            UPDATE player_minions SET storage = ? WHERE id = ?
+        ''', (storage, minion_id))
+        await self.conn.commit()
+    
+    async def upgrade_minion(self, minion_id: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            UPDATE player_minions SET tier = tier + 1 WHERE id = ?
+        ''', (minion_id,))
+        await self.conn.commit()
+    
+    async def create_auction(self, user_id: int, item_id: str, item_data: dict, starting_bid: int, duration: int, bin_price: Optional[int] = None):
+        if not self.conn:
+            return 0
+        import time
+        import json
+        amount = item_data.get('count', 1) if isinstance(item_data, dict) else 1
+        cursor = await self.conn.execute('''
+            INSERT INTO auctions (seller_id, item_id, amount, starting_bid, current_bid, bin_price, end_time, bin, ended)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ''', (user_id, item_id, amount, starting_bid, starting_bid, bin_price or 0, int(time.time()) + duration, 1 if bin_price and bin_price > 0 else 0))
+        await self.conn.commit()
+        return cursor.lastrowid
+    
+    async def add_game_item(self, item_id: str, name: str, rarity: str, item_type: str, stats: Dict, 
+                           lore: str = "", special_ability: str = "", craft_recipe: Optional[Dict] = None,
+                           npc_sell_price: int = 0, collection_req: Optional[Dict] = None, default_bazaar_price: int = 0):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO game_items (item_id, name, rarity, item_type, stats, lore, 
+                                               special_ability, craft_recipe, npc_sell_price, 
+                                               collection_req, default_bazaar_price)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (item_id, name, rarity, item_type, json.dumps(stats), lore, special_ability,
+              json.dumps(craft_recipe or {}), npc_sell_price, json.dumps(collection_req or {}), 
+              default_bazaar_price))
+        await self.conn.commit()
+    
+    async def add_collection_items(self, category: str, item_id: str, display_name: str, emoji: str):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO collection_items (category, item_id, display_name, emoji)
+            VALUES (?, ?, ?, ?)
+        ''', (category, item_id, display_name, emoji))
+        await self.conn.commit()
+    
+    async def add_mob_location(self, location_id: str, mob_id: str, mob_name: str, health: int, 
+                              damage: int, coins: int, xp: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO mob_locations (location_id, mob_id, mob_name, health, damage, coins, xp)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (location_id, mob_id, mob_name, health, damage, coins, xp))
+        await self.conn.commit()
+    
+    async def add_dungeon_floor(self, floor_id: str, name: str, rewards: int, time: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO dungeon_floors (floor_id, name, rewards, time)
+            VALUES (?, ?, ?, ?)
+        ''', (floor_id, name, rewards, time))
+        await self.conn.commit()
+    
+    async def add_slayer_boss(self, boss_id: str, name: str, emoji: str, tier_data: Dict):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO slayer_bosses (boss_id, name, emoji, tier_data)
+            VALUES (?, ?, ?, ?)
+        ''', (boss_id, name, emoji, json.dumps(tier_data)))
+        await self.conn.commit()
+    
+    async def add_slayer_drop(self, boss_id: str, item_id: str, min_amt: int, max_amt: int, drop_chance: float):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO slayer_drops (boss_id, item_id, min_amt, max_amt, drop_chance)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (boss_id, item_id, min_amt, max_amt, drop_chance))
+        await self.conn.commit()
+    
+    async def add_season(self, season_id: int, season_name: str):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO seasons (season_id, season_name)
+            VALUES (?, ?)
+        ''', (season_id, season_name))
+        await self.conn.commit()
+    
+    async def add_mayor(self, mayor_id: str, name: str, perks: str):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO mayors (mayor_id, name, perks)
+            VALUES (?, ?, ?)
+        ''', (mayor_id, name, perks))
+        await self.conn.commit()
+    
+    async def add_gathering_drop(self, gathering_type: str, resource_type: str, item_id: str, 
+                                drop_chance: float, min_amt: int, max_amt: int):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO gathering_drops (gathering_type, resource_type, item_id, drop_chance, min_amt, max_amt)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (gathering_type, resource_type, item_id, drop_chance, min_amt, max_amt))
+        await self.conn.commit()
+    
+    async def get_gathering_drops(self, gathering_type: str, resource_type: str):
+        """Get all gathering drops for a specific gathering type and resource type."""
+        if not self.conn:
+            return []
+        
+        cursor = await self.conn.execute('''
+            SELECT * FROM gathering_drops
+            WHERE gathering_type = ? AND resource_type = ?
+        ''', (gathering_type, resource_type))
+        return await cursor.fetchall()
+    
+    async def add_rarity_color(self, rarity: str, color_hex: str):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO rarity_colors (rarity, color_hex)
+            VALUES (?, ?)
+        ''', (rarity, color_hex))
+        await self.conn.commit()
+    
+    async def add_tool_tier(self, tool_type: str, tier: int, item_id: str, name: str, stats: Dict, recipe: Dict):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO tool_tiers (tool_type, tier, item_id, name, stats, recipe)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (tool_type, tier, item_id, name, json.dumps(stats), json.dumps(recipe)))
+        await self.conn.commit()
+    
+    async def add_crafting_recipe(self, recipe_id: str, output_item: str, ingredients: Dict):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO crafting_recipes (recipe_id, output_item, ingredients)
+            VALUES (?, ?, ?)
+        ''', (recipe_id, output_item, json.dumps(ingredients)))
+        await self.conn.commit()
+    
+    async def add_reforge(self, reforge_id: str, name: str, applies_to: List, stat_bonuses: Dict, cost_formula: Optional[str] = None):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO reforges (reforge_id, name, applies_to, stat_bonuses, cost_formula)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (reforge_id, name, json.dumps(applies_to), json.dumps(stat_bonuses), cost_formula))
+        await self.conn.commit()
+    
+    async def add_enchantment(self, enchant_id: str, name: str, max_level: int, applies_to: List, 
+                             description: str, stat_bonuses: Optional[Dict] = None):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO enchantments (enchant_id, name, max_level, applies_to, description, stat_bonuses)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (enchant_id, name, max_level, json.dumps(applies_to), description, json.dumps(stat_bonuses or {})))
+        await self.conn.commit()
+    
+    async def add_loot_table(self, table_id: str, category: str, loot_data: Dict,
+                            coins_min: int = 0, coins_max: int = 0, xp_reward: int = 0):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO loot_tables (table_id, category, loot_data, coins_min, coins_max, xp_reward)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (table_id, category, json.dumps(loot_data), coins_min, coins_max, xp_reward))
+        await self.conn.commit()
+    
+    async def add_skill_config(self, skill_name: str, display_name: str, max_level: int, 
+                              xp_requirements: Dict, level_rewards: Dict, stat_bonuses: Dict):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO skill_configs (skill_name, display_name, max_level, xp_requirements, level_rewards, stat_bonuses)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (skill_name, display_name, max_level, json.dumps(xp_requirements), json.dumps(level_rewards), json.dumps(stat_bonuses)))
+        await self.conn.commit()
+    
+    async def add_game_pet(self, pet_id: str, pet_type: str, rarity: str, stats: Dict, max_level: int, description: str):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO game_pets (pet_id, pet_type, rarity, stats, max_level, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (pet_id, pet_type, rarity, json.dumps(stats), max_level, description))
+        await self.conn.commit()
+    
+    async def add_game_minion(self, minion_type: str, produces: str, base_speed: int, max_tier: int, 
+                             category: str, description: str):
+        if not self.conn:
+            return
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO game_minions (minion_type, produces, base_speed, max_tier, category, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (minion_type, produces, base_speed, max_tier, category, description))
+        await self.conn.commit()
+    
+    async def add_game_event(self, event_id: str, name: str, description: str, duration: int, 
+                            occurs_every: int, bonuses: Dict):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO game_events (event_id, name, description, duration, occurs_every, bonuses)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (event_id, name, description, duration, occurs_every, json.dumps(bonuses)))
+        await self.conn.commit()
+    
+    async def add_game_quest(self, quest_id: str, name: str, description: str, requirement_type: str,
+                            requirement_item: Optional[str] = None, requirement_amount: int = 0, 
+                            reward_coins: int = 0, reward_items: Optional[List] = None):
+        if not self.conn:
+            return
+        import json
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO game_quests (quest_id, name, description, requirement_type, 
+                                               requirement_item, requirement_amount, reward_coins, reward_items)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (quest_id, name, description, requirement_type, requirement_item, requirement_amount, 
+              reward_coins, json.dumps(reward_items or [])))
+        await self.conn.commit()
+
+    async def get_all_game_items(self) -> dict[str, dict]:
+        if not self.conn:
+            return {}
+
+        cursor = await self.conn.execute('SELECT * FROM game_items')
+        rows = await cursor.fetchall()
+
+        items = {}
+        for row in rows:
+            row_dict = dict(row)
+            items[row_dict['item_id']] = {
+                'item_id': row_dict['item_id'],
+                'name': row_dict['name'],
+                'rarity': row_dict['rarity'],
+                'type': row_dict['item_type'],
+                'stats': json.loads(row_dict['stats']) if row_dict['stats'] else {},
+                'lore': row_dict['lore'] if 'lore' in row_dict else '',
+                'special_ability': row_dict['special_ability'] if 'special_ability' in row_dict else '',
+                'craft_recipe': json.loads(row_dict['craft_recipe']) if row_dict.get('craft_recipe') else {},
+                'npc_sell_price': row_dict['npc_sell_price'] if 'npc_sell_price' in row_dict else 0,
+                'collection_req': json.loads(row_dict['collection_req']) if row_dict.get('collection_req') else {},
+                'default_bazaar_price': row_dict['default_bazaar_price'] if 'default_bazaar_price' in row_dict else 0
+            }
+
+        return items
+
+
+    
+    # in GameDatabase class
+    async def get_all_game_events(self):
+        """Return all rows from the game_events table."""
+        if not self.conn:
+            return []
+
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_events
+        ''')
+        return await cursor.fetchall()
+
+    async def get_loot_table(self, table_id: str, category: str):
+        if not self.conn:
+            return None
+
+        cursor = await self.conn.execute('''
+            SELECT * FROM loot_tables
+            WHERE table_id = ? AND category = ?
+        ''', (table_id, category))
+        row = await cursor.fetchone()
+        if row:
+            row_dict = dict(row)
+            # Parse the JSON loot_data
+            if 'loot_data' in row_dict and row_dict['loot_data']:
+                row_dict['loot_data'] = json.loads(row_dict['loot_data'])
+            return row_dict
+        return None
+    
+    async def get_skill_config(self, skill_name: str):
+        if not self.conn:
+            return None
+
+        cursor = await self.conn.execute('''
+            SELECT * FROM skill_configs WHERE skill_name = ?
+        ''', (skill_name,))
+        return await cursor.fetchone()
+
+    async def get_game_item(self, item_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_items WHERE item_id = ?
+        ''', (item_id,))
+        row = await cursor.fetchone()
+        if row:
+            return dict(row)
+        return None
+
+    async def get_items_by_type(self, item_type: str):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_items WHERE item_type = ?
+        ''', (item_type,))
+        return await cursor.fetchall()
+
+    async def get_slayer_boss(self, boss_type: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM slayer_bosses WHERE boss_id = ?
+        ''', (boss_type,))
+        row = await cursor.fetchone()
+        if row:
+            result = dict(row)
+            if 'tier_data' in result and result['tier_data']:
+                result['tier_data'] = json.loads(result['tier_data'])
+            return result
+        return None
+
+    async def get_slayer_drops(self, boss_type: str):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM slayer_drops WHERE boss_id = ?
+        ''', (boss_type,))
+        return await cursor.fetchall()
+
+    async def get_dungeon_floor(self, floor_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM dungeon_floors WHERE floor_id = ?
+        ''', (floor_id,))
+        return await cursor.fetchone()
+
+    async def get_all_game_quests(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_quests
+        ''')
+        rows = await cursor.fetchall()
+        result = []
+        for row in rows:
+            quest = dict(row)
+            if 'reward_items' in quest and quest['reward_items']:
+                quest['reward_items'] = json.loads(quest['reward_items'])
+            result.append(quest)
+        return result
+
+    async def get_game_quest(self, quest_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_quests WHERE quest_id = ?
+        ''', (quest_id,))
+        row = await cursor.fetchone()
+        if row:
+            quest = dict(row)
+            if 'reward_items' in quest and quest['reward_items']:
+                quest['reward_items'] = json.loads(quest['reward_items'])
+            return quest
+        return None
+
+    async def get_game_event(self, event_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_events WHERE event_id = ?
+        ''', (event_id,))
+        row = await cursor.fetchone()
+        if row:
+            event = dict(row)
+            if 'bonuses' in event and event['bonuses']:
+                event['bonuses'] = json.loads(event['bonuses'])
+            return event
+        return None
+
+    async def get_all_seasons(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT season_name FROM seasons
+        ''')
+        rows = await cursor.fetchall()
+        return [row['season_name'] for row in rows]
+
+    async def get_all_mayors(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM mayors
+        ''')
+        return await cursor.fetchall()
+
+    async def get_mobs_by_location(self, location_id: str):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT * FROM mob_locations WHERE location_id = ?
+        ''', (location_id,))
+        return await cursor.fetchall()
+
+    async def get_mob_loot_table(self, mob_name: str):
+        if not self.conn:
+            return {}
+        cursor = await self.conn.execute('''
+            SELECT * FROM mob_locations WHERE mob_name = ?
+        ''', (mob_name,))
+        row = await cursor.fetchone()
+        if row:
+            row_dict = dict(row)
+            return {'coins_min': row_dict.get('coins', 0), 'coins_max': row_dict.get('coins', 0), 'xp': row_dict.get('xp', 0)}
+        return {}
+
+    async def get_mob_loot_coins(self, mob_name: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT coins FROM mob_locations WHERE mob_name = ?
+        ''', (mob_name,))
+        row = await cursor.fetchone()
+        if row:
+            return {'min': row['coins'], 'max': row['coins']}
+        return None
+
+    async def get_collection_tier_requirements(self, item_id: str):
+        if not self.conn:
+            return []
+        return [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000]
+
+    async def get_all_collection_tier_requirements(self):
+        if not self.conn:
+            return {}
+        return {}
+
+    async def get_collection_tier_reward(self, tier: int):
+        if not self.conn:
+            return None
+        return None
+
+    async def get_all_collection_tier_rewards(self):
+        if not self.conn:
+            return {}
+        cursor = await self.conn.execute('''
+            SELECT * FROM collection_tier_rewards
+        ''')
+        rows = await cursor.fetchall()
+        result = {}
+        for row in rows:
+            tier = row['tier']
+            result[tier] = dict(row)
+        return result
+
+    async def get_collection_category_bonuses(self, category: str):
+        if not self.conn:
+            return {}
+        return {}
+
+    async def get_all_collection_category_bonuses(self):
+        if not self.conn:
+            return {}
+        return {}
+
+    async def get_collection_categories(self):
+        if not self.conn:
+            return {}
+        cursor = await self.conn.execute('''
+            SELECT DISTINCT category FROM collection_items
+        ''')
+        rows = await cursor.fetchall()
+        categories = {}
+        for row in rows:
+            category = row['category']
+            items_cursor = await self.conn.execute('''
+                SELECT item_id FROM collection_items WHERE category = ?
+            ''', (category,))
+            items = await items_cursor.fetchall()
+            categories[category] = [item['item_id'] for item in items]
+        return categories
+
+    async def get_category_items(self, category: str):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT item_id FROM collection_items WHERE category = ?
+        ''', (category,))
+        rows = await cursor.fetchall()
+        return [row['item_id'] for row in rows]
+
+    async def get_item_category(self, item_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT category FROM collection_items WHERE item_id = ?
+        ''', (item_id,))
+        row = await cursor.fetchone()
+        if row:
+            return row['category']
+        return None
+
+    async def get_all_fairy_soul_locations(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('''
+            SELECT location FROM fairy_soul_locations
+        ''')
+        rows = await cursor.fetchall()
+        return [row['location'] for row in rows]
+
+    async def get_rarity_color(self, rarity: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT color_hex FROM rarity_colors WHERE rarity = ?
+        ''', (rarity,))
+        row = await cursor.fetchone()
+        if row:
+            return row['color_hex']
+        return None
+
+    async def get_game_pet(self, pet_id: str):
+        return await self.events.get_game_pet(pet_id)
+
+    async def get_all_game_items(self):
+        return await self.game_data.get_all_game_items()
+
+    async def get_game_item(self, item_id: str):
+        return await self.game_data.get_game_item(item_id)
+
+    async def get_items_by_type(self, item_type: str):
+        return await self.game_data.get_items_by_type(item_type)
+
+    async def add_game_item(self, item_id: str, name: str, rarity: str, item_type: str, stats: Dict, 
+                           lore: str = "", special_ability: str = "", craft_recipe: Optional[Dict] = None,
+                           npc_sell_price: int = 0, collection_req: Optional[Dict] = None, default_bazaar_price: int = 0):
+        return await self.game_data.add_game_item(item_id, name, rarity, item_type, stats, lore, 
+                                                   special_ability, craft_recipe, npc_sell_price, 
+                                                   collection_req, default_bazaar_price)
+
+    async def get_loot_table(self, table_id: str, category: str):
+        return await self.game_data.get_loot_table(table_id, category)
+
+    async def add_loot_table(self, table_id: str, category: str, loot_data: Dict,
+                            coins_min: int = 0, coins_max: int = 0, xp_reward: int = 0):
+        return await self.game_data.add_loot_table(table_id, category, loot_data, coins_min, coins_max, xp_reward)
+
+    async def get_enchantment(self, enchant_id: str):
+        return await self.game_data.get_enchantment(enchant_id)
+
+    async def get_all_enchantments(self):
+        return await self.game_data.get_all_enchantments()
+
+    async def add_enchantment(self, enchant_id: str, name: str, max_level: int, applies_to: List, 
+                             description: str, stat_bonuses: Optional[Dict] = None):
+        return await self.game_data.add_enchantment(enchant_id, name, max_level, applies_to, description, stat_bonuses)
+
+    async def get_reforge(self, reforge_id: str):
+        return await self.game_data.get_reforge(reforge_id)
+
+    async def get_all_reforges(self):
+        return await self.game_data.get_all_reforges()
+
+    async def add_reforge(self, reforge_id: str, name: str, applies_to: List, stat_bonuses: Dict, cost_formula: Optional[str] = None):
+        return await self.game_data.add_reforge(reforge_id, name, applies_to, stat_bonuses, cost_formula)
+
+    async def get_skill_config(self, skill_name: str):
+        return await self.game_data.get_skill_config(skill_name)
+
+    async def add_skill_config(self, skill_name: str, display_name: str, max_level: int, 
+                              xp_requirements: Dict, level_rewards: Dict, stat_bonuses: Dict):
+        return await self.game_data.add_skill_config(skill_name, display_name, max_level, 
+                                                      xp_requirements, level_rewards, stat_bonuses)
+
+    async def get_crafting_recipe(self, recipe_id: str):
+        return await self.game_data.get_crafting_recipe(recipe_id)
+
+    async def add_crafting_recipe(self, recipe_id: str, output_item: str, ingredients: Dict):
+        return await self.game_data.add_crafting_recipe(recipe_id, output_item, ingredients)
+
+    async def get_all_tool_tiers(self):
+        return await self.game_data.get_all_tool_tiers()
+
+    async def add_tool_tier(self, tool_type: str, tier: int, item_id: str, name: str, stats: Dict, recipe: Dict):
+        return await self.game_data.add_tool_tier(tool_type, tier, item_id, name, stats, recipe)
+
+    async def get_rarity_color(self, rarity: str):
+        return await self.game_data.get_rarity_color(rarity)
+
+    async def add_rarity_color(self, rarity: str, color_hex: str):
+        return await self.game_data.add_rarity_color(rarity, color_hex)
+
+    async def get_all_crafting_recipes(self):
+        return await self.game_data.get_all_crafting_recipes()
+
+    async def get_slayer_boss(self, boss_type: str):
+        return await self.world.get_slayer_boss(boss_type)
+
+    async def get_slayer_drops(self, boss_type: str):
+        return await self.world.get_slayer_drops(boss_type)
+
+    async def add_slayer_boss(self, boss_id: str, name: str, emoji: str, tier_data: Dict):
+        return await self.world.add_slayer_boss(boss_id, name, emoji, tier_data)
+
+    async def add_slayer_drop(self, boss_id: str, item_id: str, min_amt: int, max_amt: int, drop_chance: float):
+        return await self.world.add_slayer_drop(boss_id, item_id, min_amt, max_amt, drop_chance)
+
+    async def get_dungeon_floor(self, floor_id: str):
+        return await self.world.get_dungeon_floor(floor_id)
+
+    async def add_dungeon_floor(self, floor_id: str, name: str, rewards: int, time: int):
+        return await self.world.add_dungeon_floor(floor_id, name, rewards, time)
+
+    async def get_mobs_by_location(self, location_id: str):
+        return await self.world.get_mobs_by_location(location_id)
+
+    async def get_mob_loot_table(self, mob_name: str):
+        return await self.world.get_mob_loot_table(mob_name)
+
+    async def get_mob_loot_coins(self, mob_name: str):
+        return await self.world.get_mob_loot_coins(mob_name)
+
+    async def add_mob_location(self, location_id: str, mob_id: str, mob_name: str, health: int, 
+                              damage: int, coins: int, xp: int):
+        return await self.world.add_mob_location(location_id, mob_id, mob_name, health, damage, coins, xp)
+
+    async def get_gathering_drops(self, gathering_type: str, resource_type: str):
+        return await self.world.get_gathering_drops(gathering_type, resource_type)
+
+    async def add_gathering_drop(self, gathering_type: str, resource_type: str, item_id: str, 
+                                drop_chance: float, min_amt: int, max_amt: int):
+        return await self.world.add_gathering_drop(gathering_type, resource_type, item_id, drop_chance, min_amt, max_amt)
+
+    async def get_all_fairy_soul_locations(self):
+        return await self.world.get_all_fairy_soul_locations()
+
+    async def get_collection_categories(self):
+        return await self.world.get_collection_categories()
+
+    async def get_category_items(self, category: str):
+        return await self.world.get_category_items(category)
+
+    async def get_item_category(self, item_id: str):
+        return await self.world.get_item_category(item_id)
+
+    async def add_collection_items(self, category: str, item_id: str, display_name: str, emoji: str):
+        return await self.world.add_collection_items(category, item_id, display_name, emoji)
+
+    async def get_collection_tier_requirements(self, item_id: str):
+        return await self.world.get_collection_tier_requirements(item_id)
+
+    async def get_all_collection_tier_requirements(self):
+        return await self.world.get_all_collection_tier_requirements()
+
+    async def get_collection_tier_reward(self, tier: int):
+        return await self.world.get_collection_tier_reward(tier)
+
+    async def get_all_collection_tier_rewards(self):
+        return await self.world.get_all_collection_tier_rewards()
+
+    async def get_collection_category_bonuses(self, category: str):
+        return await self.world.get_collection_category_bonuses(category)
+
+    async def get_all_collection_category_bonuses(self):
+        return await self.world.get_all_collection_category_bonuses()
+
+    async def get_all_game_events(self):
+        return await self.events.get_all_game_events()
+
+    async def get_game_event(self, event_id: str):
+        return await self.events.get_game_event(event_id)
+
+    async def add_game_event(self, event_id: str, name: str, description: str, duration: int, 
+                            occurs_every: int, bonuses: Dict):
+        return await self.events.add_game_event(event_id, name, description, duration, occurs_every, bonuses)
+
+    async def get_all_seasons(self):
+        return await self.events.get_all_seasons()
+
+    async def add_season(self, season_id: int, season_name: str):
+        return await self.events.add_season(season_id, season_name)
+
+    async def get_all_mayors(self):
+        return await self.events.get_all_mayors()
+
+    async def add_mayor(self, mayor_id: str, name: str, perks: str):
+        return await self.events.add_mayor(mayor_id, name, perks)
+
+    async def get_all_game_quests(self):
+        return await self.events.get_all_game_quests()
+
+    async def get_game_quest(self, quest_id: str):
+        return await self.events.get_game_quest(quest_id)
+
+    async def add_game_quest(self, quest_id: str, name: str, description: str, requirement_type: str,
+                            requirement_item: Optional[str] = None, requirement_amount: int = 0, 
+                            reward_coins: int = 0, reward_items: Optional[List] = None):
+        return await self.events.add_game_quest(quest_id, name, description, requirement_type, 
+                                                requirement_item, requirement_amount, reward_coins, reward_items)
+
+    async def add_game_pet(self, pet_id: str, pet_type: str, rarity: str, stats: Dict, max_level: int, description: str):
+        return await self.events.add_game_pet(pet_id, pet_type, rarity, stats, max_level, description)
+
+    async def get_minion_data(self, minion_type: str):
+        return await self.events.get_minion_data(minion_type)
+
+    async def add_game_minion(self, minion_type: str, produces: str, base_speed: int, max_tier: int, 
+                             category: str, description: str):
+        return await self.events.add_game_minion(minion_type, produces, base_speed, max_tier, category, description)

@@ -1,0 +1,151 @@
+📚 Complete Command List
+
+This wiki page lists all available bot commands organized by category.
+
+👤 PROFILE & STATS:
+/profile - View your SkyBlock profile
+/stats - View your detailed stats
+/skills - View all your skills
+/progression - View your progression and milestones
+/leaderboard - View leaderboards
+/guide - View the beginner's guide
+/tips - Get trading and economy tips
+/begin - Start your SkyBlock journey from scratch
+/fairy_souls - Check your fairy soul progress
+/island - Visit your private island
+/search_fairy_soul - Search for a fairy soul!
+
+💰 ECONOMY & BANKING:
+/bank - View your bank balance
+/deposit - Deposit coins to your bank
+/withdraw - Withdraw coins from your bank
+/pay - Pay coins to another player
+/flip_stats - View your bazaar flipping statistics
+/market_trends - View current market trends
+/auction_insights - View auction house insights and bot activity
+/economy_overview - View complete economy overview
+
+🎒 INVENTORY & ITEMS:
+/inventory - View your inventory
+/enderchest - View your ender chest
+/wardrobe - View and manage your wardrobe
+/accessories - View your accessory bag
+/collections - View your collections with tiers and rewards
+/collection_info - Get detailed info about a specific collection
+/collection_rewards - View collection tier rewards and category bonuses
+/collection_leaderboard - View top collectors
+
+⛏️ GATHERING & SKILLS:
+/mine - Go mining and collect resources
+/farm - Farm crops
+/fish - Go fishing
+/forage - Chop trees
+/taming - Level up your taming!
+/alchemy - Brew potions!
+/carpentry - Improve your carpentry skill!
+/runecrafting - Level up your runecrafting!
+/social - Increase your social skill!
+
+🔨 CRAFTING & UPGRADING:
+/craft - Craft an item
+/recipes - View available crafting recipes
+/reforge - Reforge items
+/reforges - View reforges
+/enchant - Enchant an item
+/anvil - Combine items in the anvil
+
+🏪 TRADING & MARKETS:
+/ah_create - Create an auction
+/ah_browse - Browse active auctions
+/ah_bid - Place a bid on an auction
+/ah_bin - Buy an auction instantly
+/ah_my - View your auctions
+/bz_prices - View bazaar prices for an item
+/bz_buy - Instantly buy items from bazaar
+/bz_sell - Instantly sell items to bazaar
+/bz_order_buy - Place a buy order
+/bz_order_sell - Place a sell order
+/bz_myorders - View your active orders
+/bz_cancel - Cancel an order
+/bz_list - List bazaar items
+/trade_interactive - Trade with another player!
+/merchants - View available merchant deals
+/merchant_buy - Buy from a merchant
+/merchant_sell - Sell to a merchant
+
+📈 STOCKS & ECONOMY:
+/stocks - View the stock market
+/portfolio - View your stock portfolio
+/stock_info - Get detailed information about a stock
+/stock_buy - Buy stocks
+/stock_sell - Sell stocks
+
+🐾 PETS & MINIONS:
+/pets - View your pet collection
+/pet_equip - Equip a pet
+/pet_info - View detailed info about a pet
+/pet_unequip - Unequip your current pet
+/minion_place - Place a minion on your island
+/minion_collect - Collect resources from a minion
+/minion_upgrade - Upgrade a minion to the next tier
+/minion_remove - Remove a minion from your island
+
+📜 QUESTS & COLLECTIONS:
+/quests - View available quests
+/claim_quest - Claim a completed quest reward
+/daily_reward - Claim your daily reward
+/starter_pack - Get starter items
+/claim_starter_pack - Claim your starter pack (one time only)
+
+🏰 DUNGEONS & COMBAT:
+/fight - Fight monsters interactively!
+/combat_locations - View all combat locations and their requirements
+/boss - Fight a boss!
+/dungeon - Start an interactive dungeon run!
+/dungeon_stats - View your dungeon statistics
+/party - Manage your party with interactive menu
+/party_finder - Browse and join dungeon parties
+/slayer - Fight a slayer boss!
+/slayer_stats - View your slayer statistics
+/slayer_info - View information about Slayer bosses and tiers
+/combat_stats - View combat stats
+
+🤝 CO-OP SYSTEM:
+/coop - Manage your co-op with all features (shared resources, bank, minions)
+
+🎪 EVENTS & CALENDAR:
+/events - View active SkyBlock events
+/calendar - View the SkyBlock calendar
+
+⚙️ BOT & ADMIN:
+/help - View all available commands
+/wiki - Search the SkyBlock wiki
+/settings - Configure bot settings
+/reload_cog - Reload a specific cog
+/sync_commands - Force sync commands to Discord
+/clear_sync_cache - Clear command sync cache
+/progression_path - View your tool progression path
+
+💡 TIPS FOR NEW PLAYERS:
+1. Start with /claim_starter_pack
+2. Use /guide for detailed beginner instructions
+3. Type /wiki <topic> for specific guides
+4. Check /help to see all available commands
+5. Use /profile to track your progress
+
+📖 WIKI SYSTEM:
+The wiki system provides detailed guides on various topics.
+Use /wiki <topic> to access guides like:
+- getting_started
+- fairy_souls
+- dungeons
+- parties (NEW!)
+- party_finder (NEW!)
+- coop (NEW!)
+- bazaar
+- coins
+- mining
+- farming
+- combat
+
+More wiki pages are being added regularly!

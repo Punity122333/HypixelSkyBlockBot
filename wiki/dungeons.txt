@@ -1,0 +1,87 @@
+🏰 Dungeons Guide
+
+Dungeons are challenging procedurally-generated instances where you fight mobs, find secrets, and earn valuable loot!
+
+📍 THE CATACOMBS:
+Dungeon floors range from Entrance to Floor 7, plus Master Mode floors.
+
+🎮 HOW TO ENTER:
+Use /dungeon <floor> to start a dungeon run
+
+Solo or Party:
+- Run dungeons solo for a challenge
+- Create/join a party with /party or /party_finder
+- Party members share rewards
+- Party damage is combined in combat
+- Up to 5 players per party
+
+Party Benefits:
+- Combined party damage for easier clears
+- Dungeon class bonuses apply
+- Rewards distributed to all members
+- Social experience with friends
+- Better survival on harder floors
+
+🔍 SECRETS:
+Search for secrets throughout the dungeon:
+- Chests
+- Levers
+- Wither Essence
+- Bats
+- Item Frames
+- And more!
+
+Note: Secrets found in dungeons are for scoring and rewards, but don't count as permanent fairy soul collections.
+
+🚪 NAVIGATION:
+- Open Door: Move through rooms
+- Search for Secrets: Find hidden items
+- Exit Dungeon: Complete your run
+
+📊 SCORING:
+Your dungeon score is based on:
+- Rooms cleared
+- Secrets found (each secret worth 5 points)
+- Health remaining
+- Deaths (25 point penalty each)
+- Puzzles completed
+- Doors unlocked
+- Crypts opened
+
+🎁 REWARDS:
+- Better scores = Better loot
+- Magic Find affects drops
+- Coins based on performance
+- Special dungeon items
+- Experience for Catacombs level
+
+💡 TIPS:
+- Search every room for secrets
+- Avoid taking damage
+- Don't die (heavy score penalty)
+- Unlock all doors you find
+- Team up with a party for harder floors
+- Use /party_finder to find groups
+- Choose the right dungeon class for your playstyle
+- Communicate with party members
+- Balance your party composition
+- Higher floors require better gear and teamwork
+
+🎭 DUNGEON CLASSES:
+When in a party, choose a class for bonus effects:
+- Berserker: 1.5x damage (highest DPS)
+- Mage: 1.3x damage (magic damage)
+- Archer: 1.2x damage (ranged)
+- Healer: Support abilities
+- Tank: High survivability
+
+See /wiki parties for detailed party information!
+
+📈 PROGRESSION:
+Start with Entrance and work your way up as you:
+- Improve your gear
+- Level your Catacombs level
+- Learn the mechanics
+- Build your combat skills
+
+Use /dungeon_stats to track your progress!
