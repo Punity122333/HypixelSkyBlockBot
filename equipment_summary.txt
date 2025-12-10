@@ -1,0 +1,113 @@
+=== INSERTED EQUIPMENT SUMMARY ===
+
+--- ARMOR SETS (17 complete sets = 68 pieces) ---
+Chainmail Boots | COMMON | BOOTS
+Chainmail Chestplate | COMMON | CHESTPLATE
+Chainmail Helmet | COMMON | HELMET
+Chainmail Leggings | COMMON | LEGGINGS
+Iron Boots | COMMON | BOOTS
+Iron Chestplate | COMMON | CHESTPLATE
+Iron Helmet | COMMON | HELMET
+Iron Leggings | COMMON | LEGGINGS
+Leather Boots | COMMON | BOOTS
+Leather Chestplate | COMMON | CHESTPLATE
+Leather Helmet | COMMON | HELMET
+Leather Leggings | COMMON | LEGGINGS
+Dragon Boots | EPIC | BOOTS
+Dragon Leggings | EPIC | LEGGINGS
+Goldor Boots | LEGENDARY | BOOTS
+Goldor Chestplate | LEGENDARY | CHESTPLATE
+Goldor Helmet | LEGENDARY | HELMET
+Goldor Leggings | LEGENDARY | LEGGINGS
+Necron Boots | LEGENDARY | BOOTS
+Necron Chestplate | LEGENDARY | CHESTPLATE
+Necron Helmet | LEGENDARY | HELMET
+Necron Leggings | LEGENDARY | LEGGINGS
+Shadow Assassin Boots | LEGENDARY | BOOTS
+Shadow Assassin Chestplate | LEGENDARY | CHESTPLATE
+Shadow Assassin Helmet | LEGENDARY | HELMET
+Shadow Assassin Leggings | LEGENDARY | LEGGINGS
+Strong Dragon Boots | LEGENDARY | BOOTS
+Strong Dragon Chestplate | LEGENDARY | CHESTPLATE
+Strong Dragon Helmet | LEGENDARY | HELMET
+Strong Dragon Leggings | LEGENDARY | LEGGINGS
+Superior Dragon Boots | LEGENDARY | BOOTS
+Superior Dragon Chestplate | LEGENDARY | CHESTPLATE
+Superior Dragon Helmet | LEGENDARY | HELMET
+Superior Dragon Leggings | LEGENDARY | LEGGINGS
+Wise Dragon Boots | LEGENDARY | BOOTS
+Wise Dragon Chestplate | LEGENDARY | CHESTPLATE
+Wise Dragon Helmet | LEGENDARY | HELMET
+Wise Dragon Leggings | LEGENDARY | LEGGINGS
+Young Dragon Boots | LEGENDARY | BOOTS
+Young Dragon Chestplate | LEGENDARY | CHESTPLATE
+Young Dragon Helmet | LEGENDARY | HELMET
+Young Dragon Leggings | LEGENDARY | LEGGINGS
+Emerald Boots | RARE | BOOTS
+Emerald Chestplate | RARE | CHESTPLATE
+Emerald Helmet | RARE | HELMET
+Emerald Leggings | RARE | LEGGINGS
+Farmer Boots | RARE | BOOTS
+Farmer Chestplate | RARE | CHESTPLATE
+Farmer Helmet | RARE | HELMET
+Farmer Leggings | RARE | LEGGINGS
+Hardened Diamond Boots | RARE | BOOTS
+Hardened Diamond Chestplate | RARE | CHESTPLATE
+Hardened Diamond Helmet | RARE | HELMET
+Hardened Diamond Leggings | RARE | LEGGINGS
+Miner Boots | RARE | BOOTS
+Miner Chestplate | RARE | CHESTPLATE
+Miner Helmet | RARE | HELMET
+Miner Leggings | RARE | LEGGINGS
+Sponge Boots | RARE | BOOTS
+Sponge Chestplate | RARE | CHESTPLATE
+Sponge Helmet | RARE | HELMET
+Sponge Leggings | RARE | LEGGINGS
+Diamond Boots | UNCOMMON | BOOTS
+Diamond Chestplate | UNCOMMON | CHESTPLATE
+Diamond Helmet | UNCOMMON | HELMET
+Diamond Leggings | UNCOMMON | LEGGINGS
+Gold Boots | UNCOMMON | BOOTS
+Gold Chestplate | UNCOMMON | CHESTPLATE
+Gold Helmet | UNCOMMON | HELMET
+Gold Leggings | UNCOMMON | LEGGINGS
+
+--- TOOLS (30 items) ---
+Iron Axe | COMMON | AXE
+Stone Axe | COMMON | AXE
+Wooden Axe | COMMON | AXE
+Treecapitator | EPIC | AXE
+Ragnarock Axe | LEGENDARY | AXE
+Jungle Axe | RARE | AXE
+Raider Axe | RARE | AXE
+Diamond Axe | UNCOMMON | AXE
+Fishing Rod | COMMON | FISHING_ROD
+Wooden Fishing Rod | COMMON | FISHING_ROD
+Diamond Fishing Rod | EPIC | FISHING_ROD
+Rod of Champions | EPIC | FISHING_ROD
+Rod of Legends | LEGENDARY | FISHING_ROD
+Rod of the Sea | RARE | FISHING_ROD
+Sponge Rod | RARE | FISHING_ROD
+Iron Fishing Rod | UNCOMMON | FISHING_ROD
+Prismarine Rod | UNCOMMON | FISHING_ROD
+Iron Hoe | COMMON | HOE
+Stone Hoe | COMMON | HOE
+Wooden Hoe | COMMON | HOE
+Mathematical Hoe Blueprint | EPIC | HOE
+Blessed Hoe | RARE | HOE
+Diamond Hoe | UNCOMMON | HOE
+Iron Pickaxe | COMMON | PICKAXE
+Stone Pickaxe | COMMON | PICKAXE
+Wooden Pickaxe | COMMON | PICKAXE
+Titanium Pickaxe | EPIC | PICKAXE
+Mithril Pickaxe | RARE | PICKAXE
+Diamond Pickaxe | UNCOMMON | PICKAXE
+Gold Pickaxe | UNCOMMON | PICKAXE
+
+--- WEAPONS (6 new swords) ---
+Ember Rod | EPIC | SWORD
+Frozen Scythe | EPIC | SWORD
+Cleaver | RARE | SWORD
+Golem Sword | RARE | SWORD
+Silver Fang | RARE | SWORD
+Gold Sword | UNCOMMON | SWORD

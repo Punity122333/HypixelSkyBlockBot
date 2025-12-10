@@ -1,0 +1,87 @@
+💰 Coins Guide
+
+Coins are the main currency in SkyBlock. Here's everything you need to know!
+
+💵 EARNING COINS:
+
+1. GATHERING & SELLING:
+   - Mine ores and sell them (/bz_sell)
+   - Farm crops and sell on bazaar
+   - Fish and sell your catches
+   - Chop wood and sell logs
+
+2. COMBAT:
+   - Fight mobs for coin drops
+   - Complete dungeon runs
+   - Defeat slayer bosses
+   - Fight world bosses
+
+3. TRADING:
+   - Flip items on bazaar
+   - Sell on auction house
+   - Trade with players
+   - Use /trade_interactive
+
+4. INVESTMENTS:
+   - Buy and sell stocks (/stocks)
+   - Invest in minions
+   - Flip rare items
+
+5. QUESTS & ACHIEVEMENTS:
+   - Complete daily quests
+   - Claim quest rewards
+   - Milestone achievements
+
+🏦 MANAGING COINS:
+
+BANK SYSTEM:
+- /bank - Check balance
+- /deposit <amount> - Deposit coins
+- /withdraw <amount> - Withdraw coins
+- Earn interest on stored coins!
+
+SPENDING WISELY:
+✓ Upgrade tools first
+✓ Buy better weapons
+✓ Invest in minions
+✓ Save for big purchases
+
+❌ Avoid:
+- Impulse buying
+- Overpaying on auctions
+- Risky flips without research
+
+💡 MONEY MAKING TIPS:
+
+EARLY GAME:
+- Mine cobblestone
+- Farm wheat
+- Sell everything on bazaar
+- Do simple quests
+
+MID GAME:
+- Start bazaar flipping
+- Run dungeons
+- Level combat for better mob drops
+- Place minions for passive income
+
+LATE GAME:
+- High-level dungeon runs
+- Slayer bosses
+- Stock trading
+- Rare item flipping
+- Merchant trading
+
+📊 TRACKING:
+- /profile - See total coins
+- /economy_overview - Market health
+- /flip_stats - Your trading profits
+- /leaderboard richest - See top players
+
+🎯 GOALS:
+- First 10,000 coins
+- First 100,000 coins
+- First 1,000,000 coins
+- Join the millionaires club!
+
+Remember: Making coins takes time. Focus on consistent income sources rather than get-rich-quick schemes!

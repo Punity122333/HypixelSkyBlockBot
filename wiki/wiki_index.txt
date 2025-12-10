@@ -1,0 +1,85 @@
+# SkyBlock Bot Wiki Index
+# Format: keyword | category | description
+
+# Getting Started
+getting_started | Beginner | Learn how to start your SkyBlock journey
+starter_pack | Beginner | Information about the starter pack and beginning items
+tutorial | Beginner | Step-by-step tutorial for new players
+
+# Economy
+coins | Economy | How to earn and manage coins
+bank | Economy | Banking system and interest rates
+trading | Economy | Trading with other players
+auction_house | Economy | How to use the auction house
+bazaar | Economy | Understanding the bazaar system
+flipping | Economy | Making profit through flipping items
+stocks | Economy | Stock market trading guide
+
+# Skills
+mining | Skills | Mining skill and best practices
+farming | Skills | Farming skill and crop guide
+fishing | Skills | Fishing skill and locations
+foraging | Skills | Foraging skill and tree types
+combat | Skills | Combat skill leveling guide
+enchanting | Skills | Enchanting items and levels
+alchemy | Skills | Brewing potions guide
+taming | Skills | Taming skill and pets
+carpentry | Skills | Carpentry skill guide
+runecrafting | Skills | Runecrafting skill guide
+
+# Items & Equipment
+weapons | Items | Weapon types and progression
+armor | Items | Armor sets and their bonuses
+tools | Items | Tool types and upgrades
+accessories | Items | Talisman and accessory guide
+reforging | Items | Reforging items for better stats
+
+# Collections
+collections | Collections | Understanding the collections system
+collection_rewards | Collections | Collection tier rewards
+category_bonuses | Collections | Collection category bonus system
+
+# Dungeons
+dungeons | Dungeons | Dungeon system overview
+catacombs | Dungeons | The Catacombs guide
+dungeon_classes | Dungeons | Dungeon classes explained
+secrets | Dungeons | Finding dungeon secrets
+dungeon_loot | Dungeons | Dungeon rewards and drops
+parties | Dungeons | Party system for dungeons
+party_finder | Dungeons | Finding and joining dungeon parties
+
+# Co-op
+coop | Co-op | Co-op system and shared resources
+coop_permissions | Co-op | Co-op roles and permissions
+coop_bank | Co-op | Shared bank management
+
+# Combat
+combat_locations | Combat | All combat locations
+slayers | Combat | Slayer boss guide
+bosses | Combat | Boss fight strategies
+
+# Progression
+fairy_souls | Progression | Fairy soul locations and bonuses
+milestones | Progression | Progression milestones
+tool_progression | Progression | Tool upgrade path
+
+# Pets & Minions
+pets | Pets | Pet system and bonuses
+minions | Minions | Minion types and placement
+minion_upgrades | Minions | Upgrading your minions
+
+# Events
+events | Events | Special events guide
+calendar | Events | SkyBlock event calendar
+
+# Merchants
+merchants | Merchants | Merchant system guide
+npc_shops | Merchants | NPC shops and deals
+
+# Marketplace
+marketplace | Marketplace | Player marketplace guide
+trade_interactive | Marketplace | Interactive trading system
+
+# Commands
+commands | Commands | List of all bot commands
+help | Commands | Getting help with commands

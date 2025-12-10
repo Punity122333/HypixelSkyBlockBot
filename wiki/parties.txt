@@ -1,0 +1,132 @@
+👥 Party System
+
+The Party System allows players to team up with friends for dungeons and other group activities.
+
+COMMANDS:
+/party - Manage your party with an interactive menu
+/party_finder - Browse and join dungeon parties
+
+CREATING A PARTY:
+1. Use /party command
+2. Click "Create Party" button
+3. Your party is created with you as the leader
+4. You can invite up to 4 other players (5 total members)
+
+PARTY ROLES:
+Leader (👑) - The party creator who can:
+  - Invite players to the party
+  - Kick members from the party
+  - Start dungeon runs
+  - Disband the party
+
+Members - Can:
+  - Leave the party at any time
+  - Participate in dungeon runs
+  - Choose their dungeon class
+
+INVITING PLAYERS:
+1. Open your party menu with /party
+2. Click "Invite" button
+3. Enter the User ID of the player you want to invite
+4. They will receive an invite that expires in 5 minutes
+5. They can accept or decline the invite
+
+LEAVING A PARTY:
+1. Open /party menu
+2. Click "Leave Party"
+3. If you're the leader, leadership transfers to the next member
+4. If you're the last member, the party is disbanded
+5. Cannot leave during an active dungeon run
+
+PARTY FINDER:
+The Party Finder helps you find or create dungeon parties:
+
+BROWSING PARTIES:
+- View all open parties looking for members
+- See party details: leader, members, floor, requirements
+- Recommended class shown for each party
+- Use Previous/Next to navigate pages
+
+JOINING A PARTY:
+1. Open /party_finder
+2. Click "Join Party"
+3. Enter the Party ID
+4. Choose your dungeon class:
+   - Healer - Support role
+   - Mage - Magic damage
+   - Berserker - High physical damage
+   - Archer - Ranged damage
+   - Tank - High defense
+
+CREATING DUNGEON PARTIES:
+1. Open /party_finder
+2. Click "Create Party"
+3. Choose floor (1-7)
+4. Set minimum Catacombs level (optional)
+5. Add description (optional)
+
+DUNGEON CLASSES:
+Each class provides different bonuses in dungeons:
+
+Berserker - 1.5x damage multiplier
+Mage - 1.3x damage multiplier
+Archer - 1.2x damage multiplier
+Healer - Support abilities
+Tank - High survivability
+
+DUNGEON FLOORS:
+Floor 1 - Min Level: 0, Recommended: 5, Gear Score: 50
+Floor 2 - Min Level: 3, Recommended: 10, Gear Score: 100
+Floor 3 - Min Level: 7, Recommended: 15, Gear Score: 150
+Floor 4 - Min Level: 10, Recommended: 20, Gear Score: 250
+Floor 5 - Min Level: 15, Recommended: 25, Gear Score: 400
+Floor 6 - Min Level: 20, Recommended: 30, Gear Score: 600
+Floor 7 - Min Level: 25, Recommended: 35, Gear Score: 900
+
+STARTING A DUNGEON:
+1. Form a party (1-5 members)
+2. Leader uses /party_finder or /dungeon command
+3. Click "Start Dungeon"
+4. All members must meet level requirements
+5. Dungeon begins with randomly generated rooms
+
+DUNGEON MECHANICS:
+- Multiple room types: Combat, Puzzle, Trap, Miniboss, Boss
+- Clear rooms to progress through the dungeon
+- Party damage is combined for combat rooms
+- Score increases as you clear rooms
+- Cannot leave party during active run
+
+ROOM TYPES:
+Mob Room - Fight multiple enemies
+Puzzle Room - Solve puzzles to progress
+Trap Room - Survive environmental hazards
+Miniboss Room - Fight a stronger enemy
+Boss Room - Final challenge (always last room)
+
+DUNGEON REWARDS:
+- Base reward: 1000 coins × floor number
+- Score multiplier increases rewards
+- Rewards split between party members
+- Higher floors = better rewards
+- Completing all rooms gives bonus
+
+PARTY TIPS:
+- Balance your party with different classes
+- Healer recommended for harder floors
+- Tank helps party survive longer
+- Communication is key for dungeons
+- Higher gear score = easier clears
+
+PARTY STATES:
+Open - Accepting new members
+In Progress - Currently in a dungeon
+Full - Maximum members reached (5/5)
+
+RESTRICTIONS:
+- Cannot invite bots
+- Cannot kick yourself
+- Cannot change party during dungeon
+- Cannot kick members during dungeon
+- Invites expire after 5 minutes
+- Must be party leader to start dungeon

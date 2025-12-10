@@ -1,0 +1,92 @@
+⛏️ Mining Guide
+
+Mining is one of the core skills in SkyBlock. Level it up to access better ores and earn more coins!
+
+🎯 HOW TO MINE:
+Use /mine to start mining. You'll gather resources based on your mining level and tool quality.
+
+⚒️ MINING TOOLS:
+
+PROGRESSION PATH:
+1. Wooden Pickaxe (Starting)
+2. Stone Pickaxe
+3. Iron Pickaxe
+4. Gold Pickaxe
+5. Diamond Pickaxe
+6. Enchanted Diamond Pickaxe
+
+Better tools = Faster mining = More resources!
+
+📊 MINING SKILL:
+Each time you mine, you gain Mining XP:
+- Level 1-10: Basic ores
+- Level 11-20: Better efficiency
+- Level 21-30: Rare ore chance
+- Level 31+: Maximum efficiency
+
+💎 ORES YOU CAN MINE:
+- Cobblestone (Always available)
+- Coal Ore
+- Iron Ore
+- Gold Ore
+- Diamond Ore
+- Emerald Ore
+- Mithril Ore (High levels)
+- Gemstones (High levels)
+
+🌟 COLLECTIONS:
+Mining contributes to collections:
+- Cobblestone Collection
+- Coal Collection
+- Iron Collection
+- Gold Collection
+- Diamond Collection
+
+Each collection level unlocks rewards and recipes!
+
+💡 MINING TIPS:
+
+1. EFFICIENCY:
+   - Upgrade your pickaxe ASAP
+   - Enchant with Efficiency
+   - Use Mining Speed potions
+
+2. PROFIT:
+   - Sell common ores on bazaar
+   - Save rare ores for crafting
+   - Complete collections for bonuses
+
+3. LEVELING:
+   - Mine consistently
+   - Focus on one resource
+   - Use the best tool you can afford
+
+4. LOCATION:
+   - Start in basic mines
+   - Unlock better mining areas as you level
+   - Special mining zones have better ores
+
+📈 ADVANCED MINING:
+
+REFORGING:
+Add reforges to your pickaxe for:
+- Mining Speed
+- Mining Fortune (more drops)
+- Efficiency
+
+ENCHANTMENTS:
+- Efficiency (faster mining)
+- Fortune (more drops)
+- Smelting (auto-smelt ores)
+
+MINIONS:
+Place Mining Minions on your island for passive resource generation!
+
+🎯 GOALS:
+- Reach Mining Level 10
+- Collect 10,000 cobblestone
+- Get a Diamond Pickaxe
+- Unlock Mithril mining
+- Max out Mining skill!
+
+Use /skills to check your Mining level and progress!

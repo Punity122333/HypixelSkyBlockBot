@@ -1,0 +1,189 @@
+🤝 Co-op System
+
+The Co-op (Cooperative) System allows players to team up permanently and share resources, island, and progress.
+
+COMMANDS:
+/coop - Manage your co-op with all features
+
+WHAT IS A CO-OP?
+A co-op is a permanent alliance where members share:
+- Shared bank account
+- Shared minions
+- Shared island
+- Collaborative progression
+
+KEY DIFFERENCES FROM PARTIES:
+Party - Temporary group for dungeons only
+Co-op - Permanent alliance with shared resources
+
+CREATING A CO-OP:
+1. Use /coop command
+2. Click "Create Co-op" button
+3. Enter a name for your co-op
+4. You become the owner with full permissions
+5. You earn the "Cooperative" badge 🤝
+
+IMPORTANT: You can only be in ONE co-op at a time!
+
+CO-OP ROLES:
+Owner (👑) - The co-op founder with ALL permissions:
+  - Manage members
+  - Manage permissions
+  - Use bank
+  - Manage minions
+  - Manage island
+  - Invite members
+  - Kick members
+
+Admin (⭐) - Trusted members with most permissions:
+  - Use bank
+  - Manage minions
+  - Manage island
+  - Invite members
+
+Member (👤) - Regular co-op members:
+  - Use bank
+  - Manage minions
+
+Guest - Limited access, no permissions
+
+INVITING MEMBERS:
+1. Open /coop menu
+2. Click "Invite" button (Owner/Admin only)
+3. Enter the User ID of the player
+4. They receive an invitation
+5. Only owners and admins can invite
+
+PERMISSIONS SYSTEM:
+Each role has specific permissions that control what they can do:
+
+manage_members - Add/remove co-op members
+manage_permissions - Change member roles
+use_bank - Deposit/withdraw from shared bank
+manage_minions - Place and collect from minions
+manage_island - Build and modify the island
+invite_members - Send invitations
+kick_members - Remove members from co-op
+
+SHARED BANK:
+The co-op has a shared bank account separate from personal coins:
+
+Depositing:
+1. Navigate to Bank view
+2. Click "Deposit"
+3. Enter amount
+4. Coins transferred from personal to shared bank
+
+Withdrawing:
+1. Navigate to Bank view
+2. Click "Withdraw"
+3. Enter amount
+4. Coins transferred from shared to personal
+
+Bank Features:
+- Default capacity: 10,000 coins
+- All members with permission can use it
+- View current balance and capacity
+- Usage percentage displayed
+- Protected by permission system
+
+SHARED MINIONS:
+Co-op members share minions placed on the island:
+
+- All minions are visible to co-op members
+- Members with permission can place minions
+- Members with permission can collect from minions
+- Shared minion slots across the co-op
+- Coordinate with team for optimal minion placement
+
+CO-OP VIEWS:
+Main View:
+- Overview of co-op stats
+- Member count
+- Shared bank balance
+- Total minions
+- Quick navigation
+
+Members View:
+- List all co-op members
+- See member roles
+- View role indicators (👑 ⭐ 👤)
+- Check member permissions
+
+Bank View:
+- Current balance
+- Bank capacity
+- Usage percentage
+- Deposit/Withdraw buttons
+
+Minions View:
+- List of all shared minions
+- Minion types and levels
+- Up to 10 displayed at once
+
+LEAVING A CO-OP:
+1. Open /coop menu
+2. Click "Leave" button
+3. Confirm you want to leave
+4. You lose access to shared resources
+5. If owner leaves, co-op may be disbanded
+
+KICKING MEMBERS:
+(Owner/Admin only with kick_members permission)
+1. Must have proper permissions
+2. Use invite/manage system
+3. Kicked members lose access immediately
+4. Kicked members keep personal progress
+
+CHANGING ROLES:
+(Owner only with manage_permissions)
+The owner can promote/demote members:
+- Owner → Admin (promote trusted members)
+- Admin → Member (demote if needed)
+- Member → Guest (restrict access)
+
+BENEFITS OF CO-OPS:
+✓ Shared resources pooling
+✓ Faster progression
+✓ Collaborative gameplay
+✓ Shared minion network
+✓ Team bank for big purchases
+✓ Island building together
+✓ Role-based organization
+
+CO-OP STRATEGIES:
+1. Assign roles based on trust level
+2. Coordinate minion placement
+3. Pool coins for expensive items
+4. Set rules for bank usage
+5. Regular communication
+6. Balanced contribution from all members
+
+RESTRICTIONS:
+- Can only be in one co-op
+- Cannot create while in a co-op
+- Owner cannot be kicked
+- Need permission to invite
+- Need permission to kick
+- Bank capacity is limited
+- Cannot exceed bank capacity
+
+TIPS:
+- Only invite players you trust
+- Set clear co-op rules
+- Use roles to manage permissions
+- Regularly check bank balance
+- Coordinate major purchases
+- Share minion collection duties
+- Build island together for efficiency
+
+BADGES:
+Creating a co-op unlocks the "Cooperative" badge 🤝
+
+CO-OP ETIQUETTE:
+- Contribute fairly to shared bank
+- Don't hoard shared resources
+- Communicate with co-op members
+- Respect member permissions
+- Help new members learn
+- Share knowledge and strategies
