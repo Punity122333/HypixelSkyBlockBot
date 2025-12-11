@@ -55,23 +55,18 @@ class DwarvenMinesSystem:
         if not db.conn:
             return cls._get_default_progress()
         
-        row = await db.fetchone('SELECT * FROM dwarven_mines_progress WHERE user_id = ?', (user_id,))
-        if not row:
-            await cls.initialize_dwarven_progress(db, user_id)
+        progress = await db.dwarven_mines.get_dwarven_progress(user_id)
+        if not progress:
+            await db.dwarven_mines.initialize_dwarven_progress(user_id)
             return await cls.get_dwarven_progress(db, user_id)
         
-        return dict(row)
+        return progress
     
     @classmethod
     async def initialize_dwarven_progress(cls, db, user_id: int):
         if not db.conn:
             return
-        await db.execute('''
-            INSERT OR IGNORE INTO dwarven_mines_progress 
-            (user_id, commissions_completed, reputation, king_yolkar_unlocked, mithril_unlocked, titanium_unlocked)
-            VALUES (?, 0, 0, 0, 1, 0)
-        ''', (user_id,))
-        await db.commit()
+        await db.dwarven_mines.initialize_dwarven_progress(user_id)
     
     @classmethod
     def _get_default_progress(cls) -> Dict[str, Any]:
@@ -88,10 +83,7 @@ class DwarvenMinesSystem:
         if not db.conn:
             return []
         
-        await db.execute('''
-            DELETE FROM player_commissions 
-            WHERE user_id = ? AND completed = 0
-        ''', (user_id,))
+        await db.dwarven_mines.clear_incomplete_commissions(user_id)
         
         commission_count = 4
         available_types = list(cls.COMMISSION_TYPES.keys())
@@ -104,18 +96,14 @@ class DwarvenMinesSystem:
             comm_data = cls.COMMISSION_TYPES[comm_type]
             requirement = random.randint(*comm_data['amount_range'])
             
-            await db.execute('''
-                INSERT INTO player_commissions 
-                (user_id, commission_type, requirement, progress, reward_mithril, reward_coins, expires_at)
-                VALUES (?, ?, ?, 0, ?, ?, ?)
-            ''', (
+            await db.dwarven_mines.create_commission(
                 user_id,
                 comm_type,
                 requirement,
                 comm_data['rewards'].get('mithril_powder', 0),
                 comm_data['rewards'].get('coins', 0),
                 expires_at
-            ))
+            )
             
             commissions.append({
                 'type': comm_type,
@@ -126,7 +114,6 @@ class DwarvenMinesSystem:
                 'rewards': comm_data['rewards']
             })
         
-        await db.commit()
         return commissions
     
     @classmethod
@@ -134,19 +121,14 @@ class DwarvenMinesSystem:
         if not db.conn:
             return []
         
-        current_time = int(time.time())
-        rows = await db.fetchall('''
-            SELECT * FROM player_commissions 
-            WHERE user_id = ? AND completed = 0 AND expires_at > ?
-        ''', (user_id, current_time))
+        rows = await db.dwarven_mines.get_active_commissions(user_id)
         
         commissions = []
         for row in rows:
-            row_dict = dict(row)
-            comm_data = cls.COMMISSION_TYPES.get(row_dict['commission_type'], {})
-            row_dict['name'] = comm_data.get('name', 'Unknown')
-            row_dict['description'] = comm_data.get('description', '').format(amount=row_dict['requirement'])
-            commissions.append(row_dict)
+            comm_data = cls.COMMISSION_TYPES.get(row['commission_type'], {})
+            row['name'] = comm_data.get('name', 'Unknown')
+            row['description'] = comm_data.get('description', '').format(amount=row['requirement'])
+            commissions.append(row)
         
         return commissions
     
@@ -155,24 +137,19 @@ class DwarvenMinesSystem:
         if not db.conn:
             return {'success': False}
         
-        current_time = int(time.time())
-        commission = await db.fetchone('''
-            SELECT * FROM player_commissions 
-            WHERE user_id = ? AND commission_type = ? AND completed = 0 AND expires_at > ?
-        ''', (user_id, commission_type, current_time))
+        commission = await db.dwarven_mines.get_commission_by_type(user_id, commission_type)
         
         if not commission:
             return {'success': False, 'error': 'No active commission of this type'}
         
-        commission = dict(commission)
         new_progress = commission['progress'] + amount
         completed = new_progress >= commission['requirement']
         
-        await db.execute('''
-            UPDATE player_commissions 
-            SET progress = ?, completed = ?
-            WHERE commission_id = ?
-        ''', (min(new_progress, commission['requirement']), 1 if completed else 0, commission['commission_id']))
+        await db.dwarven_mines.update_commission_progress(
+            commission['commission_id'],
+            min(new_progress, commission['requirement']),
+            completed
+        )
         
         rewards = {}
         if completed:
@@ -185,14 +162,7 @@ class DwarvenMinesSystem:
             if commission['reward_coins'] > 0:
                 rewards['coins'] = commission['reward_coins']
             
-            await db.execute('''
-                UPDATE dwarven_mines_progress 
-                SET commissions_completed = commissions_completed + 1,
-                    reputation = reputation + ?
-                WHERE user_id = ?
-            ''', (10, user_id))
-        
-        await db.commit()
+            await db.dwarven_mines.increment_commissions_and_reputation(user_id, 10)
         
         return {
             'success': True,

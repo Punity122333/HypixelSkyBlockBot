@@ -22,22 +22,18 @@ class HeartOfTheMountainSystem:
         if not db.conn:
             return cls._get_default_hotm()
         
-        row = await db.fetchone('SELECT * FROM player_hotm WHERE user_id = ?', (user_id,))
-        if not row:
-            await cls.initialize_hotm(db, user_id)
+        hotm_data = await db.hotm.get_hotm_data(user_id)
+        if not hotm_data:
+            await db.hotm.initialize_hotm(user_id)
             return await cls.get_hotm_data(db, user_id)
         
-        return dict(row)
+        return hotm_data
     
     @classmethod
     async def initialize_hotm(cls, db, user_id: int):
         if not db.conn:
             return
-        await db.execute('''
-            INSERT OR IGNORE INTO player_hotm (user_id, hotm_level, hotm_xp, hotm_tier, token_of_the_mountain)
-            VALUES (?, 1, 0, 1, 2)
-        ''', (user_id,))
-        await db.commit()
+        await db.hotm.initialize_hotm(user_id)
     
     @classmethod
     def _get_default_hotm(cls) -> Dict[str, Any]:
@@ -62,12 +58,7 @@ class HeartOfTheMountainSystem:
             for tier in range(hotm_data['hotm_tier'] + 1, new_tier + 1):
                 tokens_gained += cls.HOTM_TIERS.get(tier, {}).get('token_reward', 2)
         
-        await db.execute('''
-            UPDATE player_hotm 
-            SET hotm_xp = ?, hotm_tier = ?, token_of_the_mountain = token_of_the_mountain + ?
-            WHERE user_id = ?
-        ''', (new_xp, new_tier, tokens_gained, user_id))
-        await db.commit()
+        await db.hotm.update_hotm_xp(user_id, new_xp, new_tier, tokens_gained)
         
         return {
             'xp_gained': xp,
@@ -92,11 +83,9 @@ class HeartOfTheMountainSystem:
         if not db.conn:
             return {'success': False, 'error': 'Database not connected'}
         
-        perk_data = await db.fetchone('SELECT * FROM hotm_perks WHERE perk_id = ?', (perk_id,))
+        perk_data = await db.hotm.get_perk_data(perk_id)
         if not perk_data:
             return {'success': False, 'error': 'Perk not found'}
-        
-        perk_data = dict(perk_data)
         
         hotm_data = await cls.get_hotm_data(db, user_id)
         
@@ -110,10 +99,7 @@ class HeartOfTheMountainSystem:
                 'current_tier': hotm_data['hotm_tier']
             }
         
-        player_perk = await db.fetchone(
-            'SELECT * FROM player_hotm_perks WHERE user_id = ? AND perk_id = ?',
-            (user_id, perk_id)
-        )
+        player_perk = await db.hotm.get_player_perk(user_id, perk_id)
         
         current_level = 0
         if player_perk:
@@ -133,18 +119,9 @@ class HeartOfTheMountainSystem:
         
         new_level = current_level + 1
         
-        await db.execute('''
-            INSERT INTO player_hotm_perks (user_id, perk_id, perk_level)
-            VALUES (?, ?, ?)
-            ON CONFLICT(user_id, perk_id) DO UPDATE SET perk_level = ?
-        ''', (user_id, perk_id, new_level, new_level))
+        await db.hotm.unlock_or_upgrade_perk(user_id, perk_id, new_level)
         
-        await db.execute('''
-            UPDATE player_hotm SET token_of_the_mountain = token_of_the_mountain - ?
-            WHERE user_id = ?
-        ''', (cost, user_id))
-        
-        await db.commit()
+        await db.hotm.deduct_tokens(user_id, cost)
         
         return {
             'success': True,
@@ -175,14 +152,7 @@ class HeartOfTheMountainSystem:
         if not db.conn:
             return []
         
-        rows = await db.fetchall('''
-            SELECT pp.*, hp.perk_name, hp.max_level, hp.tier, hp.description, hp.stat_bonuses
-            FROM player_hotm_perks pp
-            JOIN hotm_perks hp ON pp.perk_id = hp.perk_id
-            WHERE pp.user_id = ?
-        ''', (user_id,))
-        
-        return [dict(row) for row in rows]
+        return await db.hotm.get_player_perks(user_id)
     
     @classmethod
     async def get_available_perks(cls, db, user_id: int) -> List[Dict[str, Any]]:
@@ -234,8 +204,7 @@ class HeartOfTheMountainSystem:
             for stat, bonus in stat_bonuses.items():
                 if stat != 'ability':
                     stats[stat] = stats.get(stat, 0) + (bonus * perk['perk_level'])
-        
-        # Convert all stat values to float to match the return type
+
         stats = {k: float(v) for k, v in stats.items()}
         return stats
     
@@ -244,16 +213,4 @@ class HeartOfTheMountainSystem:
         if not db.conn:
             return
         
-        column_map = {
-            'mithril': 'powder_mithril',
-            'gemstone': 'powder_gemstone',
-            'glacite': 'powder_glacite'
-        }
-        
-        column = column_map.get(powder_type, 'powder_mithril')
-        
-        await db.execute(f'''
-            UPDATE player_hotm SET {column} = {column} + ?
-            WHERE user_id = ?
-        ''', (amount, user_id))
-        await db.commit()
+        await db.hotm.add_powder(user_id, powder_type, amount)

@@ -11,43 +11,19 @@ class MarketGraphingSystem:
     
     @staticmethod
     async def log_price(db, item_id: str, price: float, volume: int = 0, source: str = 'bazaar'):
-        await db.execute(
-            '''INSERT INTO market_price_history (item_id, price, volume, timestamp, source)
-               VALUES (?, ?, ?, ?, ?)''',
-            (item_id, price, volume, int(time.time()), source)
-        )
-        await db.commit()
+        await db.market_graphing.log_price(item_id, price, volume, source)
     
     @staticmethod
     async def log_networth(db, user_id: int, networth: float):
-        await db.execute(
-            '''INSERT INTO player_networth_history (user_id, networth, timestamp)
-               VALUES (?, ?, ?)''',
-            (user_id, networth, int(time.time()))
-        )
-        await db.commit()
+        await db.market_graphing.log_networth(user_id, networth)
     
     @staticmethod
     async def get_price_history(db, item_id: str, days: int = 7) -> List[Dict[str, Any]]:
-        cutoff_time = int(time.time()) - (days * 86400)
-        rows = await db.fetchall(
-            '''SELECT price, volume, timestamp FROM market_price_history
-               WHERE item_id = ? AND timestamp >= ?
-               ORDER BY timestamp ASC''',
-            (item_id, cutoff_time)
-        )
-        return [{'price': row[0], 'volume': row[1], 'timestamp': row[2]} for row in rows]
+        return await db.market_graphing.get_price_history(item_id, days)
     
     @staticmethod
     async def get_networth_history(db, user_id: int, days: int = 30) -> List[Dict[str, Any]]:
-        cutoff_time = int(time.time()) - (days * 86400)
-        rows = await db.fetchall(
-            '''SELECT networth, timestamp FROM player_networth_history
-               WHERE user_id = ? AND timestamp >= ?
-               ORDER BY timestamp ASC''',
-            (user_id, cutoff_time)
-        )
-        return [{'networth': row[0], 'timestamp': row[1]} for row in rows]
+        return await db.market_graphing.get_networth_history(user_id, days)
     
     @staticmethod
     async def calculate_best_flips(db, days: int = 7) -> List[Dict[str, Any]]:

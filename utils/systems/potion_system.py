@@ -69,15 +69,8 @@ class PotionSystem:
             return {'success': False, 'message': "You don't have this potion!"}
         
         potion_effect = PotionSystem.POTION_EFFECTS[potion_id]
-        current_time = int(time.time())
-        expires_at = current_time + potion_effect['duration']
         
-        await db.execute(
-            '''INSERT INTO active_potions (user_id, potion_id, level, duration, applied_at, expires_at)
-               VALUES (?, ?, ?, ?, ?, ?)''',
-            (user_id, potion_id, 1, potion_effect['duration'], current_time, expires_at)
-        )
-        await db.commit()
+        await db.potions.add_active_potion(user_id, potion_id, 1, potion_effect['duration'])
         
         await db.remove_item_from_inventory(user_id, potion_id, 1)
         
@@ -89,21 +82,11 @@ class PotionSystem:
         }
     
     @staticmethod
+    @staticmethod
     async def get_active_potions(db, user_id: int) -> List[Dict]:
-        current_time = int(time.time())
+        await db.potions.remove_expired_potions(user_id)
         
-        await db.execute(
-            'DELETE FROM active_potions WHERE user_id = ? AND expires_at <= ?',
-            (user_id, current_time)
-        )
-        await db.commit()
-        
-        rows = await db.fetchall(
-            'SELECT * FROM active_potions WHERE user_id = ? AND expires_at > ?',
-            (user_id, current_time)
-        )
-        
-        return [dict(row) for row in rows]
+        return await db.potions.get_active_potions(user_id)
     
     @staticmethod
     async def get_potion_bonuses(db, user_id: int) -> Dict[str, int]:

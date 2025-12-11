@@ -14,6 +14,11 @@ from .badges import BadgeDB
 from .item_modifiers import ItemModifierDB
 from .market_graphing import MarketGraphingDB
 from .minion_upgrades import MinionUpgradeDB
+from .hotm import HotmDB
+from .dwarven_mines import DwarvenMinesDB
+from .crystal_hollows import CrystalHollowsDB
+from .potions import PotionsDB
+from .talismans import TalismansDB
 from .methods import GameDatabaseMethods
 import json
 import time
@@ -36,6 +41,11 @@ class GameDatabase(GameDatabaseMethods):
         self.item_modifiers = ItemModifierDB(db_path)
         self.market_graphing = MarketGraphingDB(db_path)
         self.minion_upgrades = MinionUpgradeDB(db_path)
+        self.hotm = HotmDB(db_path)
+        self.dwarven_mines = DwarvenMinesDB(db_path)
+        self.crystal_hollows = CrystalHollowsDB(db_path)
+        self.potions = PotionsDB(db_path)
+        self.talismans = TalismansDB(db_path)
         self.conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self):
@@ -80,6 +90,21 @@ class GameDatabase(GameDatabaseMethods):
         
         await self.minion_upgrades.connect()
         self.minion_upgrades.conn = self.conn
+        
+        await self.hotm.connect()
+        self.hotm.conn = self.conn
+        
+        await self.dwarven_mines.connect()
+        self.dwarven_mines.conn = self.conn
+        
+        await self.crystal_hollows.connect()
+        self.crystal_hollows.conn = self.conn
+        
+        await self.potions.connect()
+        self.potions.conn = self.conn
+        
+        await self.talismans.connect()
+        self.talismans.conn = self.conn
         
         await self._create_dungeon_loot_tables()
 

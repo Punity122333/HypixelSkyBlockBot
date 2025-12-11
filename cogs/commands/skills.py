@@ -37,12 +37,16 @@ class SkillCommands(commands.Cog):
 
     @app_commands.command(name="alchemy", description="Brew potions!")
     async def alchemy(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
+        
+        active_events = await self.event_effects.get_active_events()
+        xp_multiplier = await self.event_effects.get_xp_multiplier('alchemy') if active_events else 1.0
+        
         player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, interaction.user.id)
         xp_gained = random.randint(15, 60)
-        xp_multiplier = await self.event_effects.get_xp_multiplier('alchemy')
         xp_gained = int(xp_gained * xp_multiplier)
         pet_luck = player_stats.get('pet_luck', 0)
         xp_gained = int(xp_gained * (1 + pet_luck / 100))
@@ -94,23 +98,31 @@ class SkillCommands(commands.Cog):
             description=f"You brewed some potions!",
             color=discord.Color.orange()
         )
-        if xp_multiplier > 1.0:
+        
+        # Get active events to check if we should display bonuses
+        active_events = await self.event_effects.get_active_events()
+        if active_events and xp_multiplier > 1.0:
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
             current_desc = embed.description or ""
             embed.description = f"{current_desc}\n{event_text}"
+        
         embed.add_field(name="🧪 Potions Brewed", value="\n".join(potions_brewed), inline=False)
         embed.add_field(name="⭐ Alchemy XP", value=f"+{xp_gained} XP", inline=False)
         embed.add_field(name="Current Level", value=f"Alchemy {new_level}", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="carpentry", description="Improve your carpentry skill!")
     async def carpentry(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
+        
+        active_events = await self.event_effects.get_active_events()
+        xp_multiplier = await self.event_effects.get_xp_multiplier('carpentry') if active_events else 1.0
+        
         player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, interaction.user.id)
         xp_gained = random.randint(10, 50)
-        xp_multiplier = await self.event_effects.get_xp_multiplier('carpentry')
         xp_gained = int(xp_gained * xp_multiplier)
         pet_luck = player_stats.get('pet_luck', 0)
         xp_gained = int(xp_gained * (1 + pet_luck / 100))
@@ -130,22 +142,30 @@ class SkillCommands(commands.Cog):
             description=f"You crafted some furniture!",
             color=discord.Color.from_rgb(139, 69, 19)
         )
-        if xp_multiplier > 1.0:
+        
+        # Get active events to check if we should display bonuses
+        active_events = await self.event_effects.get_active_events()
+        if active_events and xp_multiplier > 1.0:
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
             current_desc = embed.description or ""
             embed.description = f"{current_desc}\n{event_text}"
+        
         embed.add_field(name="⭐ Carpentry XP", value=f"+{xp_gained} XP", inline=False)
         embed.add_field(name="Current Level", value=f"Carpentry {new_level}", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="runecrafting", description="Level up your runecrafting!")
     async def runecrafting(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
+        
+        active_events = await self.event_effects.get_active_events()
+        xp_multiplier = await self.event_effects.get_xp_multiplier('runecrafting') if active_events else 1.0
+        
         player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, interaction.user.id)
         xp_gained = random.randint(5, 30)
-        xp_multiplier = await self.event_effects.get_xp_multiplier('runecrafting')
         xp_gained = int(xp_gained * xp_multiplier)
         pet_luck = player_stats.get('pet_luck', 0)
         xp_gained = int(xp_gained * (1 + pet_luck / 100))
@@ -201,23 +221,31 @@ class SkillCommands(commands.Cog):
             description=f"You combined some runes!",
             color=discord.Color.purple()
         )
-        if xp_multiplier > 1.0:
+        
+        # Get active events to check if we should display bonuses
+        active_events = await self.event_effects.get_active_events()
+        if active_events and xp_multiplier > 1.0:
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
             current_desc = embed.description or ""
             embed.description = f"{current_desc}\n{event_text}"
+        
         embed.add_field(name="🔮 Runes Crafted", value="\n".join(runes_crafted), inline=False)
         embed.add_field(name="⭐ Runecrafting XP", value=f"+{xp_gained} XP", inline=False)
         embed.add_field(name="Current Level", value=f"Runecrafting {new_level}", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="social", description="Increase your social skill!")
     async def social(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
+        
+        active_events = await self.event_effects.get_active_events()
+        xp_multiplier = await self.event_effects.get_xp_multiplier('social') if active_events else 1.0
+        
         player_stats = await StatCalculator.calculate_player_stats(self.bot.db, self.bot.game_data, interaction.user.id)
         xp_gained = random.randint(10, 40)
-        xp_multiplier = await self.event_effects.get_xp_multiplier('social')
         xp_gained = int(xp_gained * xp_multiplier)
         pet_luck = player_stats.get('pet_luck', 0)
         xp_gained = int(xp_gained * (1 + pet_luck / 100))
@@ -237,13 +265,16 @@ class SkillCommands(commands.Cog):
             description=f"You interacted with other players!",
             color=discord.Color.blue()
         )
-        if xp_multiplier > 1.0:
+
+        active_events = await self.event_effects.get_active_events()
+        if active_events and xp_multiplier > 1.0:
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
             current_desc = embed.description or ""
             embed.description = f"{current_desc}\n{event_text}"
+        
         embed.add_field(name="⭐ Social XP", value=f"+{xp_gained} XP", inline=False)
         embed.add_field(name="Current Level", value=f"Social {new_level}", inline=False)
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(SkillCommands(bot))

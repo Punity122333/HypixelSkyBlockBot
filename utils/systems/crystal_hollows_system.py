@@ -46,24 +46,18 @@ class CrystalHollowsSystem:
         if not db.conn:
             return cls._get_default_progress()
         
-        row = await db.fetchone('SELECT * FROM crystal_hollows_progress WHERE user_id = ?', (user_id,))
-        if not row:
-            await cls.initialize_progress(db, user_id)
+        progress = await db.crystal_hollows.get_crystal_hollows_progress(user_id)
+        if not progress:
+            await db.crystal_hollows.initialize_progress(user_id)
             return await cls.get_crystal_hollows_progress(db, user_id)
         
-        return dict(row)
+        return progress
     
     @classmethod
     async def initialize_progress(cls, db, user_id: int):
         if not db.conn:
             return
-        await db.execute('''
-            INSERT OR IGNORE INTO crystal_hollows_progress 
-            (user_id, nucleus_runs, crystals_found, jungle_unlocked, mithril_deposits_unlocked, 
-             precursor_unlocked, magma_fields_unlocked, goblin_holdout_unlocked)
-            VALUES (?, 0, 0, 0, 0, 0, 1, 0)
-        ''', (user_id,))
-        await db.commit()
+        await db.crystal_hollows.initialize_progress(user_id)
     
     @classmethod
     def _get_default_progress(cls) -> Dict[str, Any]:
@@ -104,11 +98,7 @@ class CrystalHollowsSystem:
         
         column = column_map.get(zone)
         if column:
-            await db.execute(f'''
-                UPDATE crystal_hollows_progress SET {column} = 1
-                WHERE user_id = ?
-            ''', (user_id,))
-            await db.commit()
+            await db.crystal_hollows.unlock_zone(user_id, column)
         
         return {
             'success': True,
@@ -133,29 +123,15 @@ class CrystalHollowsSystem:
         }
         
         if crystal_found:
-            await db.execute('''
-                UPDATE crystal_hollows_progress 
-                SET crystals_found = crystals_found + 1
-                WHERE user_id = ?
-            ''', (user_id,))
+            await db.crystal_hollows.increment_crystals_found(user_id)
             if crystal_type is not None:
-                await db.execute('''
-                    INSERT INTO inventory (user_id, item_id, amount, item_type)
-                    VALUES (?, ?, 1, 'MATERIAL')
-                    ON CONFLICT(user_id, item_id) DO UPDATE SET amount = amount + 1
-                ''', (user_id, crystal_type))
+                await db.crystal_hollows.add_crystal_to_inventory(user_id, crystal_type)
         
-        await db.execute('''
-            UPDATE crystal_hollows_progress 
-            SET nucleus_runs = nucleus_runs + 1
-            WHERE user_id = ?
-        ''', (user_id,))
+        await db.crystal_hollows.increment_nucleus_runs(user_id)
         
         from utils.systems.hotm_system import HeartOfTheMountainSystem
         await HeartOfTheMountainSystem.add_powder(db, user_id, 'mithril', rewards['mithril_powder'])
         await HeartOfTheMountainSystem.add_powder(db, user_id, 'gemstone', rewards['gemstone_powder'])
-        
-        await db.commit()
         
         return {
             'success': True,
@@ -179,7 +155,5 @@ class CrystalHollowsSystem:
             unlocked.append('precursor_remnants')
         if progress.get('goblin_holdout_unlocked'):
             unlocked.append('goblin_holdout')
-        
-        return unlocked
         
         return unlocked
