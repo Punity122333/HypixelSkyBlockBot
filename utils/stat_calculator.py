@@ -57,6 +57,8 @@ class StatCalculator:
         await cls._apply_pet_stats(db, user_id, stats)
         await cls._apply_reforge_stats(db, user_id, stats)
         await cls._apply_enchantment_stats(db, user_id, stats)
+        await cls._apply_potion_bonuses(db, user_id, stats)
+        await cls._apply_talisman_bonuses(db, user_id, stats)
         
         if context == 'dungeon':
             await cls._apply_dungeon_scaling(db, user_id, stats)
@@ -239,8 +241,6 @@ class StatCalculator:
     @classmethod
     async def _apply_tool_stats(cls, db, user_id: int, stats: Dict, context: str = 'general'):
         equipped_items = await db.get_equipped_items(user_id)
-        
-        # Check all tool slots: pickaxe, axe, hoe, fishing_rod
         tool_slots = ['pickaxe', 'axe', 'hoe', 'fishing_rod']
         for slot in tool_slots:
             if equipped_items.get(slot):
@@ -366,6 +366,22 @@ class StatCalculator:
                 if stat in stats:
                     base_bonus = (multiplier - 1.0) * (class_level / 50)
                     stats[stat] *= (1 + base_bonus)
+    
+    @classmethod
+    async def _apply_potion_bonuses(cls, db, user_id: int, stats: Dict):
+        from utils.systems.potion_system import PotionSystem
+        potion_bonuses = await PotionSystem.get_potion_bonuses(db, user_id)
+        for stat, bonus in potion_bonuses.items():
+            if stat in stats:
+                stats[stat] += bonus
+    
+    @classmethod
+    async def _apply_talisman_bonuses(cls, db, user_id: int, stats: Dict):
+        from utils.systems.talisman_pouch_system import TalismanPouchSystem
+        talisman_bonuses = await TalismanPouchSystem.get_talisman_bonuses(db, user_id)
+        for stat, bonus in talisman_bonuses.items():
+            if stat in stats:
+                stats[stat] += bonus
     
     @staticmethod
     def apply_combat_effects(stats: Dict, item: Optional[Dict], enchants: Optional[List] = None) -> Dict[str, Any]:

@@ -13,6 +13,7 @@ from components.buttons.combat_buttons import (
     CombatAbilityButton,
     CombatRunButton
 )
+from components.buttons.use_potion_button import UsePotionButton
 
 if TYPE_CHECKING:
     from main import SkyblockBot
@@ -39,6 +40,7 @@ class CombatView(View):
         self.add_item(CombatDefendButton(self))
         self.add_item(CombatAbilityButton(self))
         self.add_item(CombatRunButton(self))
+        self.add_item(UsePotionButton(self))
     
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:

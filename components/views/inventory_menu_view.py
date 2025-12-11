@@ -11,6 +11,11 @@ from components.buttons.inventory_buttons import (
     InventoryPreviousButton,
     InventoryNextButton
 )
+from components.buttons.talisman_pouch_buttons import (
+    TalismanPouchButton,
+    AddTalismanButton,
+    RemoveTalismanButton
+)
 
 class InventoryMenuView(discord.ui.View):
     def __init__(self, bot, user_id, username):
@@ -28,6 +33,7 @@ class InventoryMenuView(discord.ui.View):
         self.enderchest_btn = EnderchestButton(self)
         self.wardrobe_btn = WardrobeButton(self)
         self.accessories_btn = AccessoriesButton(self)
+        self.talisman_pouch_btn = TalismanPouchButton(self)
         self.prev_btn = InventoryPreviousButton(self)
         self.next_btn = InventoryNextButton(self)
         
@@ -42,6 +48,8 @@ class InventoryMenuView(discord.ui.View):
             return await self.get_wardrobe_embed()
         elif self.current_view == 'accessories':
             return await self.get_accessories_embed()
+        elif self.current_view == 'talisman_pouch':
+            return await self.get_talisman_pouch_embed()
         else:
             return await self.get_inventory_embed()
     
@@ -242,6 +250,45 @@ class InventoryMenuView(discord.ui.View):
             embed.add_field(name="Empty Bag", value="No accessories equipped!", inline=False)
         
         embed.set_footer(text="Accessories provide permanent stat bonuses")
+        return embed
+    
+    async def get_talisman_pouch_embed(self):
+        from utils.systems.talisman_pouch_system import TalismanPouchSystem
+        
+        talismans = await TalismanPouchSystem.get_talisman_pouch(self.bot.db, self.user_id)
+        
+        embed = discord.Embed(
+            title=f"📿 {self.username}'s Talisman Pouch",
+            description=f"Talismans provide passive stat bonuses\n{len(talismans)}/{TalismanPouchSystem.MAX_TALISMANS} slots used",
+            color=discord.Color.purple()
+        )
+        
+        if talismans:
+            from collections import defaultdict
+            total_stats = defaultdict(int)
+            
+            for talisman_data in talismans:
+                talisman_id = talisman_data['talisman_id']
+                item = await self.bot.game_data.get_item(talisman_id)
+                if item:
+                    rarity_emoji = {'COMMON': '⬜', 'UNCOMMON': '🟩', 'RARE': '🟦',
+                                   'EPIC': '🟪', 'LEGENDARY': '🟧', 'MYTHIC': '🟥'}.get(item.rarity, '⬜')
+                    stats_text = ', '.join([f"+{v} {k.replace('_', ' ').title()}" for k, v in item.stats.items()])
+                    embed.add_field(
+                        name=f"{rarity_emoji} {item.name}",
+                        value=stats_text or "No stats",
+                        inline=True
+                    )
+                    for stat, value in item.stats.items():
+                        total_stats[stat] += value
+            
+            if total_stats:
+                total_text = "\n".join([f"+{value} {stat.replace('_', ' ').title()}" for stat, value in total_stats.items()])
+                embed.add_field(name="📊 Total Bonuses", value=total_text, inline=False)
+        else:
+            embed.add_field(name="Empty Pouch", value="Add talismans with the button below!", inline=False)
+        
+        embed.set_footer(text="Craft talismans with runes!")
         return embed
     
     def _update_buttons(self):

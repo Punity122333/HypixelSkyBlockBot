@@ -1,0 +1,55 @@
+import discord
+from utils.systems.potion_system import PotionSystem
+
+class UsePotionButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="🧪 Use Potion", style=discord.ButtonStyle.green, custom_id="use_potion", row=2)
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        potions = []
+        inventory = await self.parent_view.bot.db.get_inventory(self.parent_view.user_id)
+        
+        for item_row in inventory:
+            item_id = item_row['item_id']
+            if item_id in PotionSystem.POTION_EFFECTS:
+                item = await self.parent_view.bot.game_data.get_item(item_id)
+                if item:
+                    potions.append((item_id, item.name))
+        
+        if not potions:
+            await interaction.response.send_message("You don't have any potions!", ephemeral=True)
+            return
+        
+        class PotionSelect(discord.ui.Select):
+            def __init__(self, potions_list, parent_button):
+                self.parent_button = parent_button
+                options = [
+                    discord.SelectOption(label=name, value=potion_id)
+                    for potion_id, name in potions_list[:25]
+                ]
+                super().__init__(placeholder="Choose a potion...", options=options)
+            
+            async def callback(self, interaction: discord.Interaction):
+                potion_id = self.values[0]
+                result = await PotionSystem.use_potion(
+                    self.parent_button.parent_view.bot.db,
+                    self.parent_button.parent_view.user_id,
+                    potion_id
+                )
+                
+                if result['success']:
+                    await interaction.response.send_message(
+                        f"✨ You used the potion! +{result['amount']} {result['stat']} for {result['duration']}s",
+                        ephemeral=True
+                    )
+                    self.parent_button.parent_view.player_stats = None
+                else:
+                    await interaction.response.send_message(
+                        f"❌ {result['message']}",
+                        ephemeral=True
+                    )
+        
+        view = discord.ui.View()
+        view.add_item(PotionSelect(potions, self))
+        await interaction.response.send_message("Select a potion to use:", view=view, ephemeral=True)

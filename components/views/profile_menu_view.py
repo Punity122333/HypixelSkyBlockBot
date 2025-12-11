@@ -8,7 +8,8 @@ from components.buttons.unequip_item_button import UnequipItemButton
 from components.buttons.profile_buttons import (
     ProfileButton,
     DetailedStatsButton,
-    ProfileWardrobeButton
+    ProfileWardrobeButton,
+    ProfileTalismanPouchButton
 )
 
 class ProfileMenuView(discord.ui.View):
@@ -22,7 +23,8 @@ class ProfileMenuView(discord.ui.View):
         
         self.add_item(ProfileButton(self))
         self.add_item(DetailedStatsButton(self))
-        self.add_item(ProfileWardrobeButton(self))  # Initialize wardrobe page
+        self.add_item(ProfileWardrobeButton(self))
+        self.add_item(ProfileTalismanPouchButton(self))
     
     async def get_embed(self):
         if self.current_view == 'profile':
@@ -31,6 +33,8 @@ class ProfileMenuView(discord.ui.View):
             return await self.get_stats_embed()
         elif self.current_view == 'wardrobe':
             return await self.get_wardrobe_embed()
+        elif self.current_view == 'talisman_pouch':
+            return await self.get_talisman_pouch_embed()
         else:
             return await self.get_profile_embed()
     
@@ -178,4 +182,46 @@ class ProfileMenuView(discord.ui.View):
                 )
         
         embed.set_footer(text="Use the buttons below to equip or unequip items")
+        return embed
+    
+    async def get_talisman_pouch_embed(self):
+        from utils.systems.talisman_pouch_system import TalismanPouchSystem
+        
+        talismans = await TalismanPouchSystem.get_talisman_pouch(self.bot.db, self.user_id)
+        bonuses = await TalismanPouchSystem.get_talisman_bonuses(self.bot.db, self.user_id)
+        
+        embed = discord.Embed(
+            title=f"📿 {self.username}'s Talisman Pouch",
+            description=f"Talismans provide passive stat bonuses\n{len(talismans)}/{TalismanPouchSystem.MAX_TALISMANS} slots used",
+            color=discord.Color.purple()
+        )
+        
+        if talismans:
+            talisman_list = []
+            for i, talisman_data in enumerate(talismans):
+                talisman_id = talisman_data['talisman_id']
+                item = await self.bot.game_data.get_item(talisman_id)
+                if item:
+                    stats_str = ', '.join([f"+{v} {k.replace('_', ' ').title()}" for k, v in item.stats.items()]) if item.stats else 'No stats'
+                    talisman_list.append(f"{i+1}. **{item.name}** ({item.rarity})\n   {stats_str}")
+            
+            if talisman_list:
+                embed.add_field(name="📿 Equipped Talismans", value="\n".join(talisman_list[:8]), inline=True)
+                if len(talisman_list) > 8:
+                    embed.add_field(name="\u200b", value="\n".join(talisman_list[8:16]), inline=True)
+                if len(talisman_list) > 16:
+                    embed.add_field(name="\u200b", value="\n".join(talisman_list[16:]), inline=True)
+        
+        if bonuses:
+            stat_list = []
+            for stat, value in bonuses.items():
+                stat_display = stat.replace('_', ' ').title()
+                stat_list.append(f"**{stat_display}:** +{value}")
+            
+            embed.add_field(name="📊 Total Stat Bonuses", value="\n".join(stat_list) if stat_list else "No bonuses", inline=False)
+        else:
+            embed.add_field(name="📊 Total Stat Bonuses", value="No bonuses", inline=False)
+        
+        embed.set_footer(text="Use /talisman_add and /talisman_remove to manage talismans")
+        
         return embed

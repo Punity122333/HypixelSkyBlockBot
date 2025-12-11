@@ -50,3 +50,17 @@ class ProfileWardrobeButton(discord.ui.Button):
             self.parent_view.add_item(UnequipItemButton())
         
         await interaction.response.edit_message(embed=await self.parent_view.get_embed(), view=self.parent_view)
+
+class ProfileTalismanPouchButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="📿 Talismans", style=discord.ButtonStyle.green, custom_id="profile_talisman_pouch", row=1)
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.parent_view.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        self.parent_view.current_view = 'talisman_pouch'
+        await interaction.response.edit_message(embed=await self.parent_view.get_embed(), view=self.parent_view)
+

@@ -49,6 +49,38 @@ class SkillCommands(commands.Cog):
         skills = await self.bot.db.get_skills(interaction.user.id)
         alchemy_skill = next((s for s in skills if s['skill_name'] == 'alchemy'), None)
         new_level = alchemy_skill['level'] if alchemy_skill else 0
+        
+        potions_brewed = []
+        all_potions = [
+            'awkward_potion', 'speed_potion_1', 'strength_potion_1', 'regeneration_potion_1', 
+            'defense_potion_1', 'critical_potion_1', 'fishing_potion_1', 'mining_potion_1',
+            'farming_potion_1', 'combat_potion_1', 'intelligence_potion_1', 'foraging_potion_1'
+        ]
+        
+        if new_level >= 10:
+            all_potions.extend(['speed_potion_2', 'strength_potion_2', 'regeneration_potion_2', 
+                               'defense_potion_2', 'critical_potion_2', 'magic_find_potion_1'])
+        
+        if new_level >= 20:
+            all_potions.extend(['speed_potion_3', 'strength_potion_3', 'crit_damage_potion_1',
+                               'intelligence_potion_2', 'true_defense_potion_1', 'ability_damage_potion_1'])
+        
+        if new_level >= 30:
+            all_potions.extend(['magic_find_potion_2', 'crit_damage_potion_2', 'ferocity_potion_1',
+                               'pet_luck_potion_1', 'attack_speed_potion_1'])
+        
+        if new_level >= 40:
+            all_potions.extend(['magic_find_potion_3', 'ability_damage_potion_2', 'ferocity_potion_2',
+                               'true_defense_potion_2', 'attack_speed_potion_2'])
+        
+        num_potions = random.randint(2, 4)
+        for _ in range(num_potions):
+            potion = random.choice(all_potions)
+            amount = random.randint(1, 3)
+            await self.bot.db.add_item_to_inventory(interaction.user.id, potion, amount)
+            potion_name = potion.replace('_', ' ').title()
+            potions_brewed.append(f"{potion_name} x{amount}")
+        
         if alchemy_skill:
             new_xp = alchemy_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('alchemy', new_xp)
@@ -66,6 +98,7 @@ class SkillCommands(commands.Cog):
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
             current_desc = embed.description or ""
             embed.description = f"{current_desc}\n{event_text}"
+        embed.add_field(name="🧪 Potions Brewed", value="\n".join(potions_brewed), inline=False)
         embed.add_field(name="⭐ Alchemy XP", value=f"+{xp_gained} XP", inline=False)
         embed.add_field(name="Current Level", value=f"Alchemy {new_level}", inline=False)
         await interaction.response.send_message(embed=embed)
@@ -119,6 +152,42 @@ class SkillCommands(commands.Cog):
         skills = await self.bot.db.get_skills(interaction.user.id)
         runecrafting_skill = next((s for s in skills if s['skill_name'] == 'runecrafting'), None)
         new_level = runecrafting_skill['level'] if runecrafting_skill else 0
+        
+        runes_crafted = []
+        basic_runes = ['speed_rune', 'strength_rune', 'health_rune', 'defense_rune']
+        rare_runes = ['intelligence_rune', 'crit_damage_rune', 'crit_chance_rune', 
+                     'mining_fortune_rune', 'farming_fortune_rune', 'foraging_fortune_rune',
+                     'fishing_speed_rune', 'sea_creature_rune', 'attack_speed_rune']
+        epic_runes = ['magic_find_rune', 'ferocity_rune', 'true_defense_rune', 'pet_luck_rune']
+        legendary_runes = ['ability_damage_rune']
+        
+        num_runes = random.randint(2, 4)
+        for _ in range(num_runes):
+            rune = random.choice(basic_runes)
+            amount = random.randint(1, 3)
+            await self.bot.db.add_item_to_inventory(interaction.user.id, rune, amount)
+            rune_name = rune.replace('_', ' ').title()
+            runes_crafted.append(f"{rune_name} x{amount}")
+        
+        if new_level >= 5 and random.random() < 0.3:
+            rune = random.choice(rare_runes)
+            amount = random.randint(1, 2)
+            await self.bot.db.add_item_to_inventory(interaction.user.id, rune, amount)
+            rune_name = rune.replace('_', ' ').title()
+            runes_crafted.append(f"✨ {rune_name} x{amount}")
+        
+        if new_level >= 15 and random.random() < 0.1:
+            rune = random.choice(epic_runes)
+            await self.bot.db.add_item_to_inventory(interaction.user.id, rune, 1)
+            rune_name = rune.replace('_', ' ').title()
+            runes_crafted.append(f"⭐ {rune_name} x1")
+        
+        if new_level >= 20 and random.random() < 0.05:
+            rune = random.choice(legendary_runes)
+            await self.bot.db.add_item_to_inventory(interaction.user.id, rune, 1)
+            rune_name = rune.replace('_', ' ').title()
+            runes_crafted.append(f"🌟 {rune_name} x1")
+        
         if runecrafting_skill:
             new_xp = runecrafting_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('runecrafting', new_xp)
@@ -136,6 +205,7 @@ class SkillCommands(commands.Cog):
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
             current_desc = embed.description or ""
             embed.description = f"{current_desc}\n{event_text}"
+        embed.add_field(name="🔮 Runes Crafted", value="\n".join(runes_crafted), inline=False)
         embed.add_field(name="⭐ Runecrafting XP", value=f"+{xp_gained} XP", inline=False)
         embed.add_field(name="Current Level", value=f"Runecrafting {new_level}", inline=False)
         await interaction.response.send_message(embed=embed)
