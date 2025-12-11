@@ -19,6 +19,7 @@ from .dwarven_mines import DwarvenMinesDB
 from .crystal_hollows import CrystalHollowsDB
 from .potions import PotionsDB
 from .talismans import TalismansDB
+from .bestiary import BestiaryDB
 from .methods import GameDatabaseMethods
 import json
 import time
@@ -46,6 +47,7 @@ class GameDatabase(GameDatabaseMethods):
         self.crystal_hollows = CrystalHollowsDB(db_path)
         self.potions = PotionsDB(db_path)
         self.talismans = TalismansDB(db_path)
+        self.bestiary = BestiaryDB(db_path)
         self.conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self):
@@ -105,6 +107,9 @@ class GameDatabase(GameDatabaseMethods):
         
         await self.talismans.connect()
         self.talismans.conn = self.conn
+        
+        await self.bestiary.connect()
+        self.bestiary.conn = self.conn
         
         await self._create_dungeon_loot_tables()
 

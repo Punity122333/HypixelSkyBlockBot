@@ -59,10 +59,29 @@ class TalismanPouchSystem:
         
         for talisman_data in talismans:
             talisman_id = talisman_data['talisman_id']
-            item = await db.game_data.get_item(talisman_id)
             
-            if item and item.stats:
-                for stat, value in item.stats.items():
-                    bonuses[stat] = bonuses.get(stat, 0) + value
+            if not db.conn:
+                continue
+            
+            cursor = await db.conn.execute(
+                'SELECT * FROM game_talisman_stats WHERE talisman_id = ?',
+                (talisman_id,)
+            )
+            talisman_stats = await cursor.fetchone()
+            
+            if talisman_stats:
+                stat_fields = [
+                    'health', 'defense', 'strength', 'crit_chance', 'crit_damage',
+                    'intelligence', 'speed', 'attack_speed', 'sea_creature_chance',
+                    'magic_find', 'pet_luck', 'ferocity', 'ability_damage', 'true_defense',
+                    'mining_speed', 'mining_fortune', 'farming_fortune', 'foraging_fortune',
+                    'fishing_speed'
+                ]
+                
+                for stat in stat_fields:
+                    value = talisman_stats[stat]
+                    if value and value != 0:
+                        bonuses[stat] = bonuses.get(stat, 0) + value
         
         return bonuses
+

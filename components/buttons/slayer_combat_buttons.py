@@ -83,6 +83,15 @@ class SlayerCombatAttackButton(Button):
                 reward_text += "\n🎪 Event bonuses active!"
             embed.add_field(name="💰 Reward", value=reward_text, inline=False)
             
+            from utils.normalize import normalize_item_id
+            mob_id = normalize_item_id(view.mob_name)
+            bestiary_info = await view.bot.db.bestiary.add_bestiary_kill(view.user_id, mob_id)
+            if bestiary_info and bestiary_info.get('leveled_up'):
+                bestiary_text = f"📚 Bestiary: {bestiary_info['kills']} kills (Lv {bestiary_info['new_level']})"
+                if bestiary_info['new_level'] > bestiary_info['old_level']:
+                    bestiary_text += f"\n🎉 **LEVEL UP!** {bestiary_info['old_level']} → {bestiary_info['new_level']}"
+                embed.add_field(name="📖 Bestiary Progress", value=bestiary_text, inline=False)
+            
             await view.bot.player_manager.add_coins(view.user_id, coins)
             
             view.fight_in_progress = False
@@ -247,6 +256,15 @@ class SlayerCombatAbilityButton(Button):
             if xp_multiplier > 1.0 or coin_multiplier > 1.0:
                 reward_text += "\n🎪 Event bonuses active!"
             embed.add_field(name="💰 Reward", value=reward_text, inline=False)
+            
+            from utils.normalize import normalize_item_id
+            mob_id = normalize_item_id(view.mob_name)
+            bestiary_info = await view.bot.db.bestiary.add_bestiary_kill(view.user_id, mob_id)
+            if bestiary_info and bestiary_info.get('leveled_up'):
+                bestiary_text = f"📚 Bestiary: {bestiary_info['kills']} kills (Lv {bestiary_info['new_level']})"
+                if bestiary_info['new_level'] > bestiary_info['old_level']:
+                    bestiary_text += f"\n🎉 **LEVEL UP!** {bestiary_info['old_level']} → {bestiary_info['new_level']}"
+                embed.add_field(name="📖 Bestiary Progress", value=bestiary_text, inline=False)
             
             await view.bot.player_manager.add_coins(view.user_id, coins)
             

@@ -60,7 +60,6 @@ class MigrationRunner:
     def get_migration_files(self) -> List[tuple]:
         migration_files = []
         
-        # Check both migrations_dir and migrations_dir/scripts
         search_paths = [self.migrations_dir, self.migrations_dir / "scripts"]
         
         for search_path in search_paths:

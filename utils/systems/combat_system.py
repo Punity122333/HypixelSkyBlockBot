@@ -189,6 +189,11 @@ class CombatSystem:
         rewards = {}
         if victory:
             rewards = await cls._generate_mob_rewards(db, user_id, mob_data)
+            
+            bestiary_result = await db.bestiary.add_bestiary_kill(user_id, mob_id)
+            rewards['bestiary'] = bestiary_result
+        else:
+            await db.bestiary.add_bestiary_death(user_id, mob_id)
         
         return {
             'success': True,

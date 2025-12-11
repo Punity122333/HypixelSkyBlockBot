@@ -127,7 +127,10 @@ class CombatAttackButton(discord.ui.Button):
         if self.parent_view.player_health <= 0:
             embed.description = f"💀 You were defeated by the {self.parent_view.mob_name}!"
             embed.add_field(name="Penalty", value="-500 coins")
-            await self.parent_view.bot.player_manager.remove_coins(self.parent_view.user_id, 500)   
+            await self.parent_view.bot.player_manager.remove_coins(self.parent_view.user_id, 500)
+            
+            mob_id = normalize_item_id(self.parent_view.mob_name)
+            await self.parent_view.bot.db.bestiary.add_bestiary_death(self.parent_view.user_id, mob_id)
             
             from utils.systems.badge_system import BadgeSystem
             player = await self.parent_view.bot.db.get_player(self.parent_view.user_id)
@@ -283,6 +286,13 @@ class CombatAbilityButton(discord.ui.Button):
                 reward_text += "\n🎪 Event bonuses active!"
             embed.add_field(name="💰 Reward", value=reward_text, inline=False)
             
+            bestiary_info = await self.parent_view.bot.db.bestiary.add_bestiary_kill(self.parent_view.user_id, mob_id)
+            if bestiary_info and bestiary_info.get('leveled_up'):
+                bestiary_text = f"📚 Bestiary: {bestiary_info['kills']} kills (Lv {bestiary_info['new_level']})"
+                if bestiary_info['new_level'] > bestiary_info['old_level']:
+                    bestiary_text += f"\n🎉 **LEVEL UP!** {bestiary_info['old_level']} → {bestiary_info['new_level']}"
+                embed.add_field(name="📖 Bestiary Progress", value=bestiary_text, inline=False)
+            
             await self.parent_view.bot.player_manager.add_coins(self.parent_view.user_id, coins)
                 
             skills = await self.parent_view.bot.db.get_skills(self.parent_view.user_id)
@@ -309,6 +319,9 @@ class CombatAbilityButton(discord.ui.Button):
         self.parent_view.player_health = (self.parent_view.player_health or 0) - mob_damage
         
         if self.parent_view.player_health <= 0:
+            mob_id = normalize_item_id(self.parent_view.mob_name)
+            await self.parent_view.bot.db.bestiary.add_bestiary_death(self.parent_view.user_id, mob_id)
+            
             embed.description = f"💀 You were defeated by the {self.parent_view.mob_name}!"
             embed.add_field(name="Penalty", value="-500 coins")
             await self.parent_view.bot.player_manager.remove_coins(self.parent_view.user_id, 500)   

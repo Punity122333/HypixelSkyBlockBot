@@ -59,6 +59,7 @@ class StatCalculator:
         await cls._apply_enchantment_stats(db, user_id, stats)
         await cls._apply_potion_bonuses(db, user_id, stats)
         await cls._apply_talisman_bonuses(db, user_id, stats)
+        await cls._apply_bestiary_bonuses(db, user_id, stats)
         
         if context == 'dungeon':
             await cls._apply_dungeon_scaling(db, user_id, stats)
@@ -377,9 +378,38 @@ class StatCalculator:
     
     @classmethod
     async def _apply_talisman_bonuses(cls, db, user_id: int, stats: Dict):
-        from utils.systems.talisman_pouch_system import TalismanPouchSystem
-        talisman_bonuses = await TalismanPouchSystem.get_talisman_bonuses(db, user_id)
-        for stat, bonus in talisman_bonuses.items():
+        talismans = await db.talismans.get_all_talismans(user_id)
+        
+        for talisman_data in talismans:
+            talisman_id = talisman_data['talisman_id']
+            
+            if not db.conn:
+                continue
+            
+            cursor = await db.conn.execute(
+                'SELECT * FROM game_talisman_stats WHERE talisman_id = ?',
+                (talisman_id,)
+            )
+            talisman_stats = await cursor.fetchone()
+            
+            if talisman_stats:
+                stat_fields = [
+                    'health', 'defense', 'strength', 'crit_chance', 'crit_damage',
+                    'intelligence', 'speed', 'attack_speed', 'sea_creature_chance',
+                    'magic_find', 'pet_luck', 'ferocity', 'ability_damage', 'true_defense',
+                    'mining_speed', 'mining_fortune', 'farming_fortune', 'foraging_fortune',
+                    'fishing_speed'
+                ]
+                
+                for stat in stat_fields:
+                    value = talisman_stats[stat]
+                    if value and value != 0 and stat in stats:
+                        stats[stat] += value
+    
+    @classmethod
+    async def _apply_bestiary_bonuses(cls, db, user_id: int, stats: Dict):
+        bestiary_bonuses = await db.bestiary.get_total_bestiary_stats(user_id)
+        for stat, bonus in bestiary_bonuses.items():
             if stat in stats:
                 stats[stat] += bonus
     
