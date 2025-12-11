@@ -56,31 +56,44 @@ class CombatSystem:
     @classmethod
     async def _get_equipped_weapon_damage(cls, db, user_id: int) -> int:
         equipped_items = await db.get_equipped_items(user_id)
+        total_damage = 0
         
-        # Check specific weapon slots first (sword, bow)
-        for slot in ['sword', 'bow', 'weapon']:
-            item = equipped_items.get(slot)
-            if item and 'item_id' in item:
-                item_id = item['item_id']
-                item_type = item.get('item_type')
-                
-                if item_type in ['SWORD', 'BOW']:
-                    weapon_stats = await db.get_weapon_stats(item_id)
-                    if weapon_stats:
-                        return weapon_stats.get('damage', 0)
-                    else:
-                        item_stats = json.loads(item.get('stats', '{}')) if item.get('stats') else {}
-                        return item_stats.get('damage', 0)
+        sword_item = equipped_items.get('sword')
+        if sword_item and 'item_id' in sword_item:
+            item_id = sword_item['item_id']
+            item_type = sword_item.get('item_type')
+            
+            if item_type == 'SWORD':
+                weapon_stats = await db.get_weapon_stats(item_id)
+                if weapon_stats:
+                    total_damage += weapon_stats.get('damage', 0)
+                else:
+                    item_stats = json.loads(sword_item.get('stats', '{}')) if sword_item.get('stats') else {}
+                    total_damage += item_stats.get('damage', 0)
         
-        # Check axe slot as weapon (axes can be used for combat)
-        axe_item = equipped_items.get('axe')
-        if axe_item and 'item_id' in axe_item:
-            item_id = axe_item['item_id']
-            weapon_stats = await db.get_weapon_stats(item_id)
-            if weapon_stats:
-                return weapon_stats.get('damage', 0)
+        bow_item = equipped_items.get('bow')
+        if bow_item and 'item_id' in bow_item:
+            item_id = bow_item['item_id']
+            item_type = bow_item.get('item_type')
+            
+            if item_type == 'BOW':
+                weapon_stats = await db.get_weapon_stats(item_id)
+                if weapon_stats:
+                    total_damage += weapon_stats.get('damage', 0)
+                else:
+                    item_stats = json.loads(bow_item.get('stats', '{}')) if bow_item.get('stats') else {}
+                    total_damage += item_stats.get('damage', 0)
         
-        return 0
+        # Check if axe is equipped (can be used as weapon)
+        if total_damage == 0:
+            axe_item = equipped_items.get('axe')
+            if axe_item and 'item_id' in axe_item:
+                item_id = axe_item['item_id']
+                weapon_stats = await db.get_weapon_stats(item_id)
+                if weapon_stats:
+                    total_damage += weapon_stats.get('damage', 0)
+        
+        return total_damage
     
     @classmethod
     async def get_mob_level_scaling(cls, db, level: int) -> Dict[str, float]:

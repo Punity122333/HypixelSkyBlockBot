@@ -167,12 +167,12 @@ class StatCalculator:
     async def _apply_weapon_stats(cls, db, user_id: int, stats: Dict):
         equipped_items = await db.get_equipped_items(user_id)
         
-        if equipped_items.get('weapon'):
-            item_data = equipped_items['weapon']
-            item_id = item_data.get('item_id')
-            item_type = item_data.get('item_type')
+        sword_item = equipped_items.get('sword')
+        if sword_item:
+            item_id = sword_item.get('item_id')
+            item_type = sword_item.get('item_type')
             
-            if item_type in ['SWORD', 'BOW']:
+            if item_type == 'SWORD':
                 weapon_stats = await db.get_weapon_stats(item_id)
                 if weapon_stats:
                     for stat_key in ['damage', 'strength', 'crit_chance', 'crit_damage', 
@@ -180,7 +180,25 @@ class StatCalculator:
                         if stat_key in stats and weapon_stats.get(stat_key):
                             stats[stat_key] += weapon_stats[stat_key]
                 else:
-                    item_stats = json.loads(item_data.get('stats', '{}')) if item_data.get('stats') else {}
+                    item_stats = json.loads(sword_item.get('stats', '{}')) if sword_item.get('stats') else {}
+                    for stat, value in item_stats.items():
+                        if stat in stats:
+                            stats[stat] += value
+        
+        bow_item = equipped_items.get('bow')
+        if bow_item:
+            item_id = bow_item.get('item_id')
+            item_type = bow_item.get('item_type')
+            
+            if item_type == 'BOW':
+                weapon_stats = await db.get_weapon_stats(item_id)
+                if weapon_stats:
+                    for stat_key in ['damage', 'strength', 'crit_chance', 'crit_damage', 
+                                    'attack_speed', 'ability_damage', 'ferocity', 'bonus_attack_speed']:
+                        if stat_key in stats and weapon_stats.get(stat_key):
+                            stats[stat_key] += weapon_stats[stat_key]
+                else:
+                    item_stats = json.loads(bow_item.get('stats', '{}')) if bow_item.get('stats') else {}
                     for stat, value in item_stats.items():
                         if stat in stats:
                             stats[stat] += value
@@ -222,24 +240,26 @@ class StatCalculator:
     async def _apply_tool_stats(cls, db, user_id: int, stats: Dict, context: str = 'general'):
         equipped_items = await db.get_equipped_items(user_id)
         
-        if equipped_items.get('tool'):
-            item_data = equipped_items['tool']
-            item_id = item_data.get('item_id')
-            item_type = item_data.get('item_type')
-            
-            if item_type in ['PICKAXE', 'AXE', 'HOE', 'SHOVEL', 'FISHING_ROD']:
-                tool_stats = await db.get_tool_stats(item_id)
-                if tool_stats:
-                    for stat_key in ['mining_speed', 'mining_fortune', 'farming_fortune', 
-                                    'foraging_fortune', 'fishing_speed', 'sea_creature_chance', 
-                                    'breaking_power', 'damage']:
-                        if stat_key in stats and tool_stats.get(stat_key):
-                            stats[stat_key] += tool_stats[stat_key]
-                else:
-                    item_stats = json.loads(item_data.get('stats', '{}')) if item_data.get('stats') else {}
-                    for stat, value in item_stats.items():
-                        if stat in stats:
-                            stats[stat] += value
+        # Check all tool slots: pickaxe, axe, hoe, fishing_rod
+        tool_slots = ['pickaxe', 'axe', 'hoe', 'fishing_rod']
+        for slot in tool_slots:
+            if equipped_items.get(slot):
+                item_data = equipped_items[slot]
+                item_id = item_data.get('item_id')
+                item_type = item_data.get('item_type')
+                
+                if item_type in ['PICKAXE', 'AXE', 'HOE', 'SHOVEL', 'FISHING_ROD']:
+                    tool_stats = await db.get_tool_stats(item_id)
+                    if tool_stats:
+                        for stat_key in ['mining_speed', 'mining_fortune', 'farming_fortune', 
+                                        'foraging_fortune', 'fishing_speed', 'sea_creature_chance', 'breaking_power', 'damage']:
+                            if stat_key in stats and tool_stats.get(stat_key):
+                                stats[stat_key] += tool_stats[stat_key]
+                    else:
+                        item_stats = json.loads(item_data.get('stats', '{}')) if item_data.get('stats') else {}
+                        for stat, value in item_stats.items():
+                            if stat in stats:
+                                stats[stat] += value
     
     @classmethod
     async def _apply_pet_stats(cls, db, user_id: int, stats: Dict):

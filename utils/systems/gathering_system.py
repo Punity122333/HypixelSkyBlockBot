@@ -18,22 +18,17 @@ class GatheringSystem:
         """Get stats from the equipped tool matching the tool_type"""
         equipped_items = await db.get_equipped_items(user_id)
         
-        # Map tool types to equipment slots
+        # Map tool types to equipment slots (direct mapping now)
         tool_slot_mapping = {
-            'pickaxe': 'tool',  # Legacy slot or pickaxe slot
+            'pickaxe': 'pickaxe',
             'axe': 'axe',
             'hoe': 'hoe',
             'fishing_rod': 'fishing_rod',
-            'shovel': 'tool'
+            'shovel': 'pickaxe'  # Shovel uses pickaxe slot
         }
         
-        slot_name = tool_slot_mapping.get(tool_type, 'tool')
+        slot_name = tool_slot_mapping.get(tool_type, tool_type)
         tool_item = equipped_items.get(slot_name)
-        
-        # Also check specific slot if it exists
-        specific_slot_item = equipped_items.get(tool_type)
-        if specific_slot_item:
-            tool_item = specific_slot_item
         
         if not tool_item or 'item_id' not in tool_item:
             return {}

@@ -155,10 +155,9 @@ class InventoryMenuView(discord.ui.View):
             'chestplate': '🦺',
             'leggings': '👖',
             'boots': '👢',
-            'weapon': '⚔️',
-            'tool': '⛏️',
             'sword': '🗡️',
             'bow': '🏹',
+            'pickaxe': '⛏️',
             'axe': '🪓',
             'hoe': '🌾',
             'fishing_rod': '🎣'

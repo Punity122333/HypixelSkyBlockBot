@@ -24,8 +24,6 @@ class EquipItemModal(discord.ui.Modal, title="Equip Item"):
             'leggings': ['LEGGINGS'],
             'legs': ['LEGGINGS'],
             'boots': ['BOOTS'],
-            'weapon': ['SWORD', 'BOW'],
-            'tool': ['PICKAXE', 'AXE', 'HOE', 'SHOVEL', 'FISHING_ROD'],
             'sword': ['SWORD'],
             'bow': ['BOW'],
             'axe': ['AXE'],

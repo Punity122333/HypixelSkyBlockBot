@@ -16,11 +16,11 @@ class UnequipItemModal(discord.ui.Modal, title="Unequip Item"):
     async def on_submit(self, interaction: discord.Interaction):
         slot_value = self.slot.value.lower().strip()
         
-        valid_slots = ['helmet', 'chestplate', 'chest', 'leggings', 'legs', 'boots', 'weapon', 'tool', 'sword', 'bow', 'axe', 'hoe', 'fishing_rod', 'pickaxe', 'shovel']
+        valid_slots = ['helmet', 'chestplate', 'chest', 'leggings', 'legs', 'boots', 'sword', 'bow', 'axe', 'hoe', 'fishing_rod', 'pickaxe', 'shovel']
         
         if slot_value not in valid_slots:
             await interaction.response.send_message(
-                f"❌ Invalid slot! Choose from: helmet, chestplate, leggings, boots, weapon, tool",
+                f"❌ Invalid slot! Choose from: helmet, chestplate, leggings, boots, sword, bow, pickaxe, axe, hoe, fishing_rod",
                 ephemeral=True
             )
             return

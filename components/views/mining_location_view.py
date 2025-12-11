@@ -30,7 +30,7 @@ class MiningLocationView(View):
         import random
         
         equipped_items = await self.bot.db.get_equipped_items(interaction.user.id)
-        pickaxe = equipped_items.get('tool')
+        pickaxe = equipped_items.get('pickaxe')
         if not pickaxe:
             await interaction.followup.send("❌ You need to equip a pickaxe to mine!", ephemeral=True)
             return
@@ -184,7 +184,7 @@ class MiningLocationView(View):
         import random
         
         equipped_items = await self.bot.db.get_equipped_items(interaction.user.id)
-        pickaxe = equipped_items.get('tool')
+        pickaxe = equipped_items.get('pickaxe')
         if not pickaxe:
             await interaction.followup.send("❌ You need to equip a pickaxe to mine!", ephemeral=True)
             return

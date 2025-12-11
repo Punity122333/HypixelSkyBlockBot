@@ -141,10 +141,9 @@ class InventoryDB(DatabaseCore):
             'chestplate': ['CHESTPLATE'],
             'leggings': ['LEGGINGS'],
             'boots': ['BOOTS'],
-            'weapon': ['SWORD', 'BOW'],
-            'tool': ['PICKAXE', 'AXE', 'HOE', 'SHOVEL', 'FISHING_ROD'],
             'sword': ['SWORD'],
             'bow': ['BOW'],
+            'pickaxe': ['PICKAXE'],
             'axe': ['AXE'],
             'hoe': ['HOE'],
             'fishing_rod': ['FISHING_ROD']
@@ -154,13 +153,26 @@ class InventoryDB(DatabaseCore):
             return False
         
         await self.execute(
-            'INSERT OR REPLACE INTO player_equipment (user_id, {}_slot) VALUES (?, ?)'.format(equipment_slot),
-            (user_id, slot_id)
+            'INSERT OR IGNORE INTO player_equipment (user_id) VALUES (?)',
+            (user_id,)
         )
         
-        await self.execute(
-            'UPDATE inventory_items SET equipped = 0 WHERE user_id = ? AND equipped = 1',
+        old_equipment_row = await self.fetchone(
+            'SELECT {}_slot FROM player_equipment WHERE user_id = ?'.format(equipment_slot),
             (user_id,)
+        )
+        
+        old_slot_id = old_equipment_row[f'{equipment_slot}_slot'] if old_equipment_row else None
+        
+        if old_slot_id is not None:
+            await self.execute(
+                'UPDATE inventory_items SET equipped = 0 WHERE user_id = ? AND slot = ?',
+                (user_id, old_slot_id)
+            )
+        
+        await self.execute(
+            'UPDATE player_equipment SET {}_slot = ? WHERE user_id = ?'.format(equipment_slot),
+            (slot_id, user_id)
         )
         
         await self.execute(
@@ -196,17 +208,16 @@ class InventoryDB(DatabaseCore):
                 'chestplate': None,
                 'leggings': None,
                 'boots': None,
-                'weapon': None,
-                'tool': None,
                 'sword': None,
                 'bow': None,
+                'pickaxe': None,
                 'axe': None,
                 'hoe': None,
                 'fishing_rod': None
             }
         
         equipment = {}
-        for slot in ['helmet', 'chestplate', 'leggings', 'boots', 'weapon', 'tool', 'sword', 'bow', 'axe', 'hoe', 'fishing_rod']:
+        for slot in ['helmet', 'chestplate', 'leggings', 'boots', 'sword', 'bow', 'pickaxe', 'axe', 'hoe', 'fishing_rod']:
             slot_id = row[f'{slot}_slot']
             if slot_id is not None:
                 item_row = await self.fetchone(
