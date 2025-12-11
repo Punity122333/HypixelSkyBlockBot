@@ -16,9 +16,12 @@ class MarketGraphingCommands(commands.Cog):
         await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
         
         view = MarketGraphsView(self.bot, interaction.user.id)
-        embed = await view.get_embed()
+        embed, file = await view.get_embed()
         
-        await interaction.followup.send(embed=embed, view=view)
+        if file:
+            await interaction.followup.send(embed=embed, file=file, view=view)
+        else:
+            await interaction.followup.send(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(MarketGraphingCommands(bot))

@@ -5,6 +5,7 @@ from components.buttons.market_graphs_buttons import (
     MarketGraphsFlipsButton,
     MarketGraphsRefreshButton
 )
+from utils.systems.market_graphing_system import MarketGraphingSystem
 
 class MarketGraphsView(discord.ui.View):
     def __init__(self, bot, user_id):
@@ -34,7 +35,7 @@ class MarketGraphsView(discord.ui.View):
     
     async def get_embed(self):
         if self.current_view == 'main':
-            return await self.get_main_embed()
+            return await self.get_main_embed(), None
         elif self.current_view == 'price':
             return await self.get_price_embed()
         elif self.current_view == 'networth':
@@ -42,7 +43,7 @@ class MarketGraphsView(discord.ui.View):
         elif self.current_view == 'flips':
             return await self.get_flips_embed()
         else:
-            return await self.get_main_embed()
+            return await self.get_main_embed(), None
     
     async def get_main_embed(self):
         embed = discord.Embed(
@@ -70,25 +71,84 @@ class MarketGraphsView(discord.ui.View):
         return embed
     
     async def get_price_embed(self):
-        embed = discord.Embed(
-            title="📈 Price History",
-            description="Select an item to view price history",
-            color=discord.Color.blue()
-        )
-        return embed
+        if self.selected_item:
+            price_history = await MarketGraphingSystem.get_price_history(self.bot.db, self.selected_item, self.days)
+            
+            if not price_history:
+                embed = discord.Embed(
+                    title="📈 Price History",
+                    description=f"No price data available for {self.selected_item}",
+                    color=discord.Color.red()
+                )
+                return embed, None
+            
+            graph = MarketGraphingSystem.create_price_graph(price_history, self.selected_item)
+            
+            embed = discord.Embed(
+                title=f"📈 {self.selected_item.replace('_', ' ').title()} - Price History",
+                description=f"Last {self.days} days",
+                color=discord.Color.blue()
+            )
+            embed.set_image(url="attachment://price_graph.png")
+            
+            return embed, discord.File(graph, filename="price_graph.png")
+        else:
+            embed = discord.Embed(
+                title="📈 Price History",
+                description="No item selected. Use dropdown to select an item.",
+                color=discord.Color.blue()
+            )
+            return embed, None
     
     async def get_networth_embed(self):
+        player = await self.bot.db.players.get_player(self.user_id)
+        if not player:
+            embed = discord.Embed(
+                title="💰 Networth Graph",
+                description="Player not found",
+                color=discord.Color.red()
+            )
+            return embed, None
+        
+        networth_history = await MarketGraphingSystem.get_networth_history(self.bot.db, self.user_id, self.days)
+        
+        if not networth_history:
+            embed = discord.Embed(
+                title="💰 Networth Graph",
+                description="No networth data available yet. Your networth will be tracked over time.",
+                color=discord.Color.gold()
+            )
+            return embed, None
+        
+        graph = MarketGraphingSystem.create_networth_graph(networth_history, player['username'])
+        
         embed = discord.Embed(
             title="💰 Networth Graph",
-            description="Your networth progression",
+            description=f"Last {self.days} days",
             color=discord.Color.gold()
         )
-        return embed
+        embed.set_image(url="attachment://networth_graph.png")
+        
+        return embed, discord.File(graph, filename="networth_graph.png")
     
     async def get_flips_embed(self):
+        flips = await MarketGraphingSystem.calculate_best_flips(self.bot.db, self.days)
+        
+        if not flips:
+            embed = discord.Embed(
+                title="💹 Best Flips",
+                description="No flip data available. Price data will be tracked over time.",
+                color=discord.Color.green()
+            )
+            return embed, None
+        
+        graph = MarketGraphingSystem.create_flip_comparison_graph(flips)
+        
         embed = discord.Embed(
             title="💹 Best Flips",
-            description="Most profitable flip opportunities",
+            description=f"Top profit opportunities (Last {self.days} days)",
             color=discord.Color.green()
         )
-        return embed
+        embed.set_image(url="attachment://flips_graph.png")
+        
+        return embed, discord.File(graph, filename="flips_graph.png")

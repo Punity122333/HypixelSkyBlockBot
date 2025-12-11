@@ -28,8 +28,10 @@ COG_CATEGORY_MAP = {
     'BazaarCommands': '🏪 Trading & Markets',
     'MarketplaceCommands': '🏪 Trading & Markets',
     'MerchantCommands': '🏪 Trading & Markets',
+    'MarketGraphingCommands': '🏪 Trading & Markets',
     
     'StockCommands': '📈 Stocks & Economy',
+    'StockMarketCommands': '📈 Stocks & Economy',
     
     'PetCommands': '🐾 Pets & Minions',
     'MinionCommands': '🐾 Pets & Minions',

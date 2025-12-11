@@ -101,6 +101,8 @@ class MarketSystem:
         return buy_price, sell_price
     
     async def update_bazaar_prices(self) -> None:
+        from utils.systems.market_graphing_system import MarketGraphingSystem
+        
         if not self.game_data:
             return
         try:
@@ -112,10 +114,14 @@ class MarketSystem:
                 sell_volume = random.randint(100, 10000)
                 
                 await self.db.update_bazaar_product(item_id, buy_price, sell_price, buy_volume, sell_volume)
+                
+                await MarketGraphingSystem.log_price(self.db, item_id, buy_price, buy_volume, 'bazaar')
         except Exception:
             pass
     
     async def instant_buy(self, user_id: int, product_id: str, amount: int) -> tuple[bool, str]:
+        from utils.systems.market_graphing_system import MarketGraphingSystem
+        
         product = await self.db.get_bazaar_product(product_id)
         if not product:
             return False, "Product not found"
@@ -133,9 +139,16 @@ class MarketSystem:
         
         self.update_supply_demand(product_id, 'buy', amount)
         
+        await MarketGraphingSystem.log_price(self.db, product_id, product['buy_price'], amount, 'bazaar')
+        
+        networth = await MarketGraphingSystem.calculate_networth(self.db, user_id)
+        await MarketGraphingSystem.log_networth(self.db, user_id, networth)
+        
         return True, f"Bought {amount}x {product_id} for {total_cost:,} coins"
     
     async def instant_sell(self, user_id: int, product_id: str, amount: int) -> tuple[bool, str]:
+        from utils.systems.market_graphing_system import MarketGraphingSystem
+        
         item_count = await self.db.get_item_count(user_id, product_id)
         if item_count < amount:
             return False, f"You only have {item_count}x {product_id}"
@@ -157,6 +170,11 @@ class MarketSystem:
         self.update_supply_demand(product_id, 'sell', amount)
         
         await self.db.log_bazaar_flip(user_id, product_id, product['buy_price'], product['sell_price'], amount)
+        
+        await MarketGraphingSystem.log_price(self.db, product_id, product['sell_price'], amount, 'bazaar')
+        
+        networth = await MarketGraphingSystem.calculate_networth(self.db, user_id)
+        await MarketGraphingSystem.log_networth(self.db, user_id, networth)
         
         return True, f"Sold {amount}x {product_id} for {total_gain:,} coins"
     
@@ -572,6 +590,8 @@ async def generate_merchant_deals(db: 'GameDatabase', game_data: Any):
             await db.create_merchant_deal(str(item_id), price, quantity, duration)
 
 async def run_market_simulation(db: 'GameDatabase', market: MarketSystem):
+    from utils.systems.market_graphing_system import MarketGraphingSystem
+    
     try:
         await market.update_bazaar_prices()
         
@@ -593,8 +613,18 @@ async def run_market_simulation(db: 'GameDatabase', market: MarketSystem):
         
         if market.game_data:
             await generate_merchant_deals(db, market.game_data)
+        
+        all_players = await db.fetchall('SELECT user_id FROM players LIMIT 100')
+        for player_row in all_players:
+            try:
+                user_id = player_row['user_id']
+                networth = await MarketGraphingSystem.calculate_networth(db, user_id)
+                if networth > 0:
+                    await MarketGraphingSystem.log_networth(db, user_id, networth)
+            except Exception:
+                pass
+                
     except Exception as e:
-        # Log but don't crash the simulation loop
         print(f'Market simulation error details: {e}')
         import traceback
         traceback.print_exc()
