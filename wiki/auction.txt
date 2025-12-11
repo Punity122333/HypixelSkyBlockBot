@@ -1,0 +1,284 @@
+🏪 Auction House Guide
+
+The Auction House is where players can buy and sell items through bidding or instant purchases (BIN - Buy It Now).
+
+💰 ACCESSING THE AUCTION HOUSE:
+Use /auction to open the Auction House menu
+
+📋 FEATURES:
+
+BROWSE AUCTIONS:
+- View all active auctions
+- Filter by category
+- Sort by price, time, rarity
+- Search for specific items
+
+CREATE AUCTION:
+- List your items for sale
+- Set starting bid price
+- Choose auction duration
+- Optional BIN (instant buy) price
+
+MY AUCTIONS:
+- View your active listings
+- Track bids on your items
+- Collect earnings
+- Cancel auctions (if no bids)
+
+BID HISTORY:
+- See items you've bid on
+- Track auction status
+- Get outbid notifications
+- Collect won items
+
+🎯 CREATING AN AUCTION:
+
+STEPS:
+1. Open /auction menu
+2. Click "Create Auction"
+3. Select item from inventory
+4. Set starting bid (minimum 1 coin)
+5. Choose duration (1h, 6h, 12h, 24h, 48h)
+6. Optional: Set BIN price for instant sale
+7. Confirm and list
+
+AUCTION FEES:
+- 1% listing fee (min 1 coin)
+- 2% sale fee on completion
+- Fees help maintain economy
+- BIN has no extra fees
+
+💡 BIDDING TIPS:
+
+1. WINNING STRATEGIES:
+- Bid in final seconds (snipe)
+- Set max bid wisely
+- Watch for underpriced items
+- Check item value first
+
+2. AVOIDING OVERBIDS:
+- Research market prices with /market_graphs
+- Compare with bazaar prices
+- Don't bid in heat of moment
+- Set personal max prices
+
+3. FINDING DEALS:
+- Sort by ending soon
+- Look for misspellings
+- Check new listings
+- Early morning auctions
+
+📊 BIN vs AUCTION:
+
+BIN (Buy It Now):
+✓ Instant purchase
+✓ No waiting
+✓ Price certainty
+✓ Quick transactions
+✗ Often more expensive
+✗ Less negotiation
+
+AUCTION:
+✓ Potentially lower price
+✓ Exciting bidding
+✓ Good for selling rare items
+✓ Market-driven pricing
+✗ Waiting period
+✗ Risk of being outbid
+✗ Not guaranteed sale
+
+💰 PROFITABLE SELLING:
+
+PRICING STRATEGIES:
+1. Research market value
+2. Check recent sales
+3. Start bid lower to attract attention
+4. Set BIN slightly above market
+5. List rare items without BIN
+
+TIMING:
+- Peak hours: evenings, weekends
+- Avoid event spam
+- 24-48h for rare items
+- 6-12h for common items
+
+PRESENTATION:
+- Clean item names
+- Include stats in description
+- Highlight enchantments
+- Mention rarity
+
+🎯 FINDING UNDERPRICED ITEMS:
+
+FLIP STRATEGIES:
+1. Sort by ending soon
+2. Look for items below 75% market value
+3. Bid max at market price
+4. Relist at proper value
+5. Profit from difference
+
+TOOLS:
+- Use /market_graphs for trends
+- Check /economy_overview
+- Compare with bazaar
+- Track sale history
+
+BOT TRADER AWARENESS:
+- Bots may bid on auctions
+- Creates competitive environment
+- Learn bot patterns
+- Use snipe tactics
+
+⚡ ADVANCED FEATURES:
+
+AUCTION SNIPING:
+- Bid in final 5 seconds
+- Use exact bid amounts
+- Have coins ready
+- Multiple tab strategy
+
+MASS BIDDING:
+- Bid on multiple items
+- Diversify chances
+- Manage coin reserves
+- Track all bids
+
+COLLECTION BIDDING:
+- Buy full sets
+- Negotiate bundles
+- Save on fees
+- Complete collections faster
+
+📈 MARKET ANALYSIS:
+
+TRACK TRENDS:
+- Monitor popular items
+- Watch price fluctuations
+- Identify seasonal patterns
+- Predict demand spikes
+
+EVENT IMPACT:
+- Events affect prices
+- Stock up before events
+- Sell during peak demand
+- Buy low during events
+
+SUPPLY & DEMAND:
+- More listings = lower prices
+- Rare items = higher bids
+- Monitor competition
+- Time listings strategically
+
+🏆 AUCTION ACHIEVEMENTS:
+
+Complete challenges:
+- First auction created
+- First successful bid
+- 10 items sold
+- 100 items sold
+- First auction flip
+- Master Auctioneer
+
+⚠️ COMMON MISTAKES:
+
+DON'T:
+- List items way too high
+- Bid on everything blindly
+- Ignore market research
+- Panic bid
+- List without BIN on common items
+- Forget to collect earnings
+
+DO:
+- Research before listing
+- Set realistic prices
+- Track your investments
+- Be patient
+- Use proper timing
+- Collect promptly
+
+💎 RARE ITEM AUCTIONS:
+
+SPECIAL ITEMS:
+- Legendary weapons
+- Mythic armor
+- Rare pets
+- Event items
+- Limited editions
+
+BEST PRACTICES:
+- No BIN on ultra-rare items
+- 48h duration
+- Start bid: 1 coin (builds hype)
+- Advertise in chat
+- Time for peak hours
+
+🔍 AUCTION INSIGHTS:
+
+Use /auction_insights to see:
+- Total active auctions
+- Average prices
+- Bot activity levels
+- Market trends
+- Popular categories
+
+📱 AUCTION NOTIFICATIONS:
+
+GET NOTIFIED:
+- When you're outbid
+- When auction ends
+- When you win
+- When your item sells
+- 5 minutes before end
+
+🎪 SPECIAL AUCTION EVENTS:
+
+MEGA AUCTIONS:
+- Special event auctions
+- Ultra-rare items
+- Community events
+- Charity auctions
+- Record-breaking sales
+
+FLASH AUCTIONS:
+- 1-hour only
+- Discounted items
+- Limited quantities
+- High competition
+
+💰 PROFIT CALCULATION:
+
+BUYING:
+- Bid price
++ Potential resale value
+- Calculate profit margin
+- Factor in fees
+
+SELLING:
+- Sale price
+- 1% listing fee
+- 2% sale fee
+- Net profit
+
+Example:
+Item sold for 100,000 coins
+- 1,000 listing fee (1%)
+- 2,000 sale fee (2%)
+= 97,000 net earnings
+
+🔐 AUCTION SECURITY:
+
+SAFE PRACTICES:
+- Verify item stats before bidding
+- Check seller reputation
+- Don't fall for scams
+- Report suspicious auctions
+- Double-check BIN prices
+
+AVOID SCAMS:
+- Too good to be true prices
+- Fake item descriptions
+- Similar-looking names
+- Urgent pressure to bid
+
+Start trading in the Auction House today with /auction!

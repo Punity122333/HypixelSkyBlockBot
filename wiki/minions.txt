@@ -1,0 +1,336 @@
+⚙️ Minions Guide
+
+Minions are automated workers that gather resources while you're offline!
+
+🎮 MINION COMMANDS:
+- /minions - View and manage your minions
+- /island - Access your island to place minions
+
+📊 MINION BASICS:
+
+WHAT ARE MINIONS:
+- Automated resource gatherers
+- Work 24/7 (even offline!)
+- Can be upgraded
+- Each type gathers different resources
+- Place on your private island
+
+MINION SLOTS:
+- Start with 5 slots
+- Unlock more with Unique Minion Collection
+- Max slots: 25+
+- Each slot = one active minion
+
+🎯 MINION TYPES:
+
+⛏️ MINING MINIONS:
+- Cobblestone Minion (Most basic)
+- Coal Minion
+- Iron Minion
+- Gold Minion
+- Diamond Minion
+- Emerald Minion
+- Mithril Minion
+- Gemstone Minion
+
+🌾 FARMING MINIONS:
+- Wheat Minion
+- Carrot Minion
+- Potato Minion
+- Pumpkin Minion
+- Melon Minion
+- Sugar Cane Minion
+- Cactus Minion
+- Cocoa Minion
+- Mushroom Minion
+
+⚔️ COMBAT MINIONS:
+- Zombie Minion
+- Skeleton Minion
+- Spider Minion
+- Creeper Minion
+- Enderman Minion
+- Blaze Minion
+- Ghast Minion
+- Slime Minion
+
+🌲 FORAGING MINIONS:
+- Oak Minion
+- Spruce Minion
+- Birch Minion
+- Jungle Minion
+- Acacia Minion
+- Dark Oak Minion
+
+🎣 FISHING MINIONS:
+- Fishing Minion
+- Clay Minion
+
+📈 MINION TIERS:
+
+UPGRADING:
+- Minions have 11 tiers (I-XI)
+- Higher tier = faster collection
+- Each tier costs more resources
+- Tier XI is maximum
+
+TIER BENEFITS:
+- Tier I: Base speed
+- Tier V: 2x speed
+- Tier IX: 3x speed
+- Tier XI: 4x+ speed
+
+UPGRADE COSTS:
+- Gather resources produced by minion
+- Use /craft to upgrade
+- Check requirements carefully
+- Save resources for multiple upgrades
+
+🔧 MINION UPGRADES:
+
+MINION FUEL:
+- Increases minion speed
+- Various types and durations
+- Costs vary by type
+
+TYPES:
+- Coal (5% boost, cheap)
+- Block of Coal (5% boost, lasts longer)
+- Enchanted Bread (5% boost)
+- Enchanted Coal (10% boost)
+- Enchanted Charcoal (15% boost)
+- Hamster Wheel (50% boost, renewable!)
+- Catalyst (3x speed, 3 hours)
+- Solar Panel (infinite daytime speed!)
+
+AUTOMATED SHIPPING:
+- Budget Hopper (20% sell, 160 slots)
+- Enchanted Hopper (50% sell, 192 slots)
+- Auto Smelter (Smelt drops)
+- Compactor (Compress drops)
+- Super Compactor 3000 (Better compression)
+
+STORAGE:
+- Small Storage (3x3 slots)
+- Medium Storage (5x5 slots)
+- Large Storage (7x7 slots)
+- Enchanted Chest (9x9 slots)
+
+SPECIAL UPGRADES:
+- Diamond Spreading (More minion slots)
+- Minion Expander (Increased range)
+- Automated Crafter (Auto-craft items)
+
+💰 PROFITABLE MINIONS:
+
+TOP EARNERS:
+
+EARLY GAME:
+1. Clay Minion (Great coins/day)
+2. Snow Minion (Consistent)
+3. Cobblestone Minion (Starter)
+4. Wheat Minion (Reliable)
+
+MID GAME:
+1. Slime Minion (Very profitable)
+2. Tarantula Minion (Good coins)
+3. Sugar Cane Minion (Steady income)
+4. Melon Minion (Sells well)
+
+LATE GAME:
+1. Tarantula Minion (Best profit)
+2. Slime Minion (Still great)
+3. Diamond Minion (High value)
+4. Clay Minion (Always good)
+
+🎯 MINION LAYOUT:
+
+OPTIMAL PLACEMENT:
+- Spread minions out
+- Use full 25 slots
+- Place storage near spawn
+- Organize by type
+- Leave collection paths
+
+ISLAND DESIGN:
+- Dedicated minion areas
+- Organized rows
+- Theme sections
+- Easy access
+- Aesthetically pleasing
+
+📊 MINION PRODUCTION:
+
+CALCULATING PROFIT:
+1. Check minion speed (actions/day)
+2. Calculate items produced
+3. Check bazaar sell prices
+4. Subtract upgrade costs
+5. Net daily profit
+
+OPTIMIZATION:
+- Use auto-sell upgrades
+- Add fuel for speed
+- Compactors for better prices
+- Upgrade to higher tiers
+- Choose profitable minions
+
+💡 MINION TIPS:
+
+1. STARTING OUT:
+- Craft basic minions (Cobblestone, Wheat)
+- Place all 5 starter slots
+- Collect regularly
+- Sell items on bazaar
+- Reinvest in upgrades
+
+2. EXPANDING:
+- Unlock more slots (craft Unique Minions)
+- Diversify minion types
+- Add storage upgrades
+- Use budget hoppers
+- Upgrade tiers gradually
+
+3. MAXIMIZING PROFIT:
+- Focus on profitable minions
+- Use auto-sell upgrades
+- Add fuel for 24/7 operation
+- Upgrade to tier XI
+- Collect regularly
+
+4. PASSIVE INCOME:
+- Set and forget approach
+- Use super compactors
+- Add enchanted hoppers
+- Check prices weekly
+- Adjust based on market
+
+⚡ ADVANCED STRATEGIES:
+
+MINION FLIPPING:
+- Craft minions
+- Upgrade to higher tiers
+- Sell on auction house
+- Profit from lazy players
+
+COLLECTION BOOSTING:
+- Use specific minions for collections
+- Auto-craft upgrades
+- Complete collection tiers
+- Unlock recipes
+
+SKILL LEVELING:
+- Minions give passive skill XP
+- Small amounts but adds up
+- Mining minions = mining XP
+- Choose based on goals
+
+🏆 MINION ACHIEVEMENTS:
+
+Complete challenges:
+- First minion placed
+- All 5 starter slots filled
+- 10 unique minions crafted
+- 25 unique minions crafted
+- 50 unique minions crafted
+- First tier XI minion
+- All slots unlocked (25+)
+- Master Minion Crafter
+
+📈 MINION SLOTS UNLOCKED:
+
+UNIQUE MINIONS:
+- 0 unique: 5 slots
+- 5 unique: 6 slots
+- 15 unique: 7 slots
+- 30 unique: 8 slots
+- 50 unique: 9 slots
+- 75 unique: 10 slots
+- 100 unique: 11 slots
+- Continues up to 25+ slots!
+
+CRAFTING UNIQUE:
+- Craft one of each minion type
+- All tiers count as same type
+- Focus on cheap minions first
+- Gradually expand collection
+
+🎪 SPECIAL MINIONS:
+
+SNOW MINION:
+- Generates snow
+- Very consistent
+- Good early profit
+- Cold weather proof
+
+SLIME MINION:
+- Produces slimeballs
+- Extremely profitable
+- High market value
+- Must have for profits
+
+TARANTULA MINION:
+- Top tier profit
+- Expensive to craft
+- Worth investment
+- Late game essential
+
+FLOWER MINION:
+- Produces flowers
+- Used in potions
+- Steady demand
+- Underrated profit
+
+⚠️ COMMON MISTAKES:
+
+DON'T:
+- Place only one minion type
+- Forget to collect
+- Ignore storage upgrades
+- Skip fuel
+- Place without planning
+- Sell minions (usually)
+
+DO:
+- Diversify minion types
+- Add storage early
+- Use auto-sell when ready
+- Plan island layout
+- Upgrade strategically
+- Collect regularly
+
+🔍 MINION MATH:
+
+CALCULATING VALUE:
+Daily coins = (Items per day) × (Bazaar price) - (Fuel cost)
+
+Example (Clay Minion XI):
+- 576 clay/day
+- Clay sells for 3 coins
+- = 1,728 coins/day
+- × 25 minions = 43,200 coins/day!
+
+💎 BEST MINION SETUPS:
+
+BEGINNER SETUP (5 slots):
+- 2x Cobblestone Minion
+- 2x Wheat Minion
+- 1x Clay Minion
+
+MID GAME (10-15 slots):
+- 5x Clay Minion
+- 5x Slime Minion
+- 5x Sugar Cane Minion
+
+LATE GAME (20-25 slots):
+- 10x Tarantula Minion
+- 10x Slime Minion
+- 5x Clay Minion
+
+BALANCED SETUP:
+- Mix of all types
+- Focus on collections needed
+- Some profit minions
+- Some resource minions
+
+Start your minion empire with /minions today!

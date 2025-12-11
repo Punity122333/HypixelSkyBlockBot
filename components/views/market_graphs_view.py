@@ -86,9 +86,17 @@ class MarketGraphsView(discord.ui.View):
             
             embed = discord.Embed(
                 title=f"📈 {self.selected_item.replace('_', ' ').title()} - Price History",
-                description=f"Last {self.days} days",
+                description=f"Last {self.days} days ({len(price_history)} data point{'s' if len(price_history) != 1 else ''})",
                 color=discord.Color.blue()
             )
+            
+            if len(price_history) == 1:
+                embed.add_field(
+                    name="ℹ️ Note",
+                    value="Only one data point available. More data will be collected over time!",
+                    inline=False
+                )
+            
             embed.set_image(url="attachment://price_graph.png")
             
             return embed, discord.File(graph, filename="price_graph.png")
@@ -124,9 +132,17 @@ class MarketGraphsView(discord.ui.View):
         
         embed = discord.Embed(
             title="💰 Networth Graph",
-            description=f"Last {self.days} days",
+            description=f"Last {self.days} days ({len(networth_history)} data point{'s' if len(networth_history) != 1 else ''})",
             color=discord.Color.gold()
         )
+        
+        if len(networth_history) == 1:
+            embed.add_field(
+                name="ℹ️ Note",
+                value="Only one data point available. Keep playing to build your history!",
+                inline=False
+            )
+        
         embed.set_image(url="attachment://networth_graph.png")
         
         return embed, discord.File(graph, filename="networth_graph.png")
@@ -146,7 +162,7 @@ class MarketGraphsView(discord.ui.View):
         
         embed = discord.Embed(
             title="💹 Best Flips",
-            description=f"Top profit opportunities (Last {self.days} days)",
+            description=f"Top profit opportunities (Last {self.days} days)\nShowing {min(len(flips), 10)} flip opportunities",
             color=discord.Color.green()
         )
         embed.set_image(url="attachment://flips_graph.png")

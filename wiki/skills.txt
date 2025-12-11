@@ -1,0 +1,351 @@
+📚 Skills Guide
+
+Skills are the core progression system in SkyBlock. Level them up to unlock new abilities, items, and areas!
+
+🎯 SKILL OVERVIEW:
+
+There are 11 main skills in SkyBlock:
+- ⛏️ Mining
+- 🌾 Farming
+- ⚔️ Combat
+- 🎣 Fishing
+- 🌲 Foraging
+- 🔮 Enchanting
+- 🧪 Alchemy
+- 🐾 Taming
+- 🏗️ Carpentry
+- 🔧 Runecrafting
+- 💀 Dungeoneering (Special)
+
+📊 HOW SKILLS WORK:
+
+LEVELING:
+- Perform actions to gain skill XP
+- Each level requires more XP
+- Max level is 50 for most skills
+- Some skills have level 60 cap
+- Dungeoneering goes to 50
+
+BENEFITS:
+- Stat bonuses per level
+- Unlock new areas
+- Access better items
+- Craft new recipes
+- Unlock perks and abilities
+
+VIEW YOUR SKILLS:
+Use /skills to see all your skill levels and progress!
+
+⛏️ MINING:
+
+ACTIONS:
+- /mine to gather ores
+- Mine cobblestone, coal, iron, gold, diamond
+- Access Crystal Hollows
+- Mine gemstones
+
+REWARDS PER LEVEL:
+- +1 Mining Speed
+- +2 Defense
+- Unlock better pickaxes
+- Access new mining areas
+
+TIPS:
+- Upgrade pickaxe regularly
+- Use mining fortune
+- Complete mining collections
+- Access Heart of the Mountain (/hotm)
+
+🌾 FARMING:
+
+ACTIONS:
+- /farm to harvest crops
+- Grow wheat, carrots, potatoes, pumpkins
+- Advanced crops at higher levels
+- Nether wart farming
+
+REWARDS PER LEVEL:
+- +2 Health per level
+- Unlock new crops
+- Better hoe efficiency
+- Farming fortune bonus
+
+TIPS:
+- Upgrade your hoe
+- Build crop collections
+- Use farming minions
+- Participate in farming contests
+
+⚔️ COMBAT:
+
+ACTIONS:
+- /fight monsters in various locations
+- Complete /dungeon runs
+- Fight /boss enemies
+- /slayer quests
+
+REWARDS PER LEVEL:
+- +1 Strength
+- +2 Health
+- +0.5 Crit Chance
+- Access harder areas
+
+TIPS:
+- Upgrade weapons and armor
+- Level up in easy areas first
+- Complete combat collections
+- Join dungeon parties
+
+🎣 FISHING:
+
+ACTIONS:
+- /fish to catch fish
+- Catch sea creatures
+- Trophy fishing
+- Lava fishing (Crimson Isle)
+
+REWARDS PER LEVEL:
+- +2 Health per level
+- Better catch rates
+- Sea creature chance
+- Access special fishing areas
+
+TIPS:
+- Upgrade fishing rod
+- Use bait for better catches
+- Fish during events
+- Build fishing collections
+
+🌲 FORAGING:
+
+ACTIONS:
+- /forage to chop trees
+- Gather all wood types
+- Hunt Treants
+- Mushroom gathering
+
+REWARDS PER LEVEL:
+- +1 Foraging Fortune
+- +1 Strength
+- Unlock special axes
+- Better wood drop rates
+
+TIPS:
+- Upgrade axe regularly
+- Clear entire forests
+- Hunt for Treants
+- Complete wood collections
+
+🔮 ENCHANTING:
+
+ACTIONS:
+- /enchant items
+- Use enchanting table
+- Combine enchantments
+- Experiment with combinations
+
+REWARDS PER LEVEL:
+- +1 Intelligence per level
+- Access higher enchantments
+- Better success rates
+- Unlock rare enchants
+
+TIPS:
+- Gather lots of lapis
+- Build experience farm
+- Unlock all enchantments
+- Use grand experience bottles
+
+🧪 ALCHEMY:
+
+ACTIONS:
+- Brew potions
+- Mix ingredients
+- Create special potions
+- Experiment with recipes
+
+REWARDS PER LEVEL:
+- +1 Intelligence per level
+- Unlock new potion types
+- Better potion duration
+- Stronger potion effects
+
+TIPS:
+- Gather brewing ingredients
+- Complete alchemy quests
+- Experiment with recipes
+- Use potions in combat
+
+🐾 TAMING:
+
+ACTIONS:
+- /taming to level up
+- Tame and level pets
+- Feed pets
+- Complete pet quests
+
+REWARDS PER LEVEL:
+- +1 Pet Luck
+- Access better pets
+- More pet slots
+- Pet ability unlocks
+
+TIPS:
+- Collect many pets
+- Level pets with XP
+- Complete bestiary
+- Use pet items
+
+🏗️ CARPENTRY:
+
+ACTIONS:
+- /carpentry to level up
+- Craft furniture
+- Build structures
+- Complete building projects
+
+REWARDS PER LEVEL:
+- Unlock new furniture
+- Better building materials
+- Crafting speed bonus
+- Access special recipes
+
+TIPS:
+- Gather wood types
+- Complete carpentry quests
+- Build on your island
+- Craft decorative items
+
+🔧 RUNECRAFTING:
+
+ACTIONS:
+- /runecrafting to level up
+- Craft runes
+- Apply runes to items
+- Combine rune effects
+
+REWARDS PER LEVEL:
+- +1 Intelligence
+- Unlock better runes
+- More rune slots
+- Stronger rune effects
+
+TIPS:
+- Gather rune materials
+- Complete runecrafting quests
+- Experiment with combinations
+- Apply to best gear
+
+💀 DUNGEONEERING:
+
+ACTIONS:
+- /dungeon to enter dungeons
+- Complete floor objectives
+- Find secrets
+- Defeat bosses
+
+REWARDS PER LEVEL:
+- +2 Health per level
+- Unlock higher floors
+- Better loot chances
+- Dungeon class abilities
+
+TIPS:
+- Choose a dungeon class
+- Join parties
+- Find all secrets
+- Practice boss mechanics
+
+📈 SKILL LEVELING TIPS:
+
+EFFICIENT LEVELING:
+1. Focus on one skill at a time
+2. Use XP boost potions
+3. Participate in skill events
+4. Complete collections
+5. Use appropriate tools/gear
+
+PASSIVE LEVELING:
+- Place skill-specific minions
+- Auto-collect resources
+- Upgrade minions regularly
+- Use minion expanders
+
+ACTIVE LEVELING:
+- Dedicated grinding sessions
+- Join skill parties
+- Use XP boost events
+- Complete daily quests
+
+💰 SKILL AVERAGE:
+
+WHAT IS IT:
+- Average of all your skill levels
+- Important progression metric
+- Affects your profile strength
+- Required for some areas
+
+HOW TO IMPROVE:
+- Level all skills evenly
+- Don't neglect any skill
+- Use /progression to track
+- Set skill level goals
+
+🎯 SKILL MILESTONES:
+
+LEVEL 10:
+- Basic mastery
+- Core features unlocked
+- Better efficiency
+
+LEVEL 25:
+- Intermediate master
+- Most features available
+- Strong bonuses
+
+LEVEL 50:
+- Maximum level (most skills)
+- All features unlocked
+- Maximum bonuses
+- Master title unlocked
+
+🏆 ACHIEVEMENTS:
+
+Complete skill challenges:
+- First level in each skill
+- Level 10 in all skills
+- Level 25 in a skill
+- Level 50 in a skill
+- Max all skills (Ultimate goal!)
+
+💡 GENERAL TIPS:
+
+1. Balance is key - don't neglect skills
+2. Use appropriate gear for each skill
+3. Join events for bonus XP
+4. Complete collections for rewards
+5. Use minions for passive gains
+6. Set daily skill goals
+7. Track progress with /progression
+8. Participate in skill contests
+9. Join skill-focused guilds
+10. Have fun and enjoy the grind!
+
+⚡ SKILL BONUSES:
+
+Each skill provides unique bonuses:
+- Mining: Defense, Mining Speed, Fortune
+- Farming: Health, Farming Fortune
+- Combat: Strength, Health, Crit Chance
+- Fishing: Health, Sea Creature Chance
+- Foraging: Strength, Foraging Fortune
+- Enchanting: Intelligence, Enchant Power
+- Alchemy: Intelligence, Potion Duration
+- Taming: Pet Luck, Pet XP Bonus
+- Carpentry: Crafting Speed
+- Runecrafting: Intelligence, Rune Power
+- Dungeoneering: Health, Dungeon Stats
+
+View your stats with /profile to see all bonuses!
+
+Start leveling today - every action counts toward your skills!

@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
 from datetime import datetime, timedelta
 
 class MarketGraphingSystem:
@@ -59,29 +60,67 @@ class MarketGraphingSystem:
     
     @staticmethod
     def create_price_graph(price_data: List[Dict[str, Any]], item_id: str) -> io.BytesIO:
+        import numpy as np
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
         
         if not price_data:
             ax1.text(0.5, 0.5, 'No price data available', ha='center', va='center')
             ax2.text(0.5, 0.5, 'No volume data available', ha='center', va='center')
+            ax1.set_title(f'{item_id.replace("_", " ").title()} - Price History', fontsize=16, fontweight='bold')
         else:
             timestamps = [datetime.fromtimestamp(d['timestamp']) for d in price_data]
             prices = [d['price'] for d in price_data]
             volumes = [d['volume'] for d in price_data]
             
-            ax1.plot(timestamps, prices, marker='o', linestyle='-', color='#2ecc71', linewidth=2, markersize=4)
-            ax1.fill_between(timestamps, prices, alpha=0.3, color='#2ecc71')
+            if len(price_data) == 1:
+                ax1.scatter(timestamps, prices, marker='o', color='#2ecc71', s=200, zorder=5)
+                ax1.axhline(y=prices[0], color='#2ecc71', linestyle='--', alpha=0.5)
+                y_margin = max(prices[0] * 0.1, 10)
+                ax1.set_ylim(prices[0] - y_margin, prices[0] + y_margin)
+                
+                time_margin = timedelta(hours=12)
+                left_lim = mdates.date2num(timestamps[0] - time_margin)
+                right_lim = mdates.date2num(timestamps[0] + time_margin)
+                ax1.set_xlim(float(left_lim), float(right_lim))
+                
+                ax2.bar(timestamps, volumes, color='#3498db', alpha=0.7, width=0.5)
+                ax2.set_xlim(float(left_lim), float(right_lim))
+            else:
+                ax1.plot(timestamps, prices, marker='o', linestyle='-', color='#2ecc71', linewidth=2, markersize=4)
+                ax1.fill_between(timestamps, prices, alpha=0.3, color='#2ecc71')
+                
+                bar_width = (timestamps[-1] - timestamps[0]).total_seconds() / (len(timestamps) * 86400 * 10)
+                ax2.bar(timestamps, volumes, color='#3498db', alpha=0.7, width=max(bar_width, 0.02))
+            
             ax1.set_title(f'{item_id.replace("_", " ").title()} - Price History', fontsize=16, fontweight='bold')
             ax1.set_ylabel('Price (coins)', fontsize=12)
             ax1.grid(True, alpha=0.3)
-            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+            ax1.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: f'{int(x):,}'))
             
-            ax2.bar(timestamps, volumes, color='#3498db', alpha=0.7, width=0.02)
+            if len(price_data) == 1:
+                ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M'))
+            elif len(price_data) < 10:
+                ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M'))
+            else:
+                ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+            
             ax2.set_title('Trading Volume', fontsize=14, fontweight='bold')
             ax2.set_xlabel('Date', fontsize=12)
             ax2.set_ylabel('Volume', fontsize=12)
             ax2.grid(True, alpha=0.3)
-            ax2.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+            ax2.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: f'{int(x):,}'))
+            
+            if len(price_data) == 1:
+                ax2.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M'))
+            elif len(price_data) < 10:
+                ax2.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M'))
+            else:
+                ax2.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+            
+            for label in ax1.get_xticklabels():
+                label.set_rotation(45)
+            for label in ax2.get_xticklabels():
+                label.set_rotation(45)
         
         plt.tight_layout()
         
@@ -94,20 +133,18 @@ class MarketGraphingSystem:
     
     @staticmethod
     def create_networth_graph(networth_data: List[Dict[str, Any]], username: str) -> io.BytesIO:
+        import numpy as np
         fig, ax = plt.subplots(figsize=(12, 6))
         
         if not networth_data:
             ax.text(0.5, 0.5, 'No networth data available yet', ha='center', va='center', fontsize=14)
+            ax.set_title(f'{username}\'s Networth History', fontsize=16, fontweight='bold')
         else:
-            import numpy as np
             timestamps = [datetime.fromtimestamp(d['timestamp']) for d in networth_data]
             networth = [d['networth'] for d in networth_data]
             
             timestamps_np = np.array(timestamps)
             networth_np = np.array(networth)
-            
-            ax.plot(timestamps_np, networth_np, marker='o', linestyle='-', color='#f39c12', linewidth=3, markersize=6)
-            ax.fill_between(timestamps_np, networth_np, alpha=0.3, color='#f39c12')
             
             start_value = networth[0]
             end_value = networth[-1]
@@ -116,6 +153,28 @@ class MarketGraphingSystem:
             
             color = '#2ecc71' if change >= 0 else '#e74c3c'
             sign = '+' if change >= 0 else ''
+            
+            if len(networth_data) == 1:
+                ax.scatter(timestamps_np, networth_np, marker='o', color='#f39c12', s=200, zorder=5)
+                ax.axhline(y=networth[0], color='#f39c12', linestyle='--', alpha=0.5)
+                y_margin = max(networth[0] * 0.1, 1000)
+                ax.set_ylim(networth[0] - y_margin, networth[0] + y_margin)
+                
+                time_margin = timedelta(hours=12)
+                left_lim = mdates.date2num(timestamps[0] - time_margin)
+                right_lim = mdates.date2num(timestamps[0] + time_margin)
+                ax.set_xlim(float(left_lim), float(right_lim))
+            else:
+                ax.plot(timestamps_np, networth_np, marker='o', linestyle='-', color='#f39c12', linewidth=3, markersize=8)
+                ax.fill_between(timestamps_np, networth_np, alpha=0.3, color='#f39c12')
+                
+                y_range = max(networth) - min(networth)
+                if y_range > 0:
+                    y_margin = y_range * 0.1
+                else:
+                    y_margin = max(networth[0] * 0.1, 1000)
+                ax.set_ylim(min(networth) - y_margin, max(networth) + y_margin)
+            
             ax.set_title(
                 f'{username}\'s Networth History\n{sign}{change:,.0f} coins ({sign}{change_percent:.1f}%)',
                 fontsize=16, fontweight='bold', color=color
@@ -124,10 +183,16 @@ class MarketGraphingSystem:
             ax.set_ylabel('Networth (coins)', fontsize=12)
             ax.set_xlabel('Date', fontsize=12)
             ax.grid(True, alpha=0.3)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d %H:%M'))
             
-            for label in ax.get_yticklabels():
-                label.set_fontsize(10)
+            if len(networth_data) == 1:
+                ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M'))
+            elif len(networth_data) < 10:
+                ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d\n%H:%M'))
+            else:
+                ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+            
+            ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: f'{int(x):,}'))
+            
             for label in ax.get_xticklabels():
                 label.set_rotation(45)
                 label.set_fontsize(10)
@@ -147,6 +212,7 @@ class MarketGraphingSystem:
         
         if not flips:
             ax.text(0.5, 0.5, 'No flip data available', ha='center', va='center', fontsize=14)
+            ax.set_title('Top 10 Most Profitable Flips (7 Days)', fontsize=16, fontweight='bold')
         else:
             flips_sorted = sorted(flips[:10], key=lambda x: x['profit'], reverse=True)
             items = [f['item_id'].replace('_', ' ').title()[:20] for f in flips_sorted]
@@ -163,7 +229,10 @@ class MarketGraphingSystem:
             
             ax.set_title('Top 10 Most Profitable Flips (7 Days)', fontsize=16, fontweight='bold')
             ax.set_xlabel('Profit (coins)', fontsize=12)
+            ax.xaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: f'{int(x):,}'))
             ax.grid(True, alpha=0.3, axis='x')
+            
+            ax.set_xlim(left=0, right=max(profits) * 1.2 if profits else 100)
         
         plt.tight_layout()
         

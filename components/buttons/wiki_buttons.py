@@ -40,3 +40,4 @@ class WikiLastButton(discord.ui.Button):
         self.parent_view.current_page = len(self.parent_view.pages) - 1
         self.parent_view.update_buttons()
         await interaction.response.edit_message(embed=self.parent_view.get_embed(), view=self.parent_view)
+

@@ -1,0 +1,390 @@
+⛏️ Heart of the Mountain (HOTM) Guide
+
+Heart of the Mountain is the ultimate mining progression system in the Dwarven Mines!
+
+🎮 HOTM COMMANDS:
+- /hotm - Access your Heart of the Mountain tree
+
+📊 HOTM BASICS:
+
+WHAT IS HOTM:
+- Special skill tree for miners
+- Unlock powerful mining perks
+- Costs powder to upgrade
+- Permanent stat bonuses
+- Essential for endgame mining
+
+ACCESSING HOTM:
+1. Reach Combat Level 5
+2. Enter Dwarven Mines
+3. Talk to the Lift Operator
+4. Begin your mining journey
+5. Use /hotm to view progress
+
+HOTM TIERS:
+- Tier 1-10 progression
+- Each tier unlocks perks
+- Higher tiers = better perks
+- Requires HOTM XP to level
+
+💎 POWDER SYSTEM:
+
+TWO POWDER TYPES:
+
+MITHRIL POWDER:
+- Earned from mining in Dwarven Mines
+- Used for most HOTM perks
+- Farm in Mithril areas
+- Passive collection
+
+GEMSTONE POWDER:
+- Earned from Crystal Hollows
+- Used for advanced perks
+- Harder to obtain
+- Higher value
+
+EARNING POWDER:
+- Mine in Dwarven Mines
+- Complete Commissions
+- Crystal Hollows mining
+- Events and bonuses
+- Powder Ghasts (rare spawns)
+
+📈 HOTM PERKS:
+
+TIER 1 PERKS:
+
+Mining Speed:
+- Increases mining speed
+- Max level: 50
+- Cost: 20 Mithril Powder per level
+- Essential starter perk
+
+Mining Fortune:
+- Increases ore drops
+- Max level: 50
+- Cost: 20 Mithril Powder per level
+- Very profitable
+
+Efficient Miner:
+- Reduces pickaxe cooldowns
+- Max level: 100
+- Cost: 50 Mithril Powder per level
+- Quality of life upgrade
+
+TIER 2 PERKS:
+
+Pickaxe Ability:
+- Cooldown reduction
+- Max level: 5
+- Cost: 100 Mithril Powder per level
+- Ability spam enabled
+
+Titanium Insanium:
+- Chance for 2-5x drops
+- Max level: 50
+- Cost: 100 Mithril Powder per level
+- Massive profit boost
+
+Luck of the Cave:
+- Increased rare treasure find
+- Max level: 45
+- Cost: 100 Mithril Powder per level
+- Find rare items
+
+TIER 3 PERKS:
+
+Great Explorer:
+- Increases cave speed
+- Max level: 20
+- Cost: 200 Mithril Powder per level
+- Fast traversal
+
+Crystallized:
+- Gemstone fortune
+- Max level: 30
+- Cost: 200 Gemstone Powder per level
+- Crystal Hollows essential
+
+Professional:
+- Mining speed boost
+- Max level: 140
+- Cost: 200 Mithril Powder per level
+- Maximum efficiency
+
+TIER 4 PERKS:
+
+Lonesome Miner:
+- Solo mining boost
+- Max level: 45
+- Cost: 300 Mithril Powder per level
+- +% stats when mining alone
+
+Mining Speed II:
+- Additional speed boost
+- Max level: 50
+- Cost: 300 Mithril Powder per level
+- Stack with Mining Speed I
+
+Powder Buff:
+- Gain more powder
+- Max level: 50
+- Cost: 400 Mithril Powder per level
+- Snowball effect
+
+TIER 5 PERKS:
+
+Mining Madness:
+- Temporary speed burst
+- Cooldown ability
+- Cost: 500 Mithril Powder per level
+- Clutch mining
+
+Sky Mall:
+- Better commission rewards
+- Max level: 1
+- Cost: 10,000 Mithril Powder
+- One-time purchase
+
+Peak of the Mountain:
+- Reach the peak
+- Max level: 10
+- Cost: Increases per level
+- Ultimate goal
+
+🎯 RECOMMENDED PROGRESSION:
+
+EARLY GAME (Tier 1-3):
+1. Mining Speed → Level 50
+2. Mining Fortune → Level 50
+3. Efficient Miner → Level 50
+4. Start on Tier 2 perks
+
+MID GAME (Tier 4-6):
+1. Titanium Insanium → Level 50
+2. Professional → Level 100
+3. Powder Buff → Level 30
+4. Great Explorer → Level 20
+
+LATE GAME (Tier 7-10):
+1. Crystallized → Level 30 (if doing Crystal Hollows)
+2. Peak of the Mountain → Max
+3. Mining Speed II → Level 50
+4. Max all remaining perks
+
+💰 POWDER FARMING:
+
+EFFICIENT METHODS:
+
+MITHRIL POWDER:
+- Farm in Rampart's Quarry
+- Complete daily commissions
+- Mine mithril veins
+- Use powder artifacts
+- Join mining events
+
+GEMSTONE POWDER:
+- Crystal Hollows mining
+- Focus on gemstone veins
+- Use peak artifacts
+- Complete CH commissions
+- Robot parts trading
+
+DAILY ROUTINE:
+1. Complete 4 commissions (6,000+ powder)
+2. Farm high-density areas
+3. Hunt powder ghasts
+4. Mine during events
+5. Use powder buffs
+
+⚡ SPECIAL FEATURES:
+
+COMMISSIONS:
+- Daily quests from NPCs
+- Reward mithril/gemstone powder
+- 4 commissions per day
+- Reset at midnight
+- Essential for progression
+
+COMMISSION TYPES:
+- Mining commissions (mine X ore)
+- Speed commissions (mine in time)
+- Collection commissions (gather items)
+- Special event commissions
+
+POWDER GHASTS:
+- Rare spawns in mines
+- Drop massive powder amounts
+- Have health bars
+- Require combat stats
+- Worth hunting
+
+PEAK OF THE MOUNTAIN:
+- Ultimate HOTM achievement
+- Requires millions of powder
+- Permanent stat bonuses
+- Prestige system
+- Bragging rights
+
+🏆 HOTM ACHIEVEMENTS:
+
+Complete milestones:
+- First HOTM perk unlocked
+- HOTM Tier 1 reached
+- HOTM Tier 5 reached
+- HOTM Tier 10 reached
+- All perks level 1
+- Peak of the Mountain I
+- Peak of the Mountain VII
+- Master Miner
+
+💡 HOTM TIPS:
+
+1. STARTING OUT:
+- Focus on Mining Speed first
+- Do commissions daily
+- Farm mithril in Dwarven Mines
+- Don't waste powder on wrong perks
+- Follow recommended progression
+
+2. MID-GAME OPTIMIZATION:
+- Max Titanium Insanium early
+- Balance speed and fortune
+- Start Crystal Hollows
+- Farm during events
+- Join mining lobbies
+
+3. ENDGAME GOALS:
+- Max all important perks
+- Peak of the Mountain focus
+- Gemstone powder farming
+- Perfect optimization
+- Help newer players
+
+4. POWDER MANAGEMENT:
+- Track powder gains daily
+- Plan perk upgrades
+- Don't rush Peak too early
+- Balance both powder types
+- Save for important perks
+
+📊 PERK PRIORITY:
+
+MUST HAVE (Priority 1):
+- Mining Speed
+- Mining Fortune
+- Efficient Miner
+- Titanium Insanium
+- Powder Buff
+
+VERY USEFUL (Priority 2):
+- Professional
+- Great Explorer
+- Sky Mall
+- Pickaxe Ability
+- Luck of the Cave
+
+SITUATIONAL (Priority 3):
+- Crystallized (Crystal Hollows)
+- Lonesome Miner (Solo players)
+- Mining Madness (Speedrunning)
+- Mining Speed II (Late game)
+
+🎪 MINING EVENTS:
+
+SPECIAL EVENTS:
+- 2x Powder events
+- Better Ore events
+- Mithril Madness
+- Gemstone Frenzy
+- Commission events
+
+EVENT BENEFITS:
+- Double powder gains
+- Better drop rates
+- Bonus XP
+- Special rewards
+- Limited-time perks
+
+📈 PROGRESSION TIMELINE:
+
+WEEK 1:
+- Reach HOTM Tier 1
+- Unlock basic perks
+- Complete daily commissions
+- Learn mining areas
+
+MONTH 1:
+- Reach HOTM Tier 5
+- Max Mining Speed/Fortune
+- Regular commission routine
+- Start Crystal Hollows
+
+MONTH 3:
+- Reach HOTM Tier 7
+- Most perks high level
+- Efficient powder farming
+- Peak progression begins
+
+ENDGAME:
+- HOTM Tier 10
+- Peak of the Mountain focus
+- All perks maxed
+- Ultimate miner status
+
+💎 CRYSTAL HOLLOWS INTEGRATION:
+
+HOTM IN CH:
+- Crystallized perk essential
+- Gemstone powder focus
+- Commission completion
+- Treasure finding
+- Efficient routing
+
+RECOMMENDED PERKS:
+- Crystallized (Max priority)
+- Great Explorer (Fast travel)
+- Luck of the Cave (Treasures)
+- Mining Fortune (More gems)
+
+⚠️ COMMON MISTAKES:
+
+DON'T:
+- Rush Peak of the Mountain early
+- Ignore commissions
+- Waste powder on low-priority perks
+- Skip Mining Speed/Fortune
+- Give up on powder farming
+
+DO:
+- Follow recommended progression
+- Complete daily commissions
+- Balance your perks
+- Farm during events
+- Track your powder gains
+- Join mining communities
+
+🔍 ADVANCED STRATEGIES:
+
+POWDER OPTIMIZATION:
+- Calculate cost per benefit
+- Plan upgrades in advance
+- Focus on multiplicative perks
+- Balance powder types
+- Save for expensive perks
+
+COMMISSION MASTERY:
+- Optimize routes
+- Speed complete
+- Choose best commissions
+- Use commission tracker
+- Never miss a day
+
+PEAK RUSHING:
+- Very expensive strategy
+- Requires millions of powder
+- Months of grinding
+- Ultimate prestige
+- Not recommended for beginners
+
+Start your HOTM journey today with /hotm!

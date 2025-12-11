@@ -1,0 +1,435 @@
+📈 Stock Market Guide
+
+Trade stocks and build your investment portfolio in the SkyBlock Stock Exchange!
+
+🎮 STOCK COMMANDS:
+- /stocks - Access the stock market menu
+
+📊 STOCK BASICS:
+
+WHAT IS THE STOCK MARKET:
+- Trade company shares
+- Buy low, sell high
+- Real-time price fluctuations
+- Dividends from holdings
+- Long-term investment strategy
+
+HOW IT WORKS:
+1. Open /stocks menu
+2. Browse available stocks
+3. Buy shares with coins
+4. Hold or trade based on price
+5. Sell for profit (or loss!)
+6. Collect dividends
+
+💰 AVAILABLE STOCKS:
+
+SKYBLOCK COMPANIES:
+
+DWARVEN MINING CO. (DMC):
+- Mining industry stock
+- Affected by ore prices
+- Stable long-term
+- Good dividends
+- Recommended for beginners
+
+CRIMSON VENTURES (CRV):
+- Combat equipment company
+- Volatile but high returns
+- Affected by combat events
+- Good for trading
+- Medium risk
+
+FARMING COOPERATIVE (FRM):
+- Agricultural stock
+- Seasonal variations
+- Steady growth
+- Reliable dividends
+- Low risk
+
+FISHING INDUSTRIES (FSH):
+- Fishing sector stock
+- Affected by sea creature events
+- Moderate volatility
+- Good for diversification
+- Medium risk
+
+ENCHANTING UNLIMITED (ENC):
+- Magic and enchanting sector
+- High growth potential
+- Volatile prices
+- Lower dividends
+- High risk, high reward
+
+BAZAAR HOLDINGS (BZR):
+- Market sector stock
+- Affected by economy health
+- Very stable
+- Moderate dividends
+- Safe investment
+
+AUCTION HOUSE INC (AHI):
+- Trading platform stock
+- Affected by trading volume
+- Moderate growth
+- Good dividends
+- Medium-low risk
+
+MINION AUTOMATION (MNA):
+- Automation industry
+- Steady growth
+- Low volatility
+- Reliable dividends
+- Great for long-term
+
+📈 STOCK PRICES:
+
+PRICE FACTORS:
+- Supply and demand
+- Market events
+- Economic health
+- Company performance
+- Player trading activity
+- Random market fluctuations
+
+PRICE RANGES:
+- Starting price: ~1,000 coins
+- Low: 500-2,000 coins
+- Medium: 2,000-10,000 coins
+- High: 10,000-50,000 coins
+- Extreme: 50,000+ coins
+
+TRACKING PRICES:
+- Real-time updates in /stocks menu
+- Price history charts
+- 24-hour change percentage
+- Volume traded today
+- Market cap
+
+💡 INVESTMENT STRATEGIES:
+
+DAY TRADING:
+- Buy and sell same day
+- Watch for small price swings
+- Requires active monitoring
+- High risk, quick profits
+- Use limit orders
+
+SWING TRADING:
+- Hold for days/weeks
+- Catch medium trends
+- Less active monitoring
+- Moderate risk
+- Good for part-time traders
+
+LONG-TERM INVESTING:
+- Hold for months
+- Focus on dividends
+- Low active monitoring
+- Lower risk
+- Build wealth slowly
+
+VALUE INVESTING:
+- Find undervalued stocks
+- Hold until fair value
+- Research required
+- Medium risk
+- Patient approach
+
+DIVERSIFICATION:
+- Spread across multiple stocks
+- Reduce overall risk
+- Balance portfolio
+- Recommended for all
+- Don't put all coins in one stock
+
+🎯 BUYING STOCKS:
+
+MARKET ORDER:
+- Instant purchase
+- Buy at current price
+- Guaranteed execution
+- May pay more than expected
+- Good for large cap stocks
+
+LIMIT ORDER:
+- Set your buy price
+- Wait for price to drop
+- May not execute
+- Better control
+- Good for planning
+
+HOW MANY TO BUY:
+- Start small (10-50 shares)
+- Build position over time
+- Average cost down
+- Don't invest more than you can lose
+- Keep coins for emergencies
+
+💰 SELLING STOCKS:
+
+WHEN TO SELL:
+- Hit profit target (10%, 25%, 50%+)
+- Stock becomes overvalued
+- Need coins urgently
+- Better opportunities arise
+- Cutting losses (down 20%+)
+
+MARKET ORDER:
+- Instant sale
+- Sell at current price
+- Guaranteed execution
+- May get less than expected
+- Good for quick exits
+
+LIMIT ORDER:
+- Set your sell price
+- Wait for price to rise
+- May not execute
+- Better control
+- Good for profit targets
+
+PROFIT TAKING:
+- Sell portions (25%, 50%, 75%)
+- Lock in gains
+- Keep some for more upside
+- Systematic approach
+- Reduces regret
+
+📊 DIVIDENDS:
+
+WHAT ARE DIVIDENDS:
+- Payments to shareholders
+- Based on shares owned
+- Paid weekly
+- Passive income
+- Compounds over time
+
+DIVIDEND RATES:
+- Low yield: 1-2% annual
+- Medium yield: 3-5% annual
+- High yield: 6-10% annual
+- Very high: 10%+ annual
+
+DIVIDEND STOCKS:
+Best dividends:
+1. Bazaar Holdings - 7% yield
+2. Minion Automation - 6% yield
+3. Farming Cooperative - 5% yield
+4. Dwarven Mining Co. - 4% yield
+
+REINVESTING:
+- Use dividends to buy more shares
+- Compound your returns
+- Build position faster
+- Long-term wealth building
+
+💎 PORTFOLIO MANAGEMENT:
+
+BALANCED PORTFOLIO:
+- 40% stable stocks (DMC, FRM, BZR)
+- 30% growth stocks (MNA, AHI)
+- 20% high-risk stocks (ENC, CRV)
+- 10% speculation/trading
+
+AGGRESSIVE PORTFOLIO:
+- 20% stable
+- 30% growth
+- 50% high-risk
+- Higher returns, higher risk
+
+CONSERVATIVE PORTFOLIO:
+- 60% stable
+- 30% growth
+- 10% high-risk
+- Lower returns, lower risk
+
+REBALANCING:
+- Review monthly
+- Sell winners (take profits)
+- Buy losers (if still good value)
+- Maintain target allocation
+- Adjust based on market
+
+📈 TECHNICAL ANALYSIS:
+
+READING CHARTS:
+- Price trends (up, down, sideways)
+- Support levels (price floors)
+- Resistance levels (price ceilings)
+- Volume patterns
+- Moving averages
+
+TREND FOLLOWING:
+- Uptrend: Higher highs, higher lows
+- Downtrend: Lower highs, lower lows
+- Sideways: Range-bound
+- Buy uptrends, sell downtrends
+- Stay out of sideways markets
+
+INDICATORS:
+- 50-day moving average
+- Volume spikes
+- Price breakouts
+- Overbought/oversold
+- Momentum shifts
+
+🎪 MARKET EVENTS:
+
+SPECIAL EVENTS:
+- Bull Market (rising prices)
+- Bear Market (falling prices)
+- Market Crash (sudden drop)
+- Rally (quick rise)
+- Dividend Bonus Weeks
+
+EVENT IMPACTS:
+- Mining events boost DMC
+- Combat events boost CRV
+- Farming events boost FRM
+- Economy events affect all
+- Plan around events
+
+⚡ RISK MANAGEMENT:
+
+STOP LOSSES:
+- Sell if down 10-20%
+- Prevents major losses
+- Unemotional exits
+- Preserve capital
+- Live to trade another day
+
+POSITION SIZING:
+- Don't invest more than 10% in one stock
+- Start with 5% positions
+- Scale up winners
+- Cut losers quickly
+- Maintain cash reserve
+
+DIVERSIFICATION:
+- Own 5-10 different stocks
+- Different sectors
+- Different risk levels
+- Reduces overall risk
+- Smoother returns
+
+EMOTIONAL CONTROL:
+- Don't panic sell
+- Don't FOMO buy
+- Stick to your plan
+- Track performance
+- Learn from mistakes
+
+🏆 STOCK ACHIEVEMENTS:
+
+Complete milestones:
+- First stock purchased
+- 10,000 coins profit
+- 100,000 coins profit
+- Own 100 shares total
+- Own stock in 5 companies
+- Receive first dividend
+- Portfolio worth 1M coins
+- Master Investor
+
+💡 BEGINNER TIPS:
+
+1. START SMALL:
+- Invest 10,000-50,000 coins
+- Buy stable stocks first
+- Learn how prices move
+- Track your trades
+- Don't rush
+
+2. DO RESEARCH:
+- Check /market_graphs
+- Study price history
+- Understand the company
+- Read market news
+- Ask experienced investors
+
+3. BE PATIENT:
+- Don't expect instant profits
+- Hold good stocks
+- Let dividends compound
+- Markets go up and down
+- Time in market > timing market
+
+4. LEARN FROM LOSSES:
+- Everyone loses sometimes
+- Analyze what went wrong
+- Adjust strategy
+- Don't give up
+- Small losses = tuition
+
+📊 ADVANCED STRATEGIES:
+
+DOLLAR COST AVERAGING:
+- Buy fixed amount regularly
+- Weekly or daily purchases
+- Reduces timing risk
+- Lowers average cost
+- Systematic approach
+
+MOMENTUM TRADING:
+- Buy strong uptrends
+- Ride the wave
+- Sell on weakness
+- High win rate
+- Requires discipline
+
+PAIRS TRADING:
+- Buy one stock, short related stock
+- Profit from relationship
+- Market neutral
+- Advanced technique
+- Reduces overall risk
+
+OPTIONS (Future Feature):
+- Not yet implemented
+- Coming soon
+- Leverage your capital
+- High risk, high reward
+- Wait for announcement
+
+⚠️ COMMON MISTAKES:
+
+DON'T:
+- Invest rent money
+- Buy high, sell low
+- Follow hype blindly
+- Ignore diversification
+- Trade on emotions
+- Forget about dividends
+
+DO:
+- Invest spare coins
+- Buy low, sell high
+- Do your research
+- Diversify properly
+- Stay disciplined
+- Reinvest dividends
+
+💰 PROFIT EXAMPLES:
+
+SCENARIO 1 - Day Trade:
+Buy: 100 shares DMC @ 1,000 = 100,000 coins
+Sell: 100 shares DMC @ 1,050 = 105,000 coins
+Profit: 5,000 coins (5% in one day!)
+
+SCENARIO 2 - Long Term:
+Buy: 200 shares MNA @ 2,000 = 400,000 coins
+Hold: 1 month, collect dividends (6% = 2,000 coins/month)
+Price rises to 2,500
+Sell: 200 shares @ 2,500 = 500,000 coins
+Dividends: 2,000 coins
+Total profit: 102,000 coins (25.5% in 1 month!)
+
+SCENARIO 3 - Loss (Learning):
+Buy: 50 shares ENC @ 3,000 = 150,000 coins
+Price drops to 2,500
+Stop loss triggers
+Sell: 50 shares @ 2,500 = 125,000 coins
+Loss: -25,000 coins (-16.7%, limited loss)
+
+Start your investing journey with /stocks today!

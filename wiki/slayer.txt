@@ -1,0 +1,349 @@
+🏰 Slayer Guide
+
+Slayers are challenging boss fights that reward exclusive drops and help you level up specialized combat skills!
+
+🎮 SLAYER COMMANDS:
+- /slayer - Access the Slayer menu and start quests
+
+📊 SLAYER BASICS:
+
+WHAT ARE SLAYERS:
+- Special boss encounters
+- Require slayer quest activation
+- Reward slayer XP and unique drops
+- Four slayer types available
+- Each has multiple tiers (I-V)
+
+HOW IT WORKS:
+1. Activate a slayer quest (costs coins)
+2. Kill regular mobs to spawn the boss
+3. Defeat the slayer boss
+4. Earn slayer XP and rewards
+5. Unlock higher tiers and perks
+
+⚔️ SLAYER TYPES:
+
+REVENANT HORROR (Zombie Slayer):
+- Fight zombie bosses
+- Location: Graveyard, Hub
+- Recommended: Combat 12+
+- Drops: Revenant Flesh, Beheaded Horror
+- Special Rewards: Reaper Falchion, Scythe Blade
+
+TARANTULA BROODFATHER (Spider Slayer):
+- Fight spider bosses
+- Location: Spider's Den
+- Recommended: Combat 15+
+- Drops: Tarantula Web, Fly Swatter
+- Special Rewards: Tarantula Helmet, Spider Artifacts
+
+SVEN PACKMASTER (Wolf Slayer):
+- Fight wolf bosses
+- Location: Ruins, Park
+- Recommended: Combat 18+
+- Drops: Wolf Teeth, Hamster Wheel
+- Special Rewards: Overflux Capacitor, Couture Rune
+
+VOIDGLOOM SERAPH (Enderman Slayer):
+- Fight enderman bosses
+- Location: The End
+- Recommended: Combat 22+
+- Drops: Null Atoms, Void Conglomerate
+- Special Rewards: Judgement Core, Ender Slayer VII
+
+📈 SLAYER TIERS:
+
+TIER I (Starter):
+- Low difficulty
+- Cheap quest cost
+- Basic rewards
+- Learn mechanics
+
+TIER II (Easy):
+- Moderate difficulty
+- Medium quest cost
+- Better rewards
+- More XP
+
+TIER III (Medium):
+- Challenging fights
+- Higher quest cost
+- Good rewards
+- Significant XP
+
+TIER IV (Hard):
+- Very difficult
+- Expensive quest cost
+- Great rewards
+- Major XP boost
+
+TIER V (Expert):
+- Extreme difficulty
+- Very expensive quest cost
+- Best rewards
+- Maximum XP
+
+💰 QUEST COSTS:
+
+REVENANT HORROR:
+- Tier I: 100 coins
+- Tier II: 2,000 coins
+- Tier III: 10,000 coins
+- Tier IV: 50,000 coins
+- Tier V: 100,000 coins
+
+TARANTULA BROODFATHER:
+- Tier I: 100 coins
+- Tier II: 2,000 coins
+- Tier III: 10,000 coins
+- Tier IV: 50,000 coins
+- Tier V: 100,000 coins
+
+SVEN PACKMASTER:
+- Tier I: 100 coins
+- Tier II: 2,500 coins
+- Tier III: 12,500 coins
+- Tier IV: 50,000 coins
+- Tier V: 100,000 coins
+
+VOIDGLOOM SERAPH:
+- Tier I: 100 coins
+- Tier II: 2,000 coins
+- Tier III: 10,000 coins
+- Tier IV: 50,000 coins
+- Tier V: 100,000 coins
+
+🎯 SLAYER MECHANICS:
+
+SPAWNING THE BOSS:
+1. Start quest from /slayer menu
+2. Kill required number of mobs
+- Tier I: 10-20 mobs
+- Tier II: 30-50 mobs
+- Tier III: 100-150 mobs
+- Tier IV: 250-350 mobs
+- Tier V: 500+ mobs
+3. Boss spawns automatically
+4. Fight and defeat the boss
+
+COMBAT TIPS:
+- Use appropriate weapon for slayer type
+- Wear strong armor
+- Bring healing potions
+- Learn boss patterns
+- Use critical hits
+- Dodge special attacks
+
+BOSS ABILITIES:
+- Each boss has unique abilities
+- Learn attack patterns
+- Dodge telegraphed attacks
+- Use terrain advantage
+- Time your attacks
+- Heal when safe
+
+💎 SLAYER REWARDS:
+
+COMMON DROPS:
+- Slayer-specific items
+- Crafting materials
+- Coins
+- Combat XP
+
+RARE DROPS:
+- Unique weapons
+- Special armor pieces
+- Talismans
+- Enchanted books
+
+EXTREMELY RARE:
+- Legendary items
+- RNG drops
+- Special effects items
+- High-value tradables
+
+SLAYER XP:
+- Unlocks perks
+- Higher tier access
+- Better drop rates
+- Stat bonuses
+
+📊 SLAYER LEVELS:
+
+LEVELING SYSTEM:
+- Earn XP from completing quests
+- Each slayer type levels separately
+- Level 1-9: Unlock features
+- Max level: 9
+
+LEVEL REWARDS:
+- Level 1: Tier I unlocked
+- Level 2: Tier II unlocked
+- Level 3: Stat bonuses
+- Level 4: Tier III unlocked
+- Level 5: Better drop rates
+- Level 6: Tier IV unlocked
+- Level 7: Special perks
+- Level 8: Tier V unlocked
+- Level 9: Master slayer (max bonuses)
+
+⚡ SLAYER STRATEGIES:
+
+EFFICIENT GRINDING:
+1. Choose appropriate tier
+2. Use best weapon for slayer
+3. Bring potions
+4. Farm in peak hours (party help)
+5. Complete full sessions
+6. Track costs vs rewards
+
+MAXIMIZING PROFIT:
+- Farm tier III-IV for balance
+- Sell rare drops immediately
+- Keep crafting materials
+- Complete during events
+- Use magic find gear
+- Form slayer parties
+
+SPEED RUNNING:
+- Max combat stats
+- Best-in-slot gear
+- One-shot minions
+- Quick boss kills
+- Efficient routing
+- Potion timing
+
+🏆 SLAYER ACHIEVEMENTS:
+
+Complete challenges:
+- First slayer quest completed
+- Level 1 in any slayer
+- Level 5 in any slayer
+- Level 9 in any slayer
+- All slayers level 5
+- All slayers level 9
+- 100 slayer bosses killed
+- Rare slayer drop obtained
+
+💡 SLAYER TIPS BY TYPE:
+
+REVENANT HORROR:
+✓ Use weapons with Smite enchant
+✓ Fight in Graveyard for spawn efficiency
+✓ Bring healing - they hit hard
+✓ Tier III is most profitable
+✗ Don't fight without good armor
+✗ Avoid tier V unless end-game
+
+TARANTULA BROODFATHER:
+✓ Use weapons with Bane of Arthropods
+✓ Spider's Den has best spawns
+✓ Brings swarms - AoE weapons help
+✓ Tier IV is best for rare drops
+✗ Don't stand in poison
+✗ Watch for web attacks
+
+SVEN PACKMASTER:
+✓ High damage weapons needed
+✓ Park area recommended
+✓ Fast-paced fight - stay mobile
+✓ Brings wolf pups as adds
+✗ Don't let pups surround you
+✗ Avoid howl attack
+
+VOIDGLOOM SERAPH:
+✓ Enderman slayer weapons essential
+✓ The End is best location
+✓ Hardest slayer type
+✓ Best late-game rewards
+✗ Don't look directly at boss
+✗ Very expensive - prepare well
+
+🎪 SLAYER EVENTS:
+
+SPECIAL EVENTS:
+- Double slayer XP weekends
+- Reduced quest costs
+- Increased rare drop rates
+- Special slayer bosses
+- Community challenges
+
+EVENT REWARDS:
+- Exclusive items
+- Bonus XP
+- Unique cosmetics
+- Achievement badges
+
+📈 PROGRESSION PATH:
+
+BEGINNER (Combat 12-15):
+- Start with Revenant tier I-II
+- Learn mechanics
+- Build basic gear
+- Save coins
+
+INTERMEDIATE (Combat 16-20):
+- Revenant tier III
+- Tarantula tier II-III
+- Better gear
+- Farm for drops
+
+ADVANCED (Combat 21-25):
+- All tier III-IV
+- Start Sven
+- Optimize builds
+- Farm for profit
+
+EXPERT (Combat 26+):
+- All tier V
+- Voidgloom slayer
+- Best gear
+- Maximum efficiency
+
+💰 PROFIT GUIDE:
+
+MOST PROFITABLE:
+1. Tarantula IV (High value drops)
+2. Sven III (Consistent profit)
+3. Revenant III (Good balance)
+4. Voidgloom V (Rare but valuable)
+
+COST BREAKDOWN:
+Quest cost + Potion cost + Time = Investment
+Drops + XP value = Returns
+Returns - Investment = Profit
+
+TIPS:
+- Track your profits
+- Sell rares immediately
+- Save common drops for crafting
+- Do slayers during events
+- Form parties to share costs
+
+🔍 RARE DROPS:
+
+REVENANT:
+- Scythe Blade (1/1000)
+- Revenant Viscera (1/500)
+- Beheaded Horror (1/200)
+- Snake Rune (1/100)
+
+TARANTULA:
+- Tarantula Talisman (1/500)
+- Fly Swatter (1/200)
+- Digested Mosquito (1/100)
+- Arachne's Calling (1/50)
+
+SVEN:
+- Overflux Capacitor (1/2000)
+- Red Claw Egg (1/500)
+- Couture Rune (1/200)
+- Grizzly Bait (1/100)
+
+VOIDGLOOM:
+- Judgement Core (1/1000)
+- Null Atom (1/200)
+- Endersnake Rune (1/100)
+- Sinful Dice (1/50)
+
+Start your slayer journey with /slayer today!

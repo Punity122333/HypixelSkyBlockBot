@@ -1,0 +1,210 @@
+🎣 Fishing Guide
+
+Fishing is a peaceful yet rewarding skill that allows you to catch fish, sea creatures, and rare treasures!
+
+🎮 HOW TO FISH:
+Use /fish to start fishing. You'll catch fish based on your fishing level and rod quality.
+
+🎣 FISHING RODS:
+
+PROGRESSION PATH:
+1. Wooden Fishing Rod (Starting)
+2. Stone Fishing Rod
+3. Iron Fishing Rod
+4. Diamond Fishing Rod
+5. Enchanted Diamond Fishing Rod
+6. Special Rods (Various bonuses)
+
+Better rods = More catches = Rarer fish!
+
+📊 FISHING SKILL:
+
+Level up by catching fish:
+- Level 1-10: Basic fish
+- Level 11-20: Better catch rates
+- Level 21-30: Rare fish unlocked
+- Level 31-40: Sea creatures
+- Level 41+: Legendary catches
+
+🐟 WHAT YOU CAN CATCH:
+
+COMMON FISH:
+- Raw Fish (Most common)
+- Salmon
+- Cod
+
+UNCOMMON:
+- Clownfish
+- Tropical Fish
+
+RARE:
+- Pufferfish
+- Enchanted Raw Fish
+
+EPIC:
+- Rare Sea Creatures
+- Enchanted Salmon
+
+LEGENDARY:
+- Legendary Sea Creatures
+- Flying Fish
+- Great White Shark
+
+🌊 SEA CREATURES:
+
+Special catches that provide:
+- Bonus Combat XP
+- Rare drops
+- High coin rewards
+- Collection progress
+
+Chance increases with:
+- Higher Fishing level
+- Better rod
+- Sea Creature Chance stat
+- Special events
+
+📍 FISHING LOCATIONS:
+
+Each location has different fish pools:
+- Hub Pond (Basic fish)
+- Fairy Pond (Magic fish)
+- Desert Lake (Desert fish)
+- Spider's Den Lake (Unique fish)
+- Crystal Hollows Lakes (Rare fish)
+- Crimson Isle Lava (Lava fishing!)
+
+💡 FISHING TIPS:
+
+1. EFFICIENCY:
+- Upgrade your rod regularly
+- Use bait for better catches
+- Fish during events for bonuses
+- Join fishing parties
+
+2. PROFIT:
+- Sell rare fish on bazaar
+- Save legendary catches
+- Complete fishing quests
+- Trophy fishing for rewards
+
+3. LEVELING:
+- Fish consistently
+- Use XP boost potions
+- Complete fishing collections
+- Participate in fishing events
+
+4. BAIT SYSTEM:
+- Use bait to attract specific fish
+- Different baits = different catches
+- Bait consumed per catch
+- Craft better bait at high levels
+
+💰 MONEY MAKING:
+
+EARLY GAME:
+- Catch and sell common fish
+- Complete fishing quests
+- Build fishing collection
+
+MID GAME:
+- Farm sea creatures
+- Sell rare fish
+- Trophy fishing
+- Fishing events
+
+LATE GAME:
+- Legendary sea creatures
+- Shark fishing
+- Winter fishing
+- Crimson Isle lava fishing
+
+📈 FISHING STATS:
+
+Important stats for fishing:
+- Fishing Speed (Faster catches)
+- Sea Creature Chance (More rare catches)
+- Double Hook (Catch 2x items)
+- Fishing Luck (Better rarity)
+
+🎯 COLLECTIONS:
+
+Build up fishing collections:
+- Raw Fish Collection
+- Salmon Collection
+- Clownfish Collection
+- Pufferfish Collection
+- Sea Creature Collection
+
+Each tier unlocks:
+- New recipes
+- Better bait
+- Fishing gear
+- Special perks
+
+⚡ SPECIAL FEATURES:
+
+TROPHY FISHING:
+- Catch trophy variants
+- Bronze, Silver, Gold tiers
+- Leaderboards
+- Special rewards
+
+LAVA FISHING:
+- Fish in lava at Crimson Isle
+- Unique catches
+- Fire resistance required
+- Extremely profitable
+
+ICE FISHING:
+- Fish in frozen lakes
+- Winter event exclusive
+- Ice blocks break
+- Rare winter fish
+
+🎪 FISHING EVENTS:
+
+FISHING FESTIVAL:
+- Increased catch rates
+- Bonus sea creatures
+- Special fish available
+- Double XP
+
+JERRY'S FISHING EVENT:
+- Jerry fish spawn
+- Unique rewards
+- Limited time catches
+- Festival points
+
+🏆 ACHIEVEMENTS:
+
+Complete fishing challenges:
+- First fish caught
+- 100 fish milestone
+- First sea creature
+- Legendary catch
+- Master Fisher (Level 50)
+- Trophy Hunter
+
+💎 ENCHANTMENTS:
+
+Enhance your rod with:
+- Angler (Better catches)
+- Luck of the Sea (Rare items)
+- Lure (Faster fishing)
+- Blessing (Double drops)
+- Expertise (More XP)
+
+Use /enchant to apply enchantments to your fishing rod!
+
+⚠️ TIPS & TRICKS:
+
+- Fish during rain for bonuses
+- Use fishing armor for stats
+- Complete fishing quests daily
+- Join fishing parties for group bonuses
+- Check /market_graphs for fish prices
+- Build sea creature collection early
+- Don't sell everything - keep for quests!
+
+Start your fishing journey today with /fish!

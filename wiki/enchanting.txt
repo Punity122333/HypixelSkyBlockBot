@@ -1,0 +1,436 @@
+🔮 Enchanting Guide
+
+Enchanting allows you to add powerful bonuses to your weapons, tools, and armor!
+
+🎮 ENCHANTING COMMANDS:
+- /enchant <item> <enchantment> <level> - Enchant an item
+
+📊 ENCHANTING BASICS:
+
+WHAT IS ENCHANTING:
+- Add magical effects to items
+- Improves item performance
+- Requires lapis lazuli
+- Costs increase with level
+- Multiple enchants can be combined
+
+HOW IT WORKS:
+1. Have item in inventory
+2. Gather lapis lazuli
+3. Use /enchant command
+4. Select enchantment and level
+5. Pay the cost
+6. Item is enchanted!
+
+REQUIREMENTS:
+- Lapis Lazuli (1-64 per enchant)
+- Coins (varies by level)
+- Enchanting skill level
+- Compatible item type
+
+⚔️ WEAPON ENCHANTMENTS:
+
+SHARPNESS:
+- Increases melee damage
+- Max level: V (5)
+- Works on: Swords, Axes
+- Cost: 1,000-5,000 coins
+- Essential for combat
+
+CRITICAL:
+- Increases crit chance
+- Max level: VII (7)
+- Works on: Swords
+- Cost: 2,000-10,000 coins
+- Great for DPS builds
+
+LOOTING:
+- More drops from mobs
+- Max level: IV (4)
+- Works on: Swords
+- Cost: 3,000-12,000 coins
+- Farming essential
+
+SMITE:
+- Extra damage to undead
+- Max level: VII (7)
+- Works on: Swords, Axes
+- Cost: 1,500-7,500 coins
+- Great for zombies
+
+BANE OF ARTHROPODS:
+- Extra damage to spiders
+- Max level: VII (7)
+- Works on: Swords, Axes
+- Cost: 1,500-7,500 coins
+- Spider slayer essential
+
+FIRE ASPECT:
+- Sets enemies on fire
+- Max level: III (3)
+- Works on: Swords
+- Cost: 2,000-6,000 coins
+- Good for DOT damage
+
+KNOCKBACK:
+- Knocks enemies back
+- Max level: II (2)
+- Works on: Swords
+- Cost: 500-1,500 coins
+- Situational use
+
+LIFE STEAL:
+- Heal on hit
+- Max level: V (5)
+- Works on: Swords
+- Cost: 5,000-25,000 coins
+- Sustain in combat
+
+🏹 BOW ENCHANTMENTS:
+
+POWER:
+- Increases arrow damage
+- Max level: VII (7)
+- Works on: Bows
+- Cost: 1,000-7,000 coins
+- Essential for archers
+
+PUNCH:
+- Knocks enemies back
+- Max level: II (2)
+- Works on: Bows
+- Cost: 500-1,500 coins
+- Keep distance
+
+FLAME:
+- Flaming arrows
+- Max level: I (1)
+- Works on: Bows
+- Cost: 2,000 coins
+- Extra damage over time
+
+INFINITY:
+- Infinite arrows (one arrow needed)
+- Max level: I (1)
+- Works on: Bows
+- Cost: 10,000 coins
+- Very useful
+
+🛡️ ARMOR ENCHANTMENTS:
+
+PROTECTION:
+- Reduces all damage
+- Max level: VII (7)
+- Works on: All armor
+- Cost: 2,000-14,000 coins
+- Most versatile defense
+
+GROWTH:
+- Increases health
+- Max level: VII (7)
+- Works on: All armor
+- Cost: 3,000-21,000 coins
+- Survivability boost
+
+TRUE PROTECTION:
+- True defense stat
+- Max level: I (1)
+- Works on: Chestplate
+- Cost: 50,000 coins
+- Endgame enchant
+
+FEATHER FALLING:
+- Reduces fall damage
+- Max level: X (10)
+- Works on: Boots
+- Cost: 500-5,000 coins
+- Quality of life
+
+SUGAR RUSH:
+- Speed boost
+- Max level: III (3)
+- Works on: Boots
+- Cost: 2,000-6,000 coins
+- Faster movement
+
+AQUA AFFINITY:
+- Mine faster underwater
+- Max level: I (1)
+- Works on: Helmet
+- Cost: 2,000 coins
+- Underwater mining
+
+RESPIRATION:
+- Breathe longer underwater
+- Max level: V (5)
+- Works on: Helmet
+- Cost: 1,000-5,000 coins
+- Diving essential
+
+THORNS:
+- Reflects damage to attackers
+- Max level: III (3)
+- Works on: Chestplate
+- Cost: 3,000-9,000 coins
+- Counter-attack
+
+⛏️ TOOL ENCHANTMENTS:
+
+EFFICIENCY:
+- Faster mining/chopping
+- Max level: VII (7)
+- Works on: Pickaxes, Axes, Shovels
+- Cost: 1,000-7,000 coins
+- Essential for gathering
+
+FORTUNE:
+- More drops
+- Max level: V (5)
+- Works on: Pickaxes, Axes, Shovels
+- Cost: 5,000-25,000 coins
+- Profit multiplier
+
+SILK TOUCH:
+- Get blocks themselves
+- Max level: I (1)
+- Works on: Pickaxes, Axes, Shovels
+- Cost: 10,000 coins
+- Special use cases
+
+UNBREAKING:
+- Tool lasts longer
+- Max level: X (10)
+- Works on: All tools
+- Cost: 1,000-10,000 coins
+- Saves on repairs
+
+TELEPATHY:
+- Items go to inventory
+- Max level: I (1)
+- Works on: All tools
+- Cost: 5,000 coins
+- Very convenient
+
+PRISTINE:
+- Chance for perfect gemstones
+- Max level: V (5)
+- Works on: Pickaxes
+- Cost: 10,000-50,000 coins
+- Crystal Hollows essential
+
+COMPACT:
+- Auto-compact items
+- Max level: X (10)
+- Works on: Pickaxes
+- Cost: 2,000-20,000 coins
+- Inventory management
+
+🎣 FISHING ROD ENCHANTMENTS:
+
+ANGLER:
+- Better catch rates
+- Max level: VII (7)
+- Works on: Fishing Rods
+- Cost: 2,000-14,000 coins
+- Fishing essential
+
+LUCK OF THE SEA:
+- Better loot from fishing
+- Max level: VII (7)
+- Works on: Fishing Rods
+- Cost: 3,000-21,000 coins
+- Treasure hunting
+
+LURE:
+- Fish bite faster
+- Max level: VII (7)
+- Works on: Fishing Rods
+- Cost: 1,500-10,500 coins
+- Speed fishing
+
+BLESSING:
+- Double drops chance
+- Max level: VII (7)
+- Works on: Fishing Rods
+- Cost: 5,000-35,000 coins
+- Very profitable
+
+EXPERTISE:
+- More fishing XP
+- Max level: X (10)
+- Works on: Fishing Rods
+- Cost: 2,000-20,000 coins
+- Level faster
+
+🌾 HOE ENCHANTMENTS:
+
+HARVESTING:
+- Auto-replant crops
+- Max level: VI (6)
+- Works on: Hoes
+- Cost: 5,000-30,000 coins
+- Farming convenience
+
+TURBO-CROP:
+- Extra farming fortune
+- Max level: V (5)
+- Works on: Hoes
+- Cost: 3,000-15,000 coins
+- More crops
+
+DELICATE:
+- Break crops faster
+- Max level: V (5)
+- Works on: Hoes
+- Cost: 2,000-10,000 coins
+- Speed farming
+
+📈 ENCHANTING SKILL:
+
+LEVELING UP:
+- Gain XP by enchanting items
+- Higher level = better enchantments
+- Unlock powerful enchants
+- Reduce costs
+- Max level: 60
+
+SKILL BENEFITS:
+- Level 10: Basic enchants unlocked
+- Level 20: Advanced enchants
+- Level 30: Cost reduction 10%
+- Level 40: Epic enchants
+- Level 50: Cost reduction 25%
+- Level 60: Legendary enchants, Max reduction
+
+💡 ENCHANTING TIPS:
+
+1. PRIORITY ENCHANTS:
+Weapons:
+- Sharpness V
+- Critical VI-VII
+- Looting III-IV
+- Life Steal III-V
+
+Armor:
+- Protection VII
+- Growth V-VII
+- True Protection (Chest)
+- Feather Falling X (Boots)
+
+Tools:
+- Efficiency VII
+- Fortune V
+- Unbreaking X
+- Telepathy I
+
+2. COST MANAGEMENT:
+- Start with level I enchants
+- Upgrade gradually
+- Wait for sales/events
+- Level enchanting skill first
+- Don't over-enchant trash gear
+
+3. COMBINING ENCHANTS:
+- Multiple enchants stack
+- Plan your build
+- Max important enchants first
+- Balance offensive/defensive
+- Consider your playstyle
+
+💰 ENCHANTING COSTS:
+
+COST FORMULA:
+Base cost × Level × (1 - Skill Reduction)
+
+EXAMPLE (Sharpness V):
+- Base: 1,000 coins
+- Level V: ×5 = 5,000 coins
+- With Level 50 Enchanting: -25% = 3,750 coins
+
+LAPIS COSTS:
+- Level I: 1-5 lapis
+- Level III: 10-20 lapis
+- Level V: 25-40 lapis
+- Level VII: 40-64 lapis
+
+⚡ SPECIAL ENCHANTMENTS:
+
+ULTIMATE ENCHANTS:
+- Very rare
+- Extremely powerful
+- High costs
+- Endgame only
+- Unique effects
+
+EXAMPLES:
+- Ultimate Wise (Infinite Mana)
+- Legion (Huge stat boost per player)
+- Bank (Coins on kill)
+- Combo (Stack damage)
+
+OBTAINING:
+- Rare dungeon drops
+- Special events
+- High-level rewards
+- Trading (very expensive)
+
+🎯 ENCHANTING STRATEGIES:
+
+EARLY GAME:
+- Enchant basic gear with level I-II
+- Focus on weapons first
+- Save lapis
+- Don't over-invest
+
+MID GAME:
+- Upgrade to level III-V
+- Enchant full armor set
+- Better tools for gathering
+- Balance costs
+
+LATE GAME:
+- Max level enchants (V-X)
+- Perfect your build
+- Ultimate enchants
+- Min-max everything
+
+ENDGAME:
+- God rolls (all perfect enchants)
+- Special combinations
+- Legendary books
+- Complete mastery
+
+🏆 ENCHANTING ACHIEVEMENTS:
+
+Complete challenges:
+- First item enchanted
+- 10 items enchanted
+- 100 items enchanted
+- First level V enchant
+- First level X enchant
+- Enchanting Level 25
+- Enchanting Level 50
+- Master Enchanter
+
+⚠️ IMPORTANT NOTES:
+
+CONFLICTS:
+- Some enchants don't stack
+- Silk Touch vs Fortune
+- Choose wisely
+- Can't remove enchants easily
+
+BOOK ENCHANTING:
+- Enchant books first
+- Apply to items later
+- Tradeable enchants
+- Store for future use
+
+REFORGING vs ENCHANTING:
+- Reforges: Base stat changes
+- Enchants: Add bonuses
+- Both can be applied
+- Don't conflict
+- Stack together
+
+Start enchanting your gear with /enchant today!

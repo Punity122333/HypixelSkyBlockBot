@@ -1,0 +1,367 @@
+🐾 Pets Guide
+
+Pets are loyal companions that provide stat bonuses and special abilities!
+
+🎮 PET COMMANDS:
+- /pets - View your pet collection
+- /pet_info <pet_type> - Detailed pet information
+
+📊 PET BASICS:
+
+WHAT ARE PETS:
+- Companions that boost your stats
+- Provide unique abilities
+- Can be leveled up
+- Come in different rarities
+
+RARITY LEVELS:
+- Common (Gray) - Basic stats
+- Uncommon (Green) - Better stats
+- Rare (Blue) - Good stats
+- Epic (Purple) - Great stats
+- Legendary (Gold) - Amazing stats
+- Mythic (Pink) - Ultimate stats
+
+🎯 OBTAINING PETS:
+
+HOW TO GET:
+- Drop from mobs
+- Craft with resources
+- Purchase from NPCs
+- Buy from auction house
+- Trade with players
+- Event rewards
+- Quest completions
+- Collection rewards
+
+DROP RATES:
+- Common: 10% chance
+- Uncommon: 5% chance
+- Rare: 2% chance
+- Epic: 0.5% chance
+- Legendary: 0.1% chance
+- Mythic: 0.01% chance
+
+📈 PET LEVELING:
+
+HOW TO LEVEL:
+- Pets gain XP as you play
+- Share XP from skill activities
+- Combat gives pet XP
+- Use pet XP items
+- Special pet food
+
+LEVEL BENEFITS:
+- Higher stats per level
+- Unlock abilities at milestones
+- Max level: 100
+- Each level = stronger bonuses
+
+PET XP SOURCES:
+- Combat (All pets)
+- Mining (Mining pets)
+- Fishing (Fishing pets)
+- Farming (Farming pets)
+- Skill XP share (10% to pet)
+
+🐕 COMBAT PETS:
+
+WOLF PET:
+- Increases combat damage
+- Bonus health
+- Crit chance bonus
+Abilities:
+- Level 1: +5% damage
+- Level 50: +15% damage
+- Level 100: Pack Leader (extra damage in parties)
+
+TIGER PET:
+- High crit damage
+- Ferocity stat
+- Attack speed
+Abilities:
+- Level 1: +10% crit damage
+- Level 50: +25% crit damage
+- Level 100: Apex Predator
+
+ENDERMAN PET:
+- Teleport abilities
+- Crit chance
+- Combat wisdom
+Abilities:
+- Level 1: +5% crit chance
+- Level 50: Void Conqueror
+- Level 100: Enderman Slayer
+
+⛏️ MINING PETS:
+
+MITHRIL GOLEM:
+- Mining speed
+- Mining fortune
+- True defense
+Abilities:
+- Level 1: +10% mining speed
+- Level 50: +25 mining fortune
+- Level 100: Crystalline
+
+SILVERFISH PET:
+- Mining XP boost
+- Dexterity
+- Mining speed
+Abilities:
+- Level 1: +5% mining XP
+- Level 50: Efficient Miner
+- Level 100: Gemstone Master
+
+🌾 FARMING PETS:
+
+RABBIT PET:
+- Farming fortune
+- Jump boost
+- Speed
+Abilities:
+- Level 1: +5% farming fortune
+- Level 50: +15% farming speed
+- Level 100: Lucky Farmer
+
+ELEPHANT PET:
+- Bonus crops
+- Health boost
+- Farming XP
+Abilities:
+- Level 1: +10% crop yield
+- Level 50: Farming Master
+- Level 100: Bountiful Harvest
+
+🎣 FISHING PETS:
+
+DOLPHIN PET:
+- Sea creature chance
+- Fishing speed
+- Water breathing
+Abilities:
+- Level 1: +5% sea creature chance
+- Level 50: +15% fishing speed
+- Level 100: Ocean's Bounty
+
+SQUID PET:
+- Fishing XP
+- Water mobility
+- Ink boost
+Abilities:
+- Level 1: +10% fishing XP
+- Level 50: Deep Sea Explorer
+- Level 100: Ink Master
+
+🌲 FORAGING PETS:
+
+MONKEY PET:
+- Foraging fortune
+- Intelligence
+- Tree speed
+Abilities:
+- Level 1: +5% foraging fortune
+- Level 50: +20% foraging XP
+- Level 100: Jungle Master
+
+OCELOT PET:
+- Speed boost
+- Foraging speed
+- Pet luck
+Abilities:
+- Level 1: +10% foraging speed
+- Level 50: Forest Runner
+- Level 100: Wild Sprint
+
+🔮 SPECIAL PETS:
+
+PHOENIX PET:
+- Revive ability
+- Magic find
+- Strength
+Abilities:
+- Level 1: 10% revive chance
+- Level 50: 25% revive chance
+- Level 100: Eternal Phoenix (Full HP revive)
+
+DRAGON PET:
+- All stats boost
+- Flying ability
+- Magic damage
+Abilities:
+- Level 1: +5% all stats
+- Level 50: +15% all stats
+- Level 100: Dragon Master
+
+BABY YETI PET:
+- Cold immunity
+- Strength in cold biomes
+- Fishing boost
+Abilities:
+- Level 1: +10 strength in snow
+- Level 50: +50 strength in snow
+- Level 100: Yeti's Blessing
+
+💰 PET VALUE:
+
+FACTORS:
+- Rarity level
+- Pet type
+- Current level
+- Abilities unlocked
+- Market demand
+
+MOST VALUABLE:
+1. Legendary Dragon
+2. Mythic Phoenix
+3. Legendary ENDER Dragon
+4. Legendary Golden Dragon
+5. Legendary Baby Yeti
+
+🎯 PET ITEMS:
+
+ENHANCE YOUR PET:
+- Pet Candy (Instant XP)
+- Tier Boosters (Upgrade rarity)
+- Pet Skins (Cosmetic)
+- Pet Food (Bonus stats)
+
+WHERE TO GET:
+- Craft with collections
+- Event rewards
+- Merchant purchases
+- Bazaar/Auction
+
+⚡ PET ABILITIES:
+
+PASSIVE ABILITIES:
+- Always active
+- Stat bonuses
+- Quality of life features
+
+ACTIVE ABILITIES:
+- Triggered abilities
+- Combat effects
+- Movement bonuses
+- Special actions
+
+ABILITY TYPES:
+- Stat Multipliers
+- Skill XP Bonuses
+- Magic Find
+- Fortune Bonuses
+- Speed Boosts
+- Combat Effects
+
+🏆 PET ACHIEVEMENTS:
+
+Complete pet challenges:
+- First pet obtained
+- Pet reaches level 10
+- Pet reaches level 50
+- Pet reaches level 100
+- Collect 10 different pets
+- Collect 50 different pets
+- Legendary pet obtained
+- Mythic pet obtained
+- Master Pet Collector
+
+📚 PET COLLECTION:
+
+BUILD YOUR COLLECTION:
+- Collect all pet types
+- Upgrade rarities
+- Level every pet
+- Complete pet milestones
+
+COLLECTION BENEFITS:
+- Magic find bonus
+- Pet luck increase
+- Special pet items unlock
+- Collection achievements
+
+💡 PET TIPS:
+
+1. CHOOSING A PET:
+- Match to your playstyle
+- Combat: Wolf, Tiger, Lion
+- Gathering: Match to skill
+- Utility: Parrot, Phoenix
+
+2. LEVELING EFFICIENTLY:
+- Active play with pet equipped
+- Use pet XP items
+- Complete pet quests
+- Farm areas with pet bonuses
+
+3. MAXIMIZING VALUE:
+- Level before selling
+- Upgrade rarity when possible
+- Apply pet items
+- Track market prices
+
+4. PET COMBINATIONS:
+- Different pets for activities
+- Switch based on task
+- Specialize pets
+- Build well-rounded collection
+
+🎪 PET EVENTS:
+
+SPECIAL EVENTS:
+- Increased pet drop rates
+- Double pet XP
+- Special pet spawns
+- Pet racing competitions
+- Pet shows
+
+⚠️ PET CARE:
+
+MAINTAINING PETS:
+- Equip appropriate pet
+- Level consistently
+- Don't neglect pet XP
+- Upgrade when ready
+- Store unused pets safely
+
+🔍 PET STATS:
+
+IMPORTANT STATS:
+- Base stats (Health, Strength, etc.)
+- Skill bonuses
+- XP multipliers
+- Special abilities
+- Rarity multipliers
+
+VIEW STATS:
+Use /pet_info <pet_type> for details!
+
+🌟 LEGENDARY PETS:
+
+TOP LEGENDARY PETS:
+
+ENDER DRAGON:
+- Ultimate endgame pet
+- Massive stat bonuses
+- Special dragon abilities
+- Extremely rare
+
+GOLDEN DRAGON:
+- Gold finding
+- Coin multipliers
+- Mining bonuses
+- Very valuable
+
+WITHER SKELETON:
+- Dungeon specialist
+- Combat mastery
+- Undead damage
+- Boss killer
+
+BLACK CAT:
+- Pet luck master
+- Magic find
+- Speed boost
+- Good luck charm
+
+Start your pet collection today with /pets!

@@ -5,17 +5,20 @@
 getting_started | Beginner | Learn how to start your SkyBlock journey
 starter_pack | Beginner | Information about the starter pack and beginning items
 tutorial | Beginner | Step-by-step tutorial for new players
+commands | Beginner | Complete list of all bot commands
 
 # Economy
 coins | Economy | How to earn and manage coins
 bank | Economy | Banking system and interest rates
 trading | Economy | Trading with other players
+auction | Economy | Auction house guide with bidding strategies
 auction_house | Economy | How to use the auction house
-bazaar | Economy | Understanding the bazaar system
+bazaar | Economy | Understanding the bazaar system with all features
 flipping | Economy | Making profit through flipping items
-stocks | Economy | Stock market trading guide
+stocks | Economy | Stock market trading guide with investment strategies
 
 # Skills
+skills | Skills | Complete guide to all SkyBlock skills
 mining | Skills | Mining skill and best practices
 farming | Skills | Farming skill and crop guide
 fishing | Skills | Fishing skill and locations

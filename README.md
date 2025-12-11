@@ -1,345 +1,533 @@
-# Hypixel Skyblock Bot
+# Hypixel SkyBlock Bot 🎮
 
-A comprehensive Discord bot for managing and simulating Hypixel Skyblock gameplay, featuring database-backed game logic, modular command system, event listeners, and stat tracking. Built with Python and Discord.py, it supports advanced features like auctions, bazaar, dungeons, skills, pets, and more.
+A comprehensive Discord bot that brings the complete Hypixel SkyBlock experience to Discord! Featuring advanced game mechanics, persistent database storage, real-time economy simulation, and 75+ interactive commands across all major game systems.
+
+[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Discord.py](https://img.shields.io/badge/discord.py-2.0+-blue.svg)](https://github.com/Rapptz/discord.py)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## Table of Contents
+## 📋 Table of Contents
 
+- [Overview](#overview)
 - [Features](#features)
+- [Game Systems](#game-systems)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
-- [Commands Overview](#commands-overview)
-- [Usage](#usage)
-- [Extending the Bot](#extending-the-bot)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [Database](#database)
+- [Wiki System](#wiki-system)
+- [Development](#development)
 - [Contributing](#contributing)
-- [License](#license)
 
 ---
 
-## Features
+## 🎯 Overview
 
-- **Discord Bot Commands**: Modular command system for game actions, including admin, auction, bank, bazaar, collections, combat, crafting, dungeons, economy stats, enchanting, events, gathering, inventory, island, leaderboard, marketplace, merchants, minions, misc, pets, profile, progression, quests, skills, slayer, stocks, tool progression.
-- **Event Listeners**: Handles game and Discord events for dynamic gameplay, including custom game events and Discord triggers.
-- **Database Integration**: Uses SQLite (`skyblock.db`) for persistent player, inventory, market, skills, and world data. All game actions are tracked and stored for consistency and recovery.
-- **Migration System**: SQL and Python-based migrations for evolving the database schema. Includes backup and restore tools for safe upgrades.
-- **Utilities**: Stat calculators, achievement tracking, event effects, compatibility layer, and more for advanced game logic and analytics.
-- **Backup & Restore**: Database backup scripts and migration tools to prevent data loss.
-- **Extensible**: Easily add new commands, events, game systems, or database models.
-- **Stock Market & Bazaar**: Simulated trading systems for in-game economy.
-- **Minion & Pet Management**: Track, upgrade, and manage minions and pets with custom logic.
-- **Quests & Achievements**: Progression tracking, quest rewards, and achievement unlocks.
-
----
-
-## Architecture
-
-The bot is organized into modular components:
-
-- **Commands**: Each game action is a separate module under `cogs/commands/`, making it easy to add or modify commands.
-- **Events**: Game and Discord events are handled in `cogs/events/`, allowing for dynamic responses and gameplay.
-- **Database Layer**: All persistent data is managed in `database/`, with separate modules for players, inventory, market, skills, and world logic. Uses async SQLite for performance.
-- **Migration System**: Database schema changes are managed via SQL scripts and Python migration runners in `migrations/`.
-- **Utilities**: Helper modules in `utils/` provide stat calculations, player management, game data access, and more.
-- **Virtual Environment**: The `skyenv/` folder contains a Python virtual environment for dependency isolation.
+This Discord bot recreates the authentic Hypixel SkyBlock experience with:
+- **75+ Interactive Commands** - Complete coverage of all game systems
+- **Persistent SQLite Database** - All progress saved automatically
+- **Real-Time Economy** - Bazaar, Auction House, Stock Market with bot traders
+- **Advanced Combat** - Multiple locations, bosses, dungeons, and slayer quests
+- **11 Skills** - Complete progression system with rewards
+- **Automation** - 40+ minion types working 24/7
+- **Pet Collection** - 30+ pets with unique abilities and leveling
+- **Social Features** - Co-ops, parties, trading, and leaderboards
+- **Event System** - Dynamic events with special bonuses
+- **Comprehensive Wiki** - In-game help system with detailed guides
 
 ---
 
-## Project Structure
+## ✨ Features
 
-```text
-main.py                  # Bot entry point
-requirements.txt         # Python dependencies
-skyblock.db              # SQLite database
-cogs/                    # Command and event modules
-  commands/              # Individual command modules
-  events/                # Event listeners
-  __init__.py            # Cog loader
+### 💰 Economy & Trading
+- **Bank System** - Secure storage with interest earnings
+- **Bazaar** - Instant trading with buy/sell orders
+- **Auction House** - Bid on items or use BIN (Buy It Now)
+- **Stock Market** - Trade 8 stocks with real-time price fluctuations
+- **Player Trading** - Secure direct trades with confirmation system
+- **Merchants** - Rotating special deals from traveling merchants
+- **Market Analytics** - Price tracking, graphs, and flip statistics
 
-database/                # Database logic
-  core.py                # Core DB functions
-  events.py              # Event DB logic
-  game_data.py           # Game data DB logic
-  inventory.py           # Inventory DB logic
-  market.py              # Market DB logic
-  players.py             # Player DB logic
-  skills.py              # Skills DB logic
-  world.py               # World DB logic
+### ⚔️ Combat & Dungeons
+- **6+ Combat Locations** - Hub, Spider's Den, Crimson Isle, The End, Nether, Deep Caverns
+- **Interactive Combat** - Real-time health bars and strategic abilities
+- **Boss Fights** - Unique mechanics and valuable rewards
+- **Dungeon System** - 7 floors + Master Mode with puzzles and secrets
+- **Slayer Quests** - 4 slayer types (Zombie, Spider, Wolf, Enderman), 5 tiers each
+- **Party System** - Coordinate with friends for dungeons
+- **Party Finder** - Browse and join open parties
+- **Bestiary** - Track mob kills and unlock rewards
 
-utils/                   # Utility modules
-  stat_calculator.py     # Stat calculation logic
-  player_manager.py      # Player management
-  game_data.py           # Game data access
-  event_effects.py       # Event effect logic
-  ...                    # More utilities
+### 📊 Skills & Progression
+- **11 Skills** - Mining, Farming, Combat, Fishing, Foraging, Enchanting, Alchemy, Taming, Carpentry, Runecrafting, Dungeoneering
+- **50-60 Levels** per skill with permanent stat bonuses
+- **Collection System** - Track gathered resources, unlock recipes
+- **Achievements** - 50+ badges for accomplishments
+- **Heart of the Mountain** - Advanced mining skill tree with perks
+- **242 Fairy Souls** - Collectible power-ups with permanent bonuses
+- **Progression Tracking** - Detailed stats and milestone tracking
 
-migrations/              # Migration system
-  migration_runner.py    # Migration runner
-  migration_system.py    # Migration logic
-  scripts/               # SQL migration scripts
-  backups/               # Database backups
+### 🎒 Inventory & Items
+- **Complete Inventory System** - Organize and manage items
+- **Equipment Slots** - Weapons, armor, tools, accessories
+- **Crafting** - 100+ recipes with material requirements
+- **Enchanting** - Powerful enchantments up to level X
+- **Reforging** - Modify item stats and bonuses
+- **Ender Chest** - Extended storage space
+- **Wardrobe** - Quick armor set switching
+- **Talisman Pouch** - Collect talismans for stat bonuses
 
-deprecated/              # Old migration scripts
-skyenv/                  # Python virtual environment
+### 🤖 Automation & Pets
+- **40+ Minion Types** - Automated resource gathering
+- **25 Minion Slots** - Unlock through collection
+- **Minion Upgrades** - Fuel, storage, auto-selling, compactors
+- **30+ Pet Types** - Each with unique abilities
+- **Pet Leveling** - Level pets to 100 with XP
+- **6 Rarity Tiers** - Common to Mythic with scaling bonuses
+- **Pet Items** - Candies, skins, and stat boosters
+
+### 🤝 Social Features
+- **Co-op System** - Permanent alliances with shared resources
+- **Permissions** - Configurable roles (Owner, Admin, Member)
+- **Shared Island** - Collaborate on building and minions
+- **Party System** - Temporary groups for dungeons
+- **Trading** - Safe player-to-player exchanges
+- **Leaderboards** - Compete in multiple categories
+
+### 🎪 Events & Specials
+- **Dynamic Events** - Rotating bonuses and challenges
+- **Event Effects** - XP multipliers, fortune, coin boosts
+- **Daily Quests** - Repeatable objectives with rewards
+- **Special Merchants** - Limited-time offers
+- **Seasonal Events** - Holiday celebrations with unique rewards
+
+---
+
+## 🎮 Game Systems
+
+### Combat System
+```
+Locations: Hub → Spider's Den → Crimson Isle → The End → Nether → Deep Caverns
+Difficulty: Easy → Medium → Hard → Very Hard → Extreme → ????
+Features: Interactive combat, boss fights, slayer quests, dungeon runs
+Rewards: Coins, items, XP, rare drops, collection progress
+```
+
+### Skill Progression
+```
+11 Skills: Each levels 1-50 (some to 60)
+XP Requirements: Exponential scaling
+Benefits: Stat bonuses, area unlocks, recipe access, perks
+Tracking: /skills command shows all progress
+```
+
+### Economy Flow
+```
+Earning: Gathering → Selling → Quests → Trading → Investments
+Spending: Tools → Gear → Upgrades → Minions → Luxury Items
+Advanced: Flipping → Stock Trading → Auction Sniping
+```
+
+### Minion System
+```
+Placement: Up to 25 slots on your island
+Production: 24/7 automated resource generation
+Upgrades: Speed boosters, storage, auto-sell
+Profit: Passive income while offline
 ```
 
 ---
 
-## Getting Started
+## 🏗️ Architecture
 
-1. **Clone the repository**:
+### Modular Design
+```
+main.py                 # Bot entry point and setup
+├── cogs/              # Command modules (39 cogs)
+│   ├── commands/      # Game commands
+│   └── events/        # Event handlers
+├── database/          # Data persistence layer
+│   ├── core.py        # Database connection
+│   ├── players.py     # Player data
+│   ├── inventory.py   # Items and storage
+│   ├── market.py      # Economy systems
+│   └── ...            # More specialized modules
+├── utils/             # Helper utilities
+│   ├── systems/       # Game logic systems
+│   ├── stat_calculator.py
+│   ├── player_manager.py
+│   └── ...
+└── components/        # UI components
+    ├── views/         # Interactive menus
+    ├── buttons/       # Button handlers
+    └── modals/        # Input forms
+```
 
-   ```sh
-   git clone <repo-url>
-   cd HypixelSkyblockBot
-   ```
-
-2. **Set up the Python environment**:
-
-   - (Recommended) Use the provided virtual environment in `skyenv/` or create your own:
-
-     ```sh
-     python3 -m venv skyenv
-     source skyenv/bin/activate
-     ```
-
-3. **Install dependencies**:
-
-   ```sh
-   pip install -r requirements.txt
-   ```
-
-4. **Configure Discord bot token**:
-
-   - Add your bot token in `main.py` or via environment variable. See comments in `main.py` for details.
-
-5. **Initialize or migrate the database**:
-
-   - Use migration scripts in `migrations/scripts/` or run Python migration tools in `migrations/` or `deprecated/` as needed.
-
-6. **Run the bot**:
-
-   ```sh
-   python main.py
-   ```
+### Technology Stack
+- **Python 3.12+** - Core language
+- **discord.py 2.0+** - Discord API wrapper
+- **aiosqlite** - Async SQLite database
+- **matplotlib** - Market graphs and charts
+- **dotenv** - Environment configuration
 
 ---
 
-## Commands Overview
+## 📁 Project Structure
 
-Below is a comprehensive list of all available commands and their functions:
+```
+HypixelSkyblockBot/
+├── main.py                    # Bot entry point
+├── requirements.txt           # Python dependencies
+├── .env                       # Environment variables (create this)
+├── skyblock.db               # SQLite database (auto-created)
+│
+├── cogs/                     # Discord cogs
+│   ├── commands/             # 39 command modules
+│   │   ├── admin.py         # Admin commands
+│   │   ├── combat.py        # Combat system
+│   │   ├── gathering.py     # Mining, farming, etc.
+│   │   ├── bazaar.py        # Bazaar trading
+│   │   ├── auction.py       # Auction house
+│   │   ├── dungeons.py      # Dungeon system
+│   │   └── ...              # 32 more modules
+│   └── events/              # Event handlers
+│
+├── database/                # Database layer
+│   ├── __init__.py         # Database initialization
+│   ├── core.py             # Core DB functions
+│   ├── players.py          # Player management
+│   ├── inventory.py        # Inventory system
+│   ├── market.py           # Market systems
+│   ├── skills.py           # Skill tracking
+│   ├── hotm.py             # Heart of the Mountain
+│   ├── bestiary.py         # Mob tracking
+│   ├── coop.py             # Co-op system
+│   └── ...                 # 15+ more modules
+│
+├── utils/                  # Utilities
+│   ├── systems/           # Game logic systems
+│   │   ├── combat_system.py
+│   │   ├── gathering_system.py
+│   │   ├── economy_system.py
+│   │   ├── dungeon_system.py
+│   │   ├── market_system.py
+│   │   └── ...
+│   ├── stat_calculator.py  # Dynamic stats
+│   ├── player_manager.py   # Player handling
+│   ├── game_data.py        # Game data access
+│   ├── autocomplete.py     # Command autocomplete
+│   └── ...
+│
+├── components/            # UI Components
+│   ├── views/            # Interactive menus
+│   ├── buttons/          # Button handlers
+│   └── modals/           # Input modals
+│
+├── migrations/           # Database migrations
+│   ├── scripts/         # SQL migration files
+│   └── migration_runner.py
+│
+├── wiki/                # In-game wiki pages
+│   ├── getting_started.txt
+│   ├── combat.txt
+│   ├── skills.txt
+│   └── ...              # 20+ guide pages
+│
+└── backups/             # Automatic DB backups
+```
 
-### Admin
+---
 
-- `/reload_cog <cog>`: Reload a specific cog module.
-- `/sync_commands [force]`: Force sync commands to Discord.
-- `/clear_sync_cache [guild_id]`: Clear command sync cache for a guild.
+## 🚀 Getting Started
 
-### Auction House
+### Prerequisites
+- Python 3.12 or higher
+- Discord Bot Token
+- Discord Application ID
 
-- `/ah_create <item_id> <starting_bid> <duration_hours> [amount] [bin_price]`: Create an auction for an item.
-- `/ah_browse`: Browse active auctions.
-- `/ah_bid <auction_id> <bid_amount>`: Place a bid on an auction.
-- `/ah_bin <auction_id>`: Buy an auction instantly (Buy It Now).
-- `/ah_my`: View your auctions.
+### Installation
 
-### Bank
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd HypixelSkyblockBot
+```
 
-- `/bank`: View your bank balance.
-- `/deposit <amount>`: Deposit coins to your bank.
-- `/withdraw <amount>`: Withdraw coins from your bank.
-- `/pay <user> <amount>`: Pay coins to another player.
+2. **Create virtual environment**
+```bash
+python -m venv skyenv
+source skyenv/bin/activate  # On Windows: skyenv\Scripts\activate
+```
 
-### Bazaar
+3. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
 
-- `/bz_prices <item_id>`: View bazaar prices for an item.
-- `/bz_buy <item_id> <amount>`: Instantly buy items from bazaar.
-- `/bz_sell <item_id> <amount>`: Instantly sell items to bazaar.
-- `/bz_order_buy <item_id> <price> <amount>`: Place a buy order.
-- `/bz_order_sell <item_id> <price> <amount>`: Place a sell order.
-- `/bz_myorders`: View your active orders.
-- `/bz_cancel <order_id>`: Cancel an order.
-- `/bz_list`: List bazaar items.
+4. **Configure environment**
+Create a `.env` file in the root directory:
+```env
+TOKEN=your_discord_bot_token_here
+APPID=your_application_id_here
+DEV_GUILD_ID=your_test_guild_id_here (optional)
+```
 
-### Collections
+5. **Run the bot**
+```bash
+python main.py
+```
 
-- `/collections [category]`: View your collections with tiers and rewards.
-- `/collection_info <item>`: Get detailed info about a specific collection.
-- `/collection_rewards`: View collection tier rewards and category bonuses.
-- `/collection_leaderboard [item]`: View top collectors.
+The bot will:
+- Initialize the database automatically
+- Load all command modules
+- Sync commands to Discord
+- Start the market simulation
+- Begin accepting commands!
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables
+- `TOKEN` - Your Discord bot token (required)
+- `APPID` - Your Discord application ID (required)
+- `DEV_GUILD_ID` - Test guild ID for development (optional)
+
+### Bot Permissions
+Required Discord permissions:
+- Read Messages/View Channels
+- Send Messages
+- Embed Links
+- Attach Files
+- Use External Emojis
+- Add Reactions
+- Use Slash Commands
+
+### Intents
+The bot requires these intents:
+- Guild Messages
+- Guild Members
+- Message Content
+
+---
+
+## 📜 Commands
+
+### Getting Started
+- `/begin` - Start your SkyBlock journey
+- `/claim_starter_pack` - Get initial items and coins
+- `/profile` - View your profile and stats
+- `/help` - Interactive help menu
+- `/wiki <topic>` - Search the wiki
+
+### Skills & Gathering
+- `/mine` - Mine ores and resources
+- `/farm` - Farm crops
+- `/fish` - Go fishing
+- `/forage` - Chop trees
+- `/skills` - View all skill levels
+- `/taming` - Level up taming skill
+- `/carpentry` - Improve carpentry skill
+- `/runecrafting` - Level runecrafting
 
 ### Combat
-
-- `/fight <location>`: Fight monsters interactively in various locations.
-- `/combat_locations`: View all combat locations and their requirements.
-
-### Crafting
-
-- `/craft <item> [quantity]`: Craft an item.
-- `/recipes`: View available crafting recipes.
-- `/reforge <item>`: Reforge items.
-- `/reforges`: View reforges.
+- `/fight <location>` - Fight monsters
+- `/boss <boss>` - Challenge a boss
+- `/combat_locations` - View all combat areas
+- `/slayer` - Start slayer quests
+- `/bestiary` - View mob kill tracker
 
 ### Dungeons
+- `/dungeon <floor>` - Enter a dungeon
+- `/party` - Manage your party
+- `/party_finder` - Find dungeon groups
 
-- `/dungeon <floor>`: Enter a dungeon and interact with its features.
-- `/dungeon_score`: View your dungeon score.
+### Economy
+- `/bank` - Access your bank
+- `/bazaar` - Open the bazaar
+- `/auction` - Browse auctions
+- `/stocks` - Trade stocks
+- `/trade <user>` - Trade with a player
+- `/merchants` - View merchant deals
 
-### Economy Stats
+### Items & Inventory
+- `/inventory` - View your inventory
+- `/craft <item>` - Craft items
+- `/enchant <item> <enchantment> <level>` - Enchant gear
+- `/collections` - View collections
+- `/talisman_pouch` - Manage talismans
 
-- `/flip_stats`: View your bazaar flipping statistics.
-- `/market_trends`: View current market trends.
-- `/auction_insights`: View auction house insights and bot activity.
-- `/economy_overview`: View complete economy overview.
-
-### Enchanting
-
-- `/enchant <item> <enchantment> <level>`: Enchant an item.
-- `/anvil <item1> <item2>`: Combine items in the anvil.
-
-### Events
-
-- `/events`: View active SkyBlock events.
-- `/calendar`: View the SkyBlock calendar.
-
-### Gathering
-
-- `/mine`: Go mining and collect resources.
-- `/farm`: Farm crops.
-- `/fish`: Go fishing.
-- `/forage`: Chop trees.
-- `/taming`: Level up your taming skill.
-
-### Inventory
-
-- `/inventory`: View your inventory.
-- `/enderchest`: View your ender chest.
-- `/wardrobe`: View and manage your wardrobe.
-- `/accessories`: View your accessory bag.
-
-### Island
-
-- `/island`: Visit your private island.
-- `/search_fairy_soul`: Search for a fairy soul.
-- `/fairy_souls`: Check your fairy soul progress.
-
-### Leaderboard
-
-- `/leaderboard <category>`: View leaderboards (richest, net worth, skill average, catacombs, slayer XP).
-
-### Marketplace
-
-- `/trade_interactive <user>`: Trade with another player interactively.
-
-### Merchants
-
-- `/merchants`: View available merchant deals.
-- `/merchant_buy <deal_id>`: Buy from a merchant.
-- `/merchant_sell <deal_id>`: Sell to a merchant.
-
-### Minions
-
-- `/minions`: View and manage your minions.
-- `/minion_upgrade <minion_id>`: Upgrade a minion.
-- `/minion_storage <minion_id>`: View minion storage.
-
-### Misc
-
-- Various utility and fun commands (see `misc.py`).
-
-### Pets
-
-- `/pets`: View and manage your pets.
-- `/pet_equip <pet_id>`: Equip a pet.
-- `/pet_unequip`: Unequip your active pet.
-
-### Profile
-
-- `/profile`: View your SkyBlock profile.
-- `/stats`: View your detailed stats.
+### Minions & Pets
+- `/minions` - Manage minions
+- `/pets` - View pet collection
+- `/island` - Visit your island
 
 ### Progression
+- `/progression` - View progression path
+- `/hotm` - Heart of the Mountain
+- `/fairy_souls` - Check fairy soul progress
+- `/search_fairy_soul` - Search for a soul
+- `/badges` - View your badges
+- `/quests` - View available quests
 
-- `/guide`: View the beginner's guide.
-- `/tips`: Get trading and economy tips.
-- `/progression`: View your progression and milestones.
+### Social
+- `/coop` - Manage your co-op
+- `/leaderboard` - View rankings
+- `/market_graphs` - View market analytics
 
-### Quests
-
-- `/quests`: View available quests.
-- `/claim_quest <quest_id>`: Claim a completed quest reward.
-- `/daily_reward`: Claim your daily reward.
-
-### Skills
-
-- `/skills`: View all your skills.
-- `/alchemy`: Brew potions.
-- `/carpentry`: Improve your carpentry skill.
-- `/runecrafting`: Level up your runecrafting.
-- `/social`: Increase your social skill.
-
-### Slayer
-
-- `/slayer <boss> <tier>`: Fight a slayer boss.
-- `/slayer_stats`: View your slayer statistics.
-
-### Stocks
-
-- `/stocks`: View the stock market.
-- `/portfolio`: View your stock portfolio.
-- `/stock_info <symbol>`: Get detailed information about a stock.
-- `/stock_buy <symbol> <shares>`: Buy stocks.
-- `/stock_sell <symbol> <shares>`: Sell stocks.
-
-### Tool Progression
-
-- `/progression_path`: View your tool progression path.
+### Admin (Owner Only)
+- `/reload_cog <cog>` - Reload a command module
+- `/sync_commands` - Sync commands to Discord
 
 ---
 
-## Usage
+## 💾 Database
 
-- **Bot Commands**: Interact with the bot via Discord using supported commands. See `cogs/commands/` for available commands and usage examples.
-- **Event Listeners**: Game and Discord events are handled automatically. You can add custom listeners in `cogs/events/`.
-- **Database Operations**: All game actions are tracked in the database. Use migration and backup tools to manage schema and data.
-- **Extending the Bot**:
-  - Add new commands in `cogs/commands/` and register them in the cog loader.
-  - Add event listeners in `cogs/events/`.
-  - Extend database models in `database/` and update migrations.
-  - Add helper logic in `utils/` for new features.
+### Schema Overview
+The bot uses SQLite with 25+ tables:
+
+**Player Data**
+- `players` - Core player information
+- `skills` - Skill levels and XP
+- `player_stats` - Combat and gathering stats
+- `player_progression` - Milestones and achievements
+
+**Inventory & Items**
+- `inventory` - Player items
+- `equipped_items` - Currently equipped gear
+- `ender_chest` - Extra storage
+- `collections` - Resource collections
+
+**Economy**
+- `bazaar_products` - Bazaar item listings
+- `bazaar_orders` - Active buy/sell orders
+- `auctions` - Auction house listings
+- `stocks` - Stock market data
+- `player_stocks` - Player portfolios
+
+**Combat & Progression**
+- `bestiary` - Mob kill tracking
+- `slayer_progress` - Slayer quest data
+- `dungeon_runs` - Dungeon completion history
+- `hotm_data` - Heart of the Mountain progress
+
+**Social**
+- `coops` - Co-op alliances
+- `coop_members` - Co-op membership
+- `party_finder_listings` - Open parties
+
+**Automation**
+- `minions` - Placed minions
+- `pets` - Player pets
+- `pet_data` - Pet stats and levels
+
+### Backup System
+- Automatic backups before migrations
+- Manual backups in `/backups` folder
+- Backup naming: `skyblock_backup_YYYYMMDD_HHMMSS.zip`
 
 ---
 
-## Extending the Bot
+## 📚 Wiki System
 
-- **Add a Command**: Create a new Python file in `cogs/commands/` and define your command logic. Register it in the cog loader.
-- **Add an Event Listener**: Add a new listener in `cogs/events/` to handle custom game or Discord events.
-- **Update Database Models**: Modify or add new models in `database/` and create migration scripts in `migrations/scripts/`.
-- **Add Utilities**: Place helper functions or classes in `utils/` for stat calculations, data management, etc.
-- **Testing**: Use the provided migration and backup tools to safely test new features.
+The bot includes a comprehensive in-game wiki:
+
+### Available Topics
+- Getting Started - First steps guide
+- Skills - All 11 skills explained
+- Mining, Farming, Fishing, Foraging - Gathering guides
+- Combat - Combat mechanics and strategies
+- Dungeons - Complete dungeon guide
+- Slayer - Slayer quest system
+- Bazaar - Trading strategies
+- Auction - Auction house tips
+- Stocks - Investment guide
+- Pets - Pet collection guide
+- Minions - Automation guide
+- HOTM - Heart of the Mountain
+- Enchanting - Enchantment system
+- And many more!
+
+### Usage
+```
+/wiki <topic>     # View a specific guide
+/help             # Interactive help menu
+/commands         # Complete command list
+```
 
 ---
 
-## Contributing
+## 🛠️ Development
 
-Pull requests and issues are welcome! Please follow best practices:
+### Adding New Commands
+1. Create a new file in `cogs/commands/`
+2. Inherit from `commands.Cog`
+3. Add `@app_commands.command` decorator
+4. Implement `async def setup(bot)` function
 
-- Write clear, documented code.
-- Add docstrings and comments for new modules and functions.
-- Update the README and migration scripts as needed.
-- Test your changes before submitting.
-- Respect the project structure and naming conventions.
+### Adding New Features
+1. Create system in `utils/systems/`
+2. Add database methods in `database/`
+3. Create UI components in `components/`
+4. Update wiki documentation
+
+### Database Migrations
+1. Create SQL file in `migrations/scripts/`
+2. Name format: `YYYYMMDD_description.sql`
+3. Run automatically on bot startup
+
+### Testing
+```bash
+# Set DEV_GUILD_ID in .env for instant command sync
+# Test in your development server before production
+```
 
 ---
 
-## License
+## 🤝 Contributing
 
-This project is for educational purposes and is not affiliated with Hypixel. See LICENSE for details.
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add/update wiki documentation
+5. Test thoroughly
+6. Submit a pull request
+
+### Code Style
+- Follow PEP 8 guidelines
+- Use type hints where possible
+- Add docstrings to functions
+- Keep functions focused and modular
+- Comment complex logic
 
 ---
 
-## Credits
+## 📝 License
 
-- Inspired by Hypixel Skyblock and the Discord.py community.
-- Special thanks to contributors and testers.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Inspired by Hypixel SkyBlock
+- Built with discord.py
+- Community feedback and contributions
+
+---
+
+## 📞 Support
+
+- Open an issue for bugs or feature requests
+- Check the wiki for gameplay help
+- Use `/help` in Discord for command information
+
+---
+
+**Enjoy your SkyBlock adventure! 🎮⚔️💰**
