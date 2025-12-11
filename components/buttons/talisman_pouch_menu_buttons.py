@@ -27,8 +27,8 @@ class TalismanAddButton(discord.ui.Button):
             await interaction.response.send_message("This isn't your menu!", ephemeral=True)
             return
         
-        modal = TalismanAddModal(self.parent_view)
-        await interaction.response.send_modal(modal)
+        from utils.helper import show_talisman_select
+        await show_talisman_select(interaction)
 
 class TalismanRemoveButton(discord.ui.Button):
     def __init__(self, view):

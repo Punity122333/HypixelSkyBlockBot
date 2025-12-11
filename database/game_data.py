@@ -49,6 +49,10 @@ class GameDataDB:
         if row:
             return dict(row)
         return None
+    
+    async def get_item(self, item_id: str):
+        """Alias for get_game_item for compatibility"""
+        return await self.get_game_item(item_id)
 
     async def get_items_by_type(self, item_type: str):
         if not self.conn:

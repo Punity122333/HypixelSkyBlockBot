@@ -194,10 +194,48 @@ class CraftingCommands(commands.Cog):
             await interaction.response.edit_message(embed=self.pages[self.current], view=self)
 
     @app_commands.command(name="recipes", description="View available crafting recipes")
-    async def view_recipes(self, interaction: discord.Interaction, filter_type: str = ""):
+    @app_commands.describe(search="Search for a specific item recipe")
+    async def view_recipes(self, interaction: discord.Interaction, search: str = ""):
         try:
             await interaction.response.defer()
             all_recipes = await self._load_all_recipes()
+            
+            if search:
+                search_normalized = normalize_item_id(search)
+                
+                if search_normalized in all_recipes:
+                    recipe_entry = all_recipes[search_normalized]
+                    recipe = self._unwrap_recipe(recipe_entry)
+                    
+                    if recipe:
+                        obj = None
+                        try:
+                            obj = await self.bot.game_data.get_item(search_normalized)
+                        except Exception:
+                            obj = None
+                        
+                        name = obj.name if obj and getattr(obj, "name", None) else search_normalized.replace("_", " ").title()
+                        output_amount = recipe_entry.get('output_amount', 1) if isinstance(recipe_entry, dict) else 1
+                        
+                        embed = discord.Embed(
+                            title=f"📜 Recipe: {name}",
+                            description=f"Crafting recipe for {name}",
+                            color=discord.Color.blue()
+                        )
+                        
+                        ingredients_list = "\n".join([f"• {amt}x {ing.replace('_', ' ').title()}" for ing, amt in recipe.items()])
+                        embed.add_field(name="Ingredients", value=ingredients_list, inline=False)
+                        embed.add_field(name="Output", value=f"{output_amount}x {name}", inline=False)
+                        
+                        await interaction.followup.send(embed=embed)
+                        return
+                    else:
+                        await interaction.followup.send(f"❌ No recipe found for `{search}`!", ephemeral=True)
+                        return
+                else:
+                    await interaction.followup.send(f"❌ No recipe found for `{search}`!", ephemeral=True)
+                    return
+            
             pages = []
             batch = []
             for item_id, entry in all_recipes.items():
@@ -209,8 +247,6 @@ class CraftingCommands(commands.Cog):
                     obj = await self.bot.game_data.get_item(item_id)
                 except Exception:
                     obj = None
-                if filter_type and obj and getattr(obj, "type", None) and obj.type.lower() != filter_type.lower():
-                    continue
                 name = obj.name if obj and getattr(obj, "name", None) else item_id.replace("_", " ").title()
                 name = f"{name}" if isinstance(entry, dict) and entry.get('output_amount', 1) > 1 else name
                 line = ", ".join([f"{amt}x {ing.replace('_', ' ').title()}" for ing, amt in recipe.items()])
@@ -240,6 +276,10 @@ class CraftingCommands(commands.Cog):
             await self.paginate(interaction, pages)
         except Exception as e:
             await interaction.followup.send(f"Failed to load recipes.\n {e}", ephemeral=True)
+
+    @view_recipes.autocomplete("search")
+    async def view_recipes_search_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await recipe_autocomplete(interaction, current)
 
     @app_commands.command(name="reforge", description="Reforge items")
     async def reforge(self, interaction: discord.Interaction, reforge: str):
@@ -300,46 +340,6 @@ class CraftingCommands(commands.Cog):
             await self.paginate(interaction, pages)
         except Exception:
             await interaction.followup.send("Failed to load reforges.", ephemeral=True)
-
-    @view_recipes.autocomplete("filter_type")
-    async def view_recipes_autocomplete(self, interaction: discord.Interaction, current: str):
-        q = (current or "").strip().lower()
-        recipes = await self._load_all_recipes()
-        if not recipes:
-            return []
-
-        if not hasattr(self, "_type_trie_ready"):
-            type_names = {}
-            for item_id in recipes:
-                try:
-                    obj = await self.bot.game_data.get_item(item_id)
-                    t = obj.type if obj and getattr(obj, "type", None) else None
-                    if t:
-                        disp = t.replace("_", " ").title()
-                        type_names[t.lower()] = t.title()
-                except Exception:
-                    continue
-            self._type_names = type_names
-            self._type_trie = _Trie()
-            for t, disp in type_names.items():
-                self._type_trie.insert(disp.lower(), t)
-                self._type_trie.insert(t.lower(), t)
-            self._type_trie_ready = True
-
-        if not q:
-            out = list(self._type_names.keys())[:25]
-            out = sorted(out, key=lambda t: self._type_names[t].lower())
-            return [app_commands.Choice(name=self._type_names[t], value=t) for t in out]
-
-        from_prefix = self._type_trie.search_prefix(q)
-        seen = set(from_prefix)
-        partial = [t for t in self._type_names if q in t or q in self._type_names[t].lower()]
-        for t in partial:
-            if t not in seen:
-                from_prefix.append(t)
-        from_prefix.sort(key=lambda t: self._type_names[t].lower())
-        from_prefix = from_prefix[:25]
-        return [app_commands.Choice(name=self._type_names[t], value=t) for t in from_prefix]
 
 async def setup(bot):
     await bot.add_cog(CraftingCommands(bot))

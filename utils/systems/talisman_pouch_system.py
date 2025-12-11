@@ -14,8 +14,15 @@ class TalismanPouchSystem:
         if item_count < 1:
             return {'success': False, 'message': "You don't have this talisman!"}
         
-        item = await db.game_data.get_item(talisman_id)
-        if not item or item.type != 'TALISMAN':
+        item = await db.game_data.get_game_item(talisman_id)
+        if not item:
+            return {'success': False, 'message': 'Invalid item!'}
+        
+        # Handle both dict and object formats
+        item_type = item.get('item_type') or item.get('type') if isinstance(item, dict) else getattr(item, 'type', None)
+        item_name = item.get('name') if isinstance(item, dict) else getattr(item, 'name', talisman_id)
+        
+        if item_type != 'TALISMAN':
             return {'success': False, 'message': 'This is not a talisman!'}
         
         existing = await db.talismans.get_talisman_by_id(user_id, talisman_id)
@@ -29,7 +36,7 @@ class TalismanPouchSystem:
         
         await db.remove_item_from_inventory(user_id, talisman_id, 1)
         
-        return {'success': True, 'message': f'Added {item.name} to talisman pouch!'}
+        return {'success': True, 'message': f'Added {item_name} to talisman pouch!'}
     
     @staticmethod
     async def remove_talisman_from_pouch(db, user_id: int, slot: int) -> Dict:

@@ -1,4 +1,5 @@
 from components.views.equipment_select_view import EquipmentSelectView
+from components.views.talisman_select_view import TalismanSelectView
 import discord
 from utils.data.game_constants import MINION_DATA
 
@@ -61,6 +62,57 @@ async def show_equipment_select(interaction: discord.Interaction, equipment_slot
         embed.add_field(
             name=f"{idx+1}. {item['name']}{amount_text}",
             value=f"✨ {item['rarity']}",
+            inline=False
+        )
+    
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
+async def show_talisman_select(interaction: discord.Interaction):
+    bot = interaction.client
+    user_id = interaction.user.id
+    
+    inventory = await bot.db.get_inventory(user_id) #type: ignore
+    
+    if not inventory:
+        await interaction.response.send_message(
+            "❌ Your inventory is empty! Get talismans first.",
+            ephemeral=True
+        )
+        return
+    
+    matching_talismans = []
+    for item in inventory:
+        game_item = await bot.db.get_game_item(item['item_id']) #type: ignore
+        
+        if game_item and game_item['item_type'] == 'TALISMAN':
+            matching_talismans.append({
+                'item_id': item['item_id'],
+                'name': game_item['name'],
+                'rarity': game_item['rarity'],
+                'amount': item.get('amount', 1)
+            })
+    
+    if not matching_talismans:
+        await interaction.response.send_message(
+            "❌ You don't have any talismans in your inventory!",
+            ephemeral=True
+        )
+        return
+    
+    view = TalismanSelectView(bot, user_id, matching_talismans)
+    
+    embed = discord.Embed(
+        title="📿 Select Talisman to Equip",
+        description=f"Choose a talisman from your inventory to add to your pouch\nFound {len(matching_talismans)} talismans\n\nClick 'Choose Talisman' and enter the number.",
+        color=discord.Color.purple()
+    )
+    
+    for idx, talisman in enumerate(matching_talismans):
+        amount_text = f" (x{talisman['amount']})" if talisman.get('amount', 1) > 1 else ""
+        embed.add_field(
+            name=f"{idx+1}. {talisman['name']}{amount_text}",
+            value=f"✨ {talisman['rarity']}",
             inline=False
         )
     
