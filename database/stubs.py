@@ -278,6 +278,16 @@ class GameDatabase(GameDatabaseMethods):
                            buy_now_price: Optional[int], duration: int, bin: bool = False):
         return await self.market.create_auction(seller_id, item_id, starting_bid,
                                                 buy_now_price, duration, bin)
+    
+    async def get_top_flippers(self, limit: int = 10):
+        if hasattr(self, 'get_top_flippers'):
+            return await self.get_top_flippers(limit)
+        return []
+    
+    async def get_active_merchant_deals(self):
+        if hasattr(self, 'get_active_merchant_deals'):
+            return await self.get_active_merchant_deals()
+        return []
 
     async def get_game_pet(self, pet_id: str):
         return await self.events.get_game_pet(pet_id)
@@ -402,21 +412,9 @@ class GameDatabase(GameDatabaseMethods):
     async def get_gathering_drops(self, gathering_type: str, resource_type: str):
         return await self.world.get_gathering_drops(gathering_type, resource_type)
 
-    async def add_gathering_drop(self, gathering_type: str, resource_type: str, item_id: str,
+    async def add_gathering_drop(self, gathering_type: str, resource_type: str, item_id: str, 
                                 drop_chance: float, min_amt: int, max_amt: int):
         return await self.world.add_gathering_drop(gathering_type, resource_type, item_id, drop_chance, min_amt, max_amt)
-
-    async def get_all_fairy_soul_locations(self):
-        return await self.world.get_all_fairy_soul_locations()
-
-    async def get_collection_categories(self):
-        return await self.world.get_collection_categories()
-
-    async def get_category_items(self, category: str):
-        return await self.world.get_category_items(category)
-
-    async def get_item_category(self, item_id: str):
-        return await self.world.get_item_category(item_id)
 
     async def add_collection_items(self, category: str, item_id: str, display_name: str, emoji: str):
         return await self.world.add_collection_items(category, item_id, display_name, emoji)

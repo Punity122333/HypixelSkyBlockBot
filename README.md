@@ -1,4 +1,4 @@
-# Hypixel SkyBlock Bot 🎮
+# Hypixel SkyBlock Bot
 
 A comprehensive Discord bot that brings the complete Hypixel SkyBlock experience to Discord! Featuring advanced game mechanics, persistent database storage, real-time economy simulation, and 75+ interactive commands across all major game systems.
 
@@ -8,7 +8,7 @@ A comprehensive Discord bot that brings the complete Hypixel SkyBlock experience
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -25,9 +25,10 @@ A comprehensive Discord bot that brings the complete Hypixel SkyBlock experience
 
 ---
 
-## 🎯 Overview
+## Overview
 
 This Discord bot recreates the authentic Hypixel SkyBlock experience with:
+
 - **75+ Interactive Commands** - Complete coverage of all game systems
 - **Persistent SQLite Database** - All progress saved automatically
 - **Real-Time Economy** - Bazaar, Auction House, Stock Market with bot traders
@@ -41,9 +42,10 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 
 ---
 
-## ✨ Features
+## Features
 
-### 💰 Economy & Trading
+### Economy & Trading
+
 - **Bank System** - Secure storage with interest earnings
 - **Bazaar** - Instant trading with buy/sell orders
 - **Auction House** - Bid on items or use BIN (Buy It Now)
@@ -52,7 +54,8 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 - **Merchants** - Rotating special deals from traveling merchants
 - **Market Analytics** - Price tracking, graphs, and flip statistics
 
-### ⚔️ Combat & Dungeons
+### Combat & Dungeons
+
 - **6+ Combat Locations** - Hub, Spider's Den, Crimson Isle, The End, Nether, Deep Caverns
 - **Interactive Combat** - Real-time health bars and strategic abilities
 - **Boss Fights** - Unique mechanics and valuable rewards
@@ -62,7 +65,8 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 - **Party Finder** - Browse and join open parties
 - **Bestiary** - Track mob kills and unlock rewards
 
-### 📊 Skills & Progression
+### Skills & Progression
+
 - **11 Skills** - Mining, Farming, Combat, Fishing, Foraging, Enchanting, Alchemy, Taming, Carpentry, Runecrafting, Dungeoneering
 - **50-60 Levels** per skill with permanent stat bonuses
 - **Collection System** - Track gathered resources, unlock recipes
@@ -71,7 +75,8 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 - **242 Fairy Souls** - Collectible power-ups with permanent bonuses
 - **Progression Tracking** - Detailed stats and milestone tracking
 
-### 🎒 Inventory & Items
+### Inventory & Items
+
 - **Complete Inventory System** - Organize and manage items
 - **Equipment Slots** - Weapons, armor, tools, accessories
 - **Crafting** - 100+ recipes with material requirements
@@ -81,7 +86,8 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 - **Wardrobe** - Quick armor set switching
 - **Talisman Pouch** - Collect talismans for stat bonuses
 
-### 🤖 Automation & Pets
+### Automation & Pets
+
 - **40+ Minion Types** - Automated resource gathering
 - **25 Minion Slots** - Unlock through collection
 - **Minion Upgrades** - Fuel, storage, auto-selling, compactors
@@ -90,7 +96,8 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 - **6 Rarity Tiers** - Common to Mythic with scaling bonuses
 - **Pet Items** - Candies, skins, and stat boosters
 
-### 🤝 Social Features
+### Social Features
+
 - **Co-op System** - Permanent alliances with shared resources
 - **Permissions** - Configurable roles (Owner, Admin, Member)
 - **Shared Island** - Collaborate on building and minions
@@ -98,7 +105,8 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 - **Trading** - Safe player-to-player exchanges
 - **Leaderboards** - Compete in multiple categories
 
-### 🎪 Events & Specials
+### Events & Specials
+
 - **Dynamic Events** - Rotating bonuses and challenges
 - **Event Effects** - XP multipliers, fortune, coin boosts
 - **Daily Quests** - Repeatable objectives with rewards
@@ -107,10 +115,11 @@ This Discord bot recreates the authentic Hypixel SkyBlock experience with:
 
 ---
 
-## 🎮 Game Systems
+## Game Systems
 
 ### Combat System
-```
+
+```text
 Locations: Hub → Spider's Den → Crimson Isle → The End → Nether → Deep Caverns
 Difficulty: Easy → Medium → Hard → Very Hard → Extreme → ????
 Features: Interactive combat, boss fights, slayer quests, dungeon runs
@@ -118,7 +127,8 @@ Rewards: Coins, items, XP, rare drops, collection progress
 ```
 
 ### Skill Progression
-```
+
+```text
 11 Skills: Each levels 1-50 (some to 60)
 XP Requirements: Exponential scaling
 Benefits: Stat bonuses, area unlocks, recipe access, perks
@@ -126,14 +136,16 @@ Tracking: /skills command shows all progress
 ```
 
 ### Economy Flow
-```
+
+```text
 Earning: Gathering → Selling → Quests → Trading → Investments
 Spending: Tools → Gear → Upgrades → Minions → Luxury Items
 Advanced: Flipping → Stock Trading → Auction Sniping
 ```
 
 ### Minion System
-```
+
+```text
 Placement: Up to 25 slots on your island
 Production: 24/7 automated resource generation
 Upgrades: Speed boosters, storage, auto-sell
@@ -142,10 +154,11 @@ Profit: Passive income while offline
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Modular Design
-```
+
+```text
 main.py                 # Bot entry point and setup
 ├── cogs/              # Command modules (39 cogs)
 │   ├── commands/      # Game commands
@@ -168,6 +181,7 @@ main.py                 # Bot entry point and setup
 ```
 
 ### Technology Stack
+
 - **Python 3.12+** - Core language
 - **discord.py 2.0+** - Discord API wrapper
 - **aiosqlite** - Async SQLite database
@@ -176,9 +190,9 @@ main.py                 # Bot entry point and setup
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```text
 HypixelSkyblockBot/
 ├── main.py                    # Bot entry point
 ├── requirements.txt           # Python dependencies
@@ -242,9 +256,10 @@ HypixelSkyblockBot/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
+
 - Python 3.12 or higher
 - Discord Bot Token
 - Discord Application ID
@@ -252,36 +267,43 @@ HypixelSkyblockBot/
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd HypixelSkyblockBot
 ```
 
-2. **Create virtual environment**
+1. **Create virtual environment**
+
 ```bash
 python -m venv skyenv
 source skyenv/bin/activate  # On Windows: skyenv\Scripts\activate
 ```
 
-3. **Install dependencies**
+1. **Install dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Configure environment**
+1. **Configure environment**
+
 Create a `.env` file in the root directory:
+
 ```env
 TOKEN=your_discord_bot_token_here
 APPID=your_application_id_here
 DEV_GUILD_ID=your_test_guild_id_here (optional)
 ```
 
-5. **Run the bot**
+1. **Run the bot**
+
 ```bash
 python main.py
 ```
 
 The bot will:
+
 - Initialize the database automatically
 - Load all command modules
 - Sync commands to Discord
@@ -290,15 +312,18 @@ The bot will:
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
+
 - `TOKEN` - Your Discord bot token (required)
 - `APPID` - Your Discord application ID (required)
 - `DEV_GUILD_ID` - Test guild ID for development (optional)
 
 ### Bot Permissions
+
 Required Discord permissions:
+
 - Read Messages/View Channels
 - Send Messages
 - Embed Links
@@ -308,16 +333,19 @@ Required Discord permissions:
 - Use Slash Commands
 
 ### Intents
+
 The bot requires these intents:
+
 - Guild Messages
 - Guild Members
 - Message Content
 
 ---
 
-## 📜 Commands
+## Commands
 
-### Getting Started
+### Beginner
+
 - `/begin` - Start your SkyBlock journey
 - `/claim_starter_pack` - Get initial items and coins
 - `/profile` - View your profile and stats
@@ -325,6 +353,7 @@ The bot requires these intents:
 - `/wiki <topic>` - Search the wiki
 
 ### Skills & Gathering
+
 - `/mine` - Mine ores and resources
 - `/farm` - Farm crops
 - `/fish` - Go fishing
@@ -335,6 +364,7 @@ The bot requires these intents:
 - `/runecrafting` - Level runecrafting
 
 ### Combat
+
 - `/fight <location>` - Fight monsters
 - `/boss <boss>` - Challenge a boss
 - `/combat_locations` - View all combat areas
@@ -342,11 +372,13 @@ The bot requires these intents:
 - `/bestiary` - View mob kill tracker
 
 ### Dungeons
+
 - `/dungeon <floor>` - Enter a dungeon
 - `/party` - Manage your party
 - `/party_finder` - Find dungeon groups
 
 ### Economy
+
 - `/bank` - Access your bank
 - `/bazaar` - Open the bazaar
 - `/auction` - Browse auctions
@@ -355,6 +387,7 @@ The bot requires these intents:
 - `/merchants` - View merchant deals
 
 ### Items & Inventory
+
 - `/inventory` - View your inventory
 - `/craft <item>` - Craft items
 - `/enchant <item> <enchantment> <level>` - Enchant gear
@@ -362,11 +395,13 @@ The bot requires these intents:
 - `/talisman_pouch` - Manage talismans
 
 ### Minions & Pets
+
 - `/minions` - Manage minions
 - `/pets` - View pet collection
 - `/island` - Visit your island
 
 ### Progression
+
 - `/progression` - View progression path
 - `/hotm` - Heart of the Mountain
 - `/fairy_souls` - Check fairy soul progress
@@ -375,68 +410,79 @@ The bot requires these intents:
 - `/quests` - View available quests
 
 ### Social
+
 - `/coop` - Manage your co-op
 - `/leaderboard` - View rankings
 - `/market_graphs` - View market analytics
 
 ### Admin (Owner Only)
+
 - `/reload_cog <cog>` - Reload a command module
 - `/sync_commands` - Sync commands to Discord
 
 ---
 
-## 💾 Database
+## Database
 
 ### Schema Overview
+
 The bot uses SQLite with 25+ tables:
 
-**Player Data**
+### Player Data
+
 - `players` - Core player information
 - `skills` - Skill levels and XP
 - `player_stats` - Combat and gathering stats
 - `player_progression` - Milestones and achievements
 
-**Inventory & Items**
+### Inventories and Items
+
 - `inventory` - Player items
 - `equipped_items` - Currently equipped gear
 - `ender_chest` - Extra storage
 - `collections` - Resource collections
 
-**Economy**
+### Economy Related
+
 - `bazaar_products` - Bazaar item listings
 - `bazaar_orders` - Active buy/sell orders
 - `auctions` - Auction house listings
 - `stocks` - Stock market data
 - `player_stocks` - Player portfolios
 
-**Combat & Progression**
+### Combat & Progression
+
 - `bestiary` - Mob kill tracking
 - `slayer_progress` - Slayer quest data
 - `dungeon_runs` - Dungeon completion history
 - `hotm_data` - Heart of the Mountain progress
 
-**Social**
+### Social System
+
 - `coops` - Co-op alliances
 - `coop_members` - Co-op membership
 - `party_finder_listings` - Open parties
 
-**Automation**
+### Automation System
+
 - `minions` - Placed minions
 - `pets` - Player pets
 - `pet_data` - Pet stats and levels
 
 ### Backup System
+
 - Automatic backups before migrations
 - Manual backups in `/backups` folder
 - Backup naming: `skyblock_backup_YYYYMMDD_HHMMSS.zip`
 
 ---
 
-## 📚 Wiki System
+## Wiki System
 
 The bot includes a comprehensive in-game wiki:
 
 ### Available Topics
+
 - Getting Started - First steps guide
 - Skills - All 11 skills explained
 - Mining, Farming, Fishing, Foraging - Gathering guides
@@ -453,7 +499,8 @@ The bot includes a comprehensive in-game wiki:
 - And many more!
 
 ### Usage
-```
+
+```text
 /wiki <topic>     # View a specific guide
 /help             # Interactive help menu
 /commands         # Complete command list
@@ -461,26 +508,30 @@ The bot includes a comprehensive in-game wiki:
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Adding New Commands
+
 1. Create a new file in `cogs/commands/`
 2. Inherit from `commands.Cog`
 3. Add `@app_commands.command` decorator
 4. Implement `async def setup(bot)` function
 
 ### Adding New Features
+
 1. Create system in `utils/systems/`
 2. Add database methods in `database/`
 3. Create UI components in `components/`
 4. Update wiki documentation
 
 ### Database Migrations
+
 1. Create SQL file in `migrations/scripts/`
 2. Name format: `YYYYMMDD_description.sql`
 3. Run automatically on bot startup
 
 ### Testing
+
 ```bash
 # Set DEV_GUILD_ID in .env for instant command sync
 # Test in your development server before production
@@ -488,7 +539,7 @@ The bot includes a comprehensive in-game wiki:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
@@ -500,6 +551,7 @@ Contributions are welcome! Please:
 6. Submit a pull request
 
 ### Code Style
+
 - Follow PEP 8 guidelines
 - Use type hints where possible
 - Add docstrings to functions
@@ -508,13 +560,13 @@ Contributions are welcome! Please:
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by Hypixel SkyBlock
 - Built with discord.py
@@ -522,12 +574,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-## 📞 Support
+## Support
 
 - Open an issue for bugs or feature requests
 - Check the wiki for gameplay help
 - Use `/help` in Discord for command information
 
 ---
-
-**Enjoy your SkyBlock adventure! 🎮⚔️💰**

@@ -1,7 +1,6 @@
 from typing import Dict, Any, Optional, List
 import json
 
-
 class HeartOfTheMountainSystem:
     
     HOTM_TIERS = {

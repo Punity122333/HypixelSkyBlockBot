@@ -79,8 +79,46 @@ class InventoryDB(DatabaseCore):
         return row['total'] if row and row['total'] else 0
 
     async def add_item_to_inventory(self, user_id: int, item_id: str, amount: int = 1):
-        for _ in range(amount):
-            await self.add_item(user_id, item_id, 1)
+        # Get the current max slot
+        row = await self.fetchone(
+            'SELECT MAX(slot) as max_slot FROM inventory_items WHERE user_id = ?',
+            (user_id,)
+        )
+        next_slot = (row['max_slot'] + 1) if row and row['max_slot'] is not None else 0
+
+        # Prepare values for executemany
+        values = [(user_id, item_id, 1, next_slot + i) for i in range(amount)]
+        cursor = await self.executemany(
+            'INSERT INTO inventory_items (user_id, item_id, amount, slot) VALUES (?, ?, ?, ?)',
+            values
+        )
+        await self.commit()
+
+        item_row = await self.fetchone(
+            'SELECT item_type FROM game_items WHERE item_id = ?',
+            (item_id,)
+        )
+        if item_row:
+            item_type = item_row['item_type']
+            modifier_item_types = ['SWORD', 'BOW', 'PICKAXE', 'AXE', 'HOE', 'FISHING_ROD', 
+                                  'HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS']
+            if item_type in modifier_item_types:
+                from .item_modifiers import ItemModifierDB
+                modifier_db = ItemModifierDB(self.db_path)
+                modifier_db.conn = self.conn
+                slot_range = list(range(next_slot, next_slot + amount))
+                rows = await self.fetchall(
+                    'SELECT id, slot FROM inventory_items WHERE user_id = ? AND slot IN ({})'.format(
+                        ','.join(['?'] * len(slot_range))
+                    ),
+                    (user_id, *slot_range)
+                )
+                slot_to_id = {row['slot']: row['id'] for row in rows}
+                for i in range(amount):
+                    if random.random() < 0.25:
+                        inventory_item_id = slot_to_id.get(next_slot + i)
+                        if inventory_item_id:
+                            await modifier_db.apply_random_modifier(user_id, inventory_item_id, item_id)
 
     async def remove_item_from_inventory(self, user_id: int, item_id: str, amount: int = 1):
         return await self.remove_item(user_id, item_id, amount)
