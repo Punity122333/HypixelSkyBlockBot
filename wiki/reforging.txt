@@ -1,0 +1,89 @@
+🔨 Item Reforging Guide
+
+Reforging allows you to reroll stats on your items based on their rarity!
+
+💫 HOW IT WORKS:
+
+REROLL MECHANICS:
+- Spend coins to reroll stats on any item
+- Stats are randomized based on item rarity
+- Higher rarity = better stat ranges
+- Can reforge unlimited times
+- Each reforge costs coins
+
+COMMAND:
+/reforge <slot> - Reforge an item in your inventory slot
+
+💰 COSTS BY RARITY:
+
+COMMON: 1,000 coins
+- Strength: 1-5
+- Crit Damage: 1-5
+- Defense: 1-5
+- Health: 5-15
+
+UNCOMMON: 2,500 coins
+- Strength: 3-8
+- Crit Damage: 3-8
+- Defense: 3-8
+- Health: 10-25
+
+RARE: 5,000 coins
+- Strength: 5-12
+- Crit Damage: 5-12
+- Defense: 5-12
+- Health: 15-35
+
+EPIC: 10,000 coins
+- Strength: 8-18
+- Crit Damage: 8-18
+- Defense: 8-18
+- Health: 25-50
+
+LEGENDARY: 25,000 coins
+- Strength: 12-25
+- Crit Damage: 12-25
+- Defense: 12-25
+- Health: 35-70
+
+MYTHIC: 50,000 coins
+- Strength: 15-35
+- Crit Damage: 15-35
+- Defense: 15-35
+- Health: 50-100
+
+🎲 STRATEGY:
+
+WHEN TO REFORGE:
+- Before important fights
+- When you get new gear
+- To min-max your stats
+- When you have spare coins
+
+REFORGE TIPS:
+- Keep reforging until you get desired stats
+- Higher rarity items have better potential
+- Stats stack with enchants and base stats
+- Great for endgame optimization
+
+BEST PRACTICES:
+- Focus on main stat needs (damage, defense, etc)
+- Budget your coins wisely
+- Don't reforge low-tier items too much
+- Save high rolls
+
+⚡ STAT COMBINATIONS:
+
+DAMAGE BUILD:
+- Strength + Crit Damage
+- Pure offense
+
+TANK BUILD:
+- Defense + Health
+- Maximum survivability
+
+BALANCED BUILD:
+- Mix of all stats
+- Versatile gameplay
+
+Start reforging your gear with /reforge today!

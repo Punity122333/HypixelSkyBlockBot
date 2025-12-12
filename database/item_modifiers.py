@@ -6,50 +6,55 @@ from .core import DatabaseCore
 
 class ItemModifierDB(DatabaseCore):
     
-    LORE_PREFIXES = {
-        'arcane': {'name': '⚡ Arcane', 'color': 'blue', 'stats': {'intelligence': 5, 'ability_damage': 3}},
-        'blazing': {'name': '🔥 Blazing', 'color': 'red', 'stats': {'strength': 3, 'crit_damage': 5}},
-        'bloodbound': {'name': '🩸 Bloodbound', 'color': 'dark_red', 'stats': {'health': 20, 'ferocity': 2}},
-        'frozen': {'name': '❄️ Frozen', 'color': 'cyan', 'stats': {'intelligence': 3, 'defense': 5}},
-        'gilded': {'name': '✨ Gilded', 'color': 'gold', 'stats': {'magic_find': 2, 'pet_luck': 1}},
-        'hallowed': {'name': '✝️ Hallowed', 'color': 'white', 'stats': {'defense': 5, 'health': 15}},
-        'titanic': {'name': '⚔️ Titanic', 'color': 'purple', 'stats': {'strength': 5, 'health': 10}},
-        'swift': {'name': '💨 Swift', 'color': 'green', 'stats': {'speed': 10, 'attack_speed': 5}},
-        'vampiric': {'name': '🧛 Vampiric', 'color': 'dark_red', 'stats': {'health': 25, 'strength': 2}},
-        'wise': {'name': '🧙 Wise', 'color': 'purple', 'stats': {'intelligence': 10, 'mana': 50}},
-        'lucky': {'name': '🍀 Lucky', 'color': 'green', 'stats': {'magic_find': 5, 'pet_luck': 3}},
-        'powerful': {'name': '💪 Powerful', 'color': 'red', 'stats': {'strength': 7, 'crit_damage': 10}},
-        'fortified': {'name': '🛡️ Fortified', 'color': 'gray', 'stats': {'defense': 10, 'true_defense': 3}},
-        'prosperous': {'name': '💰 Prosperous', 'color': 'gold', 'stats': {'mining_fortune': 10, 'farming_fortune': 10}},
-    }
+    async def get_lore_prefix(self, prefix_id: str) -> Optional[Dict]:
+        row = await self.fetchone(
+            'SELECT prefix_id, display_name, color, stats FROM item_lore_prefixes WHERE prefix_id = ?',
+            (prefix_id,)
+        )
+        if not row:
+            return None
+        return {
+            'name': row['display_name'],
+            'color': row['color'],
+            'stats': json.loads(row['stats'])
+        }
     
-    LORE_SUFFIXES = {
-        'the_end': {'name': 'of the End', 'stats': {'health': 10, 'defense': 5}},
-        'the_nether': {'name': 'of the Nether', 'stats': {'strength': 5, 'ferocity': 2}},
-        'dragons': {'name': 'of Dragons', 'stats': {'health': 20, 'strength': 10}},
-        'the_depths': {'name': 'of the Depths', 'stats': {'fishing_speed': 10, 'sea_creature_chance': 5}},
-        'mining': {'name': 'of Mining', 'stats': {'mining_speed': 10, 'mining_fortune': 15}},
-        'farming': {'name': 'of Farming', 'stats': {'farming_fortune': 15, 'speed': 5}},
-        'combat': {'name': 'of Combat', 'stats': {'crit_chance': 5, 'crit_damage': 15}},
-        'wealth': {'name': 'of Wealth', 'stats': {'magic_find': 3}},
-    }
+    async def get_all_lore_prefixes(self) -> Dict[str, Dict]:
+        rows = await self.fetchall('SELECT prefix_id, display_name, color, stats FROM item_lore_prefixes')
+        return {
+            row['prefix_id']: {
+                'name': row['display_name'],
+                'color': row['color'],
+                'stats': json.loads(row['stats'])
+            }
+            for row in rows
+        }
     
-    STAT_MUTATIONS = [
-        {'stat': 'strength', 'min': 1, 'max': 10, 'weight': 10},
-        {'stat': 'crit_damage', 'min': 2, 'max': 20, 'weight': 8},
-        {'stat': 'health', 'min': 5, 'max': 50, 'weight': 10},
-        {'stat': 'defense', 'min': 2, 'max': 15, 'weight': 9},
-        {'stat': 'intelligence', 'min': 2, 'max': 25, 'weight': 7},
-        {'stat': 'mining_fortune', 'min': 3, 'max': 20, 'weight': 6},
-        {'stat': 'farming_fortune', 'min': 3, 'max': 20, 'weight': 6},
-        {'stat': 'foraging_fortune', 'min': 3, 'max': 20, 'weight': 6},
-        {'stat': 'magic_find', 'min': 1, 'max': 5, 'weight': 3},
-        {'stat': 'pet_luck', 'min': 1, 'max': 3, 'weight': 2},
-        {'stat': 'speed', 'min': 5, 'max': 15, 'weight': 5},
-        {'stat': 'attack_speed', 'min': 2, 'max': 10, 'weight': 4},
-        {'stat': 'ferocity', 'min': 1, 'max': 5, 'weight': 4},
-        {'stat': 'true_defense', 'min': 1, 'max': 5, 'weight': 2},
-    ]
+    async def get_lore_suffix(self, suffix_id: str) -> Optional[Dict]:
+        row = await self.fetchone(
+            'SELECT suffix_id, display_name, stats FROM item_lore_suffixes WHERE suffix_id = ?',
+            (suffix_id,)
+        )
+        if not row:
+            return None
+        return {
+            'name': row['display_name'],
+            'stats': json.loads(row['stats'])
+        }
+    
+    async def get_all_lore_suffixes(self) -> Dict[str, Dict]:
+        rows = await self.fetchall('SELECT suffix_id, display_name, stats FROM item_lore_suffixes')
+        return {
+            row['suffix_id']: {
+                'name': row['display_name'],
+                'stats': json.loads(row['stats'])
+            }
+            for row in rows
+        }
+    
+    async def get_stat_mutations(self) -> List[Dict]:
+        rows = await self.fetchall('SELECT stat, min_value, max_value, weight FROM item_stat_mutations')
+        return [{'stat': row['stat'], 'min': row['min_value'], 'max': row['max_value'], 'weight': row['weight']} for row in rows]
     
     async def apply_random_modifier(self, user_id: int, inventory_item_id: int, item_id: str) -> Optional[Dict[str, Any]]:
         modifier_chance = random.random()
@@ -63,24 +68,27 @@ class ItemModifierDB(DatabaseCore):
         total_stats: Dict[str, int] = {}
         
         if modifier_type == 'prefix' or modifier_type == 'double':
-            prefix_id = random.choice(list(self.LORE_PREFIXES.keys()))
-            prefix_data = self.LORE_PREFIXES[prefix_id]
+            all_prefixes = await self.get_all_lore_prefixes()
+            prefix_id = random.choice(list(all_prefixes.keys()))
+            prefix_data = all_prefixes[prefix_id]
             modifiers.append({'type': 'prefix', 'id': prefix_id, 'name': prefix_data['name']})
             
             for stat, value in prefix_data['stats'].items():
                 total_stats[stat] = total_stats.get(stat, 0) + value
         
         if modifier_type == 'suffix' or modifier_type == 'double':
-            suffix_id = random.choice(list(self.LORE_SUFFIXES.keys()))
-            suffix_data = self.LORE_SUFFIXES[suffix_id]
+            all_suffixes = await self.get_all_lore_suffixes()
+            suffix_id = random.choice(list(all_suffixes.keys()))
+            suffix_data = all_suffixes[suffix_id]
             modifiers.append({'type': 'suffix', 'id': suffix_id, 'name': suffix_data['name']})
             
             for stat, value in suffix_data['stats'].items():
                 total_stats[stat] = total_stats.get(stat, 0) + value
         
         if modifier_type == 'stat_mutation':
+            stat_mutations = await self.get_stat_mutations()
             num_mutations = random.randint(1, 3)
-            selected_mutations = random.sample(self.STAT_MUTATIONS, min(num_mutations, len(self.STAT_MUTATIONS)))
+            selected_mutations = random.sample(stat_mutations, min(num_mutations, len(stat_mutations)))
             
             for mutation in selected_mutations:
                 stat_value = random.randint(mutation['min'], mutation['max'])

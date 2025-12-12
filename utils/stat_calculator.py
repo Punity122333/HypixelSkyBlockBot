@@ -293,33 +293,43 @@ class StatCalculator:
         inventory = await db.get_inventory(user_id)
         
         for item_row in inventory:
-            if item_row.get('equipped') == 1 and item_row.get('reforge'):
-                reforge_id = item_row['reforge']
-                item_id = item_row['item_id']
+            if item_row.get('equipped') == 1:
+                inventory_item_id = item_row.get('id')
                 
-                if not db.conn:
-                    continue
+                if inventory_item_id:
+                    reforged_stats = await db.reforging.get_reforged_stats(inventory_item_id)
+                    if reforged_stats:
+                        for stat, value in reforged_stats.items():
+                            if stat in stats:
+                                stats[stat] += value
                 
-                cursor = await db.conn.execute('SELECT * FROM game_items WHERE item_id = ?', (item_id,))
-                item_data = await cursor.fetchone()
-                
-                if not item_data:
-                    continue
-                
-                item_type = item_data['item_type']
-                
-                cursor = await db.conn.execute('SELECT * FROM reforges WHERE reforge_id = ?', (reforge_id,))
-                reforge_data = await cursor.fetchone()
-                
-                if not reforge_data:
-                    continue
-                
-                applies_to = json.loads(reforge_data['applies_to'])
-                if item_type in applies_to:
-                    reforge_stats = json.loads(reforge_data['stat_bonuses'])
-                    for stat, value in reforge_stats.items():
-                        if stat in stats:
-                            stats[stat] += value
+                if item_row.get('reforge'):
+                    reforge_id = item_row['reforge']
+                    item_id = item_row['item_id']
+                    
+                    if not db.conn:
+                        continue
+                    
+                    cursor = await db.conn.execute('SELECT * FROM game_items WHERE item_id = ?', (item_id,))
+                    item_data = await cursor.fetchone()
+                    
+                    if not item_data:
+                        continue
+                    
+                    item_type = item_data['item_type']
+                    
+                    cursor = await db.conn.execute('SELECT * FROM reforges WHERE reforge_id = ?', (reforge_id,))
+                    reforge_data = await cursor.fetchone()
+                    
+                    if not reforge_data:
+                        continue
+                    
+                    applies_to = json.loads(reforge_data['applies_to'])
+                    if item_type in applies_to:
+                        reforge_stats = json.loads(reforge_data['stat_bonuses'])
+                        for stat, value in reforge_stats.items():
+                            if stat in stats:
+                                stats[stat] += value
     
     @classmethod
     async def _apply_enchantment_stats(cls, db, user_id: int, stats: Dict):

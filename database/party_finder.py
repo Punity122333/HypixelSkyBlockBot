@@ -7,18 +7,18 @@ class PartyFinderDB(DatabaseCore):
     
     DUNGEON_CLASSES = ['healer', 'mage', 'berserker', 'archer', 'tank']
     
-    DUNGEON_FLOORS = {
-        1: {'name': 'Floor 1', 'min_level': 0, 'recommended_level': 5},
-        2: {'name': 'Floor 2', 'min_level': 3, 'recommended_level': 10},
-        3: {'name': 'Floor 3', 'min_level': 7, 'recommended_level': 15},
-        4: {'name': 'Floor 4', 'min_level': 10, 'recommended_level': 20},
-        5: {'name': 'Floor 5', 'min_level': 15, 'recommended_level': 25},
-        6: {'name': 'Floor 6', 'min_level': 20, 'recommended_level': 30},
-        7: {'name': 'Floor 7', 'min_level': 25, 'recommended_level': 35},
-    }
+    async def get_dungeon_floor(self, floor: int) -> Optional[Dict]:
+        row = await self.fetchone(
+            'SELECT floor, name, min_level, recommended_level FROM dungeon_floors WHERE floor = ?',
+            (floor,)
+        )
+        if not row:
+            return None
+        return dict(row)
     
     async def create_party(self, leader_id: int, floor: int, requirements: Optional[Dict] = None, description: str = '') -> int:
-        if floor not in self.DUNGEON_FLOORS:
+        floor_data = await self.get_dungeon_floor(floor)
+        if not floor_data:
             raise ValueError('Invalid floor')
         
         min_cata_level = requirements.get('min_catacombs_level', 0) if requirements else 0

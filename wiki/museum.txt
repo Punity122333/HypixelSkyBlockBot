@@ -1,0 +1,184 @@
+🏛️ Museum & Collections Showcase
+
+The Museum is your personal exhibition hall where you can donate rare items for permanent display and earn exclusive rewards!
+
+🎮 COMMANDS:
+- /museum - View and manage your museum
+- /museum_leaderboard - See top collectors
+
+📦 HOW THE MUSEUM WORKS:
+
+DONATING ITEMS:
+1. Open your /museum
+2. Click "Donate" button
+3. Enter inventory slot number
+4. Item is permanently added to museum
+5. Receive points based on rarity
+6. Cannot donate duplicates
+
+RARITY POINTS SYSTEM:
+- Common: 1 point
+- Uncommon: 2 points
+- Rare: 5 points
+- Epic: 10 points
+- Legendary: 25 points
+- Mythic: 50 points
+
+🏆 MILESTONES & REWARDS:
+
+10 Items:
+- 10,000 coins
+- Title: 🎨 Novice Collector
+
+25 Items:
+- 25,000 coins
+- Title: 🏛️ Museum Enthusiast
+
+50 Items:
+- 50,000 coins
+- Title: 💎 Master Curator
+
+100 Items:
+- 100,000 coins
+- Title: 👑 Legendary Collector
+
+200 Items:
+- 250,000 coins
+- Title: 🌟 Museum Tycoon
+
+500 Items:
+- 1,000,000 coins
+- Title: ⭐ Grand Archivist
+
+📊 MUSEUM FEATURES:
+
+MAIN VIEW:
+- Total items count
+- Total points earned
+- Milestones claimed
+- Rarity breakdown
+
+COLLECTION VIEW:
+- All donated items listed
+- Sorted by rarity/points
+- Up to 15 items shown
+- Item names with emoji
+
+MILESTONES VIEW:
+- All milestone tiers
+- Your current progress
+- Claimed vs unclaimed
+- Next reward preview
+
+LEADERBOARD:
+- Top 10 collectors globally
+- Total items donated
+- Total points accumulated
+- Compete for #1 spot!
+
+💡 DONATION STRATEGY:
+
+EARLY GAME:
+- Don't donate valuable items yet
+- Wait until you have duplicates
+- Focus on Common/Uncommon items
+- Build collection slowly
+
+MID GAME:
+- Donate duplicate Rares
+- Save Legendaries for later
+- Work toward 25-item milestone
+- Check leaderboard position
+
+LATE GAME:
+- Donate excess Legendaries
+- Hunt for Mythic items to donate
+- Push for 500-item achievement
+- Compete for leaderboard top 3
+
+⚠️ IMPORTANT NOTES:
+
+PERMANENT DONATION:
+- Items CANNOT be retrieved
+- Think before donating
+- No refunds or returns
+- Keep one copy for yourself
+
+DUPLICATE PROTECTION:
+- Can only donate each item once
+- System prevents duplicates
+- Build a diverse collection
+- Hunt for unique items
+
+MILESTONE TIMING:
+- Rewards given instantly
+- Coins added to balance
+- Title displayed in profiles
+- Check progress regularly
+
+🎯 COLLECTION GOALS:
+
+SHORT TERM:
+✓ Donate 10 items (first milestone)
+✓ Get 100 points
+✓ Donate one Rare+ item
+
+MEDIUM TERM:
+✓ Reach 50 items
+✓ Get 500 points
+✓ Earn Master Curator title
+
+LONG TERM:
+✓ Reach 200+ items
+✓ Get 5,000+ points
+✓ Top 10 leaderboard
+
+ENDGAME:
+✓ All 500 items donated
+✓ Grand Archivist title
+✓ #1 on leaderboard
+✓ 10,000+ points
+
+📈 LEADERBOARD TIPS:
+
+CLIMB THE RANKS:
+- Donate high-rarity items
+- Aim for point efficiency
+- Hunt Mythic items actively
+- Check competition regularly
+
+STAYING ON TOP:
+- Maintain active donations
+- Farm rare item drops
+- Trade for missing items
+- Consistent effort pays off
+
+💎 RECOMMENDED DONATIONS:
+
+ALWAYS DONATE:
+✓ Common mob drops (duplicates)
+✓ Easy farmable items
+✓ Quest reward duplicates
+✓ Extra event items
+
+CONSIDER CAREFULLY:
+⚠️ Rare crafted items
+⚠️ Hard-to-get dungeon loot
+⚠️ Slayer boss drops
+⚠️ Limited event items
+
+NEVER DONATE (until endgame):
+❌ Your only Legendary weapon
+❌ Best-in-slot armor
+❌ Active use equipment
+❌ Irreplaceable items
+
+🌟 PRESTIGE VALUE:
+
+The Museum is the ultimate flex!
+- Shows dedication
+- Proves wealth
+- Demonstrates achievement
+- Permanent record
+
+Your museum is YOUR legacy in SkyBlock!

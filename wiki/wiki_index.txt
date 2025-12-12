@@ -35,9 +35,10 @@ weapons | Items | Weapon types and progression
 armor | Items | Armor sets and their bonuses
 tools | Items | Tool types and upgrades
 accessories | Items | Talisman and accessory guide
-reforging | Items | Reforging items for better stats
+reforging | Items | Reforging items for better stats (stat rerolling system)
 
-# Collections
+# Museum & Collections
+museum | Museum | Museum donation system and rewards
 collections | Collections | Understanding the collections system
 collection_rewards | Collections | Collection tier rewards
 category_bonuses | Collections | Collection category bonus system
@@ -60,6 +61,7 @@ coop_bank | Co-op | Shared bank management
 combat_locations | Combat | All combat locations
 slayers | Combat | Slayer boss guide
 bosses | Combat | Boss fight strategies
+boss_rotation | Bosses | Daily boss rotation and cooperative fights
 
 # Progression
 fairy_souls | Progression | Fairy soul locations and bonuses

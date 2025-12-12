@@ -1,0 +1,219 @@
+⏰ Daily Boss Rotation
+
+Fight powerful world bosses that rotate every 6 hours! Defeat them solo or with your party for massive rewards!
+
+🎮 COMMANDS:
+- /daily_boss - Fight the current boss
+- /boss_schedule - View rotation schedule
+- /boss_leaderboard - See top boss fighters
+
+🔄 BOSS ROTATION CYCLE:
+
+The rotation changes every 6 hours:
+
+1️⃣ CRYPT GHOUL KING 🧟
+- Health: 500,000 HP
+- Damage: 1,500
+- Defense: 200
+- Rewards: 50,000 coins, 5,000 XP
+
+2️⃣ SPIDER QUEEN 🕷️
+- Health: 750,000 HP
+- Damage: 2,000
+- Defense: 300
+- Rewards: 75,000 coins, 7,500 XP
+
+3️⃣ BLAZE LORD 🔥
+- Health: 1,000,000 HP
+- Damage: 2,500
+- Defense: 400
+- Rewards: 100,000 coins, 10,000 XP
+
+4️⃣ ENDER WARDEN 👾
+- Health: 1,250,000 HP
+- Damage: 3,000
+- Defense: 500
+- Rewards: 125,000 coins, 12,500 XP
+
+🤝 COOPERATIVE BOSS FIGHTS:
+
+PARTY BENEFITS:
+✓ Share damage with party members
+✓ Easier to defeat tough bosses
+✓ All members get rewards
+✓ Damage contribution tracked
+✓ MVP gets bonus rewards
+
+HOW IT WORKS:
+1. Join a party (/party)
+2. Leader starts /daily_boss
+3. All members can attack
+4. Damage is combined
+5. Rewards distributed based on contribution
+
+REWARD DISTRIBUTION:
+- Coins: Split by damage contribution
+- XP: Split by damage contribution
+- Loot: Randomly distributed to members
+- MVP bonus: Extra rewards for top damage
+
+📊 BOSS MECHANICS:
+
+COMBAT SYSTEM:
+- Attack, Defend, Ability, Run options
+- Standard combat mechanics apply
+- Boss has high HP and damage
+- Recommended: Good gear + party
+
+DIFFICULTY SCALING:
+- Early bosses: Easier
+- Late cycle bosses: Harder
+- Solo: Very challenging
+- Party: More manageable
+
+RESPAWN TIMER:
+- Bosses respawn instantly
+- Fight as many times as you want
+- No cooldown per player
+- Infinite attempts per rotation
+
+🏆 LEADERBOARD SYSTEM:
+
+TRACKED STATS:
+- Total kills per boss
+- Best clear time
+- Maximum damage dealt
+- Personal records
+
+RANKINGS:
+- Per-boss leaderboards
+- Top 10 fighters shown
+- Medals for top 3
+- Compete for glory!
+
+COMPETITION:
+🥇 Gold: #1 position
+🥈 Silver: #2 position
+🥉 Bronze: #3 position
+
+💡 FIGHTING TIPS:
+
+PREPARATION:
+✓ Equip best combat gear
+✓ Bring healing potions
+✓ Check your stats
+✓ Join a party if needed
+
+DURING FIGHT:
+✓ Attack when health is high
+✓ Defend when low health
+✓ Use abilities strategically
+✓ Don't flee early (no rewards)
+
+ADVANCED TACTICS:
+✓ Learn boss attack patterns
+✓ Time your abilities
+✓ Coordinate with party
+✓ Optimize damage rotation
+
+⚠️ DEATH CONSEQUENCES:
+- Fleeing = NO REWARDS
+- Losing = NO REWARDS
+- Must defeat boss for loot
+- Party can revive strategy
+
+🎯 BOSS STRATEGIES:
+
+CRYPT GHOUL KING:
+- Easiest boss
+- Good for beginners
+- Solo-able with decent gear
+- Low risk, decent reward
+
+SPIDER QUEEN:
+- Moderate difficulty
+- Party recommended
+- Higher damage output needed
+- Better rewards
+
+BLAZE LORD:
+- High difficulty
+- Strong party suggested
+- Fire resistance helps
+- Great coin rewards
+
+ENDER WARDEN:
+- Hardest boss
+- Full party required
+- Best gear essential
+- Maximum rewards
+
+📅 ROTATION TRACKING:
+
+CHECK SCHEDULE:
+- /boss_schedule shows current boss
+- Time remaining until next boss
+- Full rotation preview
+- Plan your farming
+
+TIMING STRATEGY:
+- Farm easier bosses solo
+- Wait for party on hard bosses
+- Check schedule regularly
+- Set reminders for favorites
+
+🌟 PARTY COORDINATION:
+
+COMMUNICATION:
+- Announce boss fights
+- Coordinate attack timing
+- Share healing resources
+- Call out low health
+
+ROLES:
+- Tank: High defense, draws aggro
+- DPS: Maximum damage dealers
+- Support: Healing and buffs
+- Balance for best results
+
+MVP COMPETITION:
+- Track your damage
+- Compete with party
+- Friendly rivalry
+- MVP gets bragging rights
+
+💎 REWARD OPTIMIZATION:
+
+MAXIMIZE COINS:
+- Fight during coin events
+- Use magic find gear
+- Party up for consistency
+- Farm your best boss
+
+MINIMIZE RISK:
+- Don't solo hard bosses early
+- Bring potions
+- Know when to party
+- Practice on easier bosses first
+
+TIME EFFICIENCY:
+- Quick kills = more fights
+- Party speeds up fights
+- Focus on bosses you can beat fast
+- Farm during rotation windows
+
+🔥 ENDGAME GOALS:
+
+ACHIEVEMENTS:
+✓ Solo each boss once
+✓ Top 10 on any leaderboard
+✓ 100 total boss kills
+✓ MVP in party fight
+
+MASTERY:
+✓ #1 on favorite boss
+✓ Sub-60s clear time
+✓ Max damage record
+✓ 1000+ total kills
+
+Remember: The bosses rotate forever - there's always another chance!

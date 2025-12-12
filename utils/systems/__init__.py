@@ -7,6 +7,7 @@ from .market_system import MarketSystem
 from .party_system import PartySystem
 from .puzzle_system import PuzzleSystem, Puzzle, PuzzleType
 from .scaling_system import GradientScaling, DungeonScaling
+from .cooperative_boss_system import CooperativeBossSystem
 
 __all__ = [
     'CombatSystem',
@@ -20,5 +21,6 @@ __all__ = [
     'Puzzle',
     'PuzzleType',
     'GradientScaling',
-    'DungeonScaling'
+    'DungeonScaling',
+    'CooperativeBossSystem'
 ]

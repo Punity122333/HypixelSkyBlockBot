@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Any, Tuple
+from typing import Optional, Dict, List, Tuple
 import aiosqlite
 from .core import DatabaseCore
 from .players import PlayersDB
@@ -20,10 +20,11 @@ from .crystal_hollows import CrystalHollowsDB
 from .potions import PotionsDB
 from .talismans import TalismansDB
 from .bestiary import BestiaryDB
+from .reforging import ReforgingDB
+from .boss_rotation import BossRotationDB
+from .museum import MuseumDB
 from .methods import GameDatabaseMethods
 import json
-import time
-
 
 class GameDatabase(GameDatabaseMethods):
     def __init__(self, db_path: str):
@@ -48,6 +49,9 @@ class GameDatabase(GameDatabaseMethods):
         self.potions = PotionsDB(db_path)
         self.talismans = TalismansDB(db_path)
         self.bestiary = BestiaryDB(db_path)
+        self.reforging = ReforgingDB(db_path)
+        self.boss_rotation = BossRotationDB(db_path)
+        self.museum = MuseumDB(db_path)
         self.conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self):
@@ -110,6 +114,15 @@ class GameDatabase(GameDatabaseMethods):
         
         await self.bestiary.connect()
         self.bestiary.conn = self.conn
+        
+        await self.reforging.connect()
+        self.reforging.conn = self.conn
+        
+        await self.boss_rotation.connect()
+        self.boss_rotation.conn = self.conn
+        
+        await self.museum.connect()
+        self.museum.conn = self.conn
         
         await self._create_dungeon_loot_tables()
 
@@ -278,16 +291,6 @@ class GameDatabase(GameDatabaseMethods):
                            buy_now_price: Optional[int], duration: int, bin: bool = False):
         return await self.market.create_auction(seller_id, item_id, starting_bid,
                                                 buy_now_price, duration, bin)
-    
-    async def get_top_flippers(self, limit: int = 10):
-        if hasattr(self, 'get_top_flippers'):
-            return await self.get_top_flippers(limit)
-        return []
-    
-    async def get_active_merchant_deals(self):
-        if hasattr(self, 'get_active_merchant_deals'):
-            return await self.get_active_merchant_deals()
-        return []
 
     async def get_game_pet(self, pet_id: str):
         return await self.events.get_game_pet(pet_id)

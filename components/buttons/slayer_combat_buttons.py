@@ -40,6 +40,11 @@ class SlayerCombatAttackButton(Button):
         embed = discord.Embed(title=f"⚔️ Slayer Boss Fight: {view.mob_name}", color=discord.Color.dark_red())
         
         if view.mob_health <= 0:
+            if hasattr(view, 'coop_session') and view.coop_session:
+                await interaction.response.defer()
+                await view.handle_victory(interaction, total_damage)
+                return
+            
             slayer_id = view.mob_name.lower().split()[0]
             await view.bot.db.skills.update_slayer_xp(view.user_id, slayer_id, view.xp_reward)
 

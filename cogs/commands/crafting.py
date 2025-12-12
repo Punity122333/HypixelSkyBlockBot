@@ -281,28 +281,65 @@ class CraftingCommands(commands.Cog):
     async def view_recipes_search_autocomplete(self, interaction: discord.Interaction, current: str):
         return await recipe_autocomplete(interaction, current)
 
-    @app_commands.command(name="reforge", description="Reforge items")
-    async def reforge(self, interaction: discord.Interaction, reforge: str):
+    @app_commands.command(name="reforge", description="Reforge items to reroll stats")
+    @app_commands.describe(slot="Inventory slot of the item to reforge")
+    async def reforge(self, interaction: discord.Interaction, slot: int):
         try:
             await interaction.response.defer()
             p = await self.bot.player_manager.get_or_create_player(interaction.user.id, interaction.user.name)
-            rname = reforge.lower()
-            rdata = await self.bot.game_data.get_reforge(rname)
-            if not rdata:
-                await interaction.followup.send("Unknown reforge.", ephemeral=True)
+            
+            inventory = await self.bot.db.inventory.get_inventory(interaction.user.id)
+            
+            if slot < 0 or slot >= len(inventory):
+                await interaction.followup.send(f"❌ Invalid slot! You have {len(inventory)} items.", ephemeral=True)
                 return
-            if p.get("coins", 0) < 5000:
-                await interaction.followup.send("Not enough coins.", ephemeral=True)
+            
+            item_data = inventory[slot]
+            item_id = item_data['item_id']
+            inventory_item_id = item_data['id']
+            
+            game_item = await self.bot.game_data.get_item(item_id)
+            if not game_item:
+                await interaction.followup.send("❌ Item not found!", ephemeral=True)
                 return
-            await self.bot.player_manager.add_coins(interaction.user.id, -5000)
-            embed = discord.Embed(title=f"{rname.title()} Applied", color=discord.Color.purple())
-            s = "\n".join([f"+{v} {k.replace('_',' ').title()}" for k, v in rdata.get("stat_bonuses", {}).items()])
-            embed.add_field(name="Bonuses", value=s or "None", inline=False)
-            embed.add_field(name="Cost", value="5000", inline=True)
-            embed.add_field(name="Applies To", value=", ".join(rdata.get("applies_to", [])), inline=True)
+            
+            rarity = game_item.get('rarity', 'COMMON')
+            item_name = game_item.get('name', item_id.replace('_', ' ').title())
+            
+            reforge_costs = {
+                'COMMON': 1000,
+                'UNCOMMON': 2500,
+                'RARE': 5000,
+                'EPIC': 10000,
+                'LEGENDARY': 25000,
+                'MYTHIC': 50000
+            }
+            
+            cost = reforge_costs.get(rarity, 5000)
+            
+            if p.get("coins", 0) < cost:
+                await interaction.followup.send(f"❌ You need {cost:,} coins to reforge this item!", ephemeral=True)
+                return
+            
+            await self.bot.player_manager.remove_coins(interaction.user.id, cost)
+            
+            result = await self.bot.db.reforging.reroll_item_stats(interaction.user.id, inventory_item_id, rarity)
+            
+            if not result['success']:
+                await self.bot.player_manager.add_coins(interaction.user.id, cost)
+                await interaction.followup.send(f"❌ Reforging failed: {result.get('error', 'Unknown error')}", ephemeral=True)
+                return
+            
+            embed = discord.Embed(title=f"✨ {item_name} Reforged!", color=discord.Color.purple())
+            embed.description = f"**Rarity:** {rarity}\n**Cost:** {cost:,} coins"
+            
+            stats_text = "\n".join([f"+{v} {k.replace('_', ' ').title()}" for k, v in result['stats'].items()])
+            embed.add_field(name="🎲 New Stats", value=stats_text or "No stats", inline=False)
+            embed.set_footer(text="Stats are randomized based on rarity! Reforge again to reroll.")
+            
             await interaction.followup.send(embed=embed)
-        except Exception:
-            await interaction.followup.send("Failed to apply reforge.", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"❌ Reforging failed: {str(e)}", ephemeral=True)
 
     @app_commands.command(name="reforges", description="View reforges")
     async def reforges(self, interaction: discord.Interaction):

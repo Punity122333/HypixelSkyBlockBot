@@ -1,129 +1,122 @@
-MINING_LOCATIONS = {
-    'coal_mine': {
-        'name': 'Coal Mine',
-        'drops': ['coal', 'cobblestone'],
-        'xp_range': (5, 15)
-    },
-    'gold_mine': {
-        'name': 'Gold Mine',
-        'drops': ['gold_ore', 'cobblestone'],
-        'xp_range': (10, 25)
-    },
-    'diamond_reserve': {
-        'name': 'Diamond Reserve',
-        'drops': ['diamond', 'gold_ore', 'iron_ore'],
-        'xp_range': (25, 50)
-    },
-    'obsidian_sanctuary': {
-        'name': 'Obsidian Sanctuary',
-        'drops': ['obsidian', 'diamond'],
-        'xp_range': (40, 80)
-    },
-    'dwarven_mines': {
-        'name': 'Dwarven Mines',
-        'drops': ['mithril', 'titanium', 'diamond'],
-        'xp_range': (50, 100)
-    },
-    'crystal_hollows': {
-        'name': 'Crystal Hollows',
-        'drops': ['gemstone', 'mithril', 'diamond'],
-        'xp_range': (75, 150)
-    }
-}
+import json
+import aiosqlite
+from typing import Optional, Dict, List
 
-FARMING_LOCATIONS = {
-    'barn': {
-        'name': 'The Barn',
-        'crops': ['wheat', 'carrot', 'potato'],
-        'xp_range': (5, 20)
-    },
-    'mushroom_desert': {
-        'name': 'Mushroom Desert',
-        'crops': ['mushroom', 'cactus'],
-        'xp_range': (10, 30)
-    },
-    'garden': {
-        'name': 'The Garden',
-        'crops': ['wheat', 'carrot', 'potato', 'pumpkin', 'melon'],
-        'xp_range': (15, 40)
-    }
-}
+_db_path = 'skyblock.db'
+_location_cache = {}
 
-COMBAT_LOCATIONS = {
-    'spiders_den': {
-        'name': "Spider's Den",
-        'mobs': ['spider', 'cave_spider', 'broodfather'],
-        'xp_range': (10, 30)
-    },
-    'end': {
-        'name': 'The End',
-        'mobs': ['enderman', 'zealot', 'dragon'],
-        'xp_range': (25, 60)
-    },
-    'crimson_isle': {
-        'name': 'Crimson Isle',
-        'mobs': ['blaze', 'magma_cube', 'wither_skeleton'],
-        'xp_range': (30, 75)
-    },
-    'deep_caverns': {
-        'name': 'Deep Caverns',
-        'mobs': ['zombie', 'skeleton', 'creeper'],
-        'xp_range': (5, 20)
-    }
-}
+async def _get_db():
+    conn = await aiosqlite.connect(_db_path)
+    conn.row_factory = aiosqlite.Row
+    return conn
 
-FISHING_LOCATIONS = {
-    'pond': {
-        'name': 'Pond',
-        'catches': ['raw_fish', 'lily_pad'],
-        'xp_range': (5, 15)
-    },
-    'barn_fishing': {
-        'name': 'Barn Fishing',
-        'catches': ['raw_fish', 'sponge'],
-        'xp_range': (10, 25)
-    },
-    'mushroom_desert_fishing': {
-        'name': 'Mushroom Desert Fishing',
-        'catches': ['pufferfish', 'clownfish'],
-        'xp_range': (15, 35)
-    },
-    'spider_den_fishing': {
-        'name': "Spider's Den Fishing",
-        'catches': ['raw_fish', 'string'],
-        'xp_range': (20, 45)
-    },
-    'crimson_isle_fishing': {
-        'name': 'Crimson Isle Fishing',
-        'catches': ['magmafish', 'sulfur'],
-        'xp_range': (30, 70)
-    }
-}
+async def get_mining_locations() -> Dict[str, Dict]:
+    if 'mining' in _location_cache:
+        return _location_cache['mining']
+    
+    conn = await _get_db()
+    cursor = await conn.execute('SELECT * FROM mining_locations')
+    rows = await cursor.fetchall()
+    await conn.close()
+    
+    locations = {}
+    for row in rows:
+        locations[row['location_id']] = {
+            'name': row['name'],
+            'drops': json.loads(row['drops']),
+            'xp_range': (row['xp_min'], row['xp_max'])
+        }
+    _location_cache['mining'] = locations
+    return locations
 
-FORAGING_LOCATIONS = {
-    'park': {
-        'name': 'The Park',
-        'trees': ['oak', 'birch'],
-        'xp_range': (5, 15)
-    },
-    'floating_islands': {
-        'name': 'Floating Islands',
-        'trees': ['spruce', 'dark_oak'],
-        'xp_range': (10, 25)
-    },
-    'jungle': {
-        'name': 'Jungle',
-        'trees': ['jungle', 'acacia'],
-        'xp_range': (15, 35)
-    }
-}
+async def get_farming_locations() -> Dict[str, Dict]:
+    if 'farming' in _location_cache:
+        return _location_cache['farming']
+    
+    conn = await _get_db()
+    cursor = await conn.execute('SELECT * FROM farming_locations')
+    rows = await cursor.fetchall()
+    await conn.close()
+    
+    locations = {}
+    for row in rows:
+        locations[row['location_id']] = {
+            'name': row['name'],
+            'crops': json.loads(row['crops']),
+            'xp_range': (row['xp_min'], row['xp_max'])
+        }
+    _location_cache['farming'] = locations
+    return locations
 
-def get_location_data(location_type: str, location_name: str):
-    locations = {
-        'mining': MINING_LOCATIONS,
-        'farming': FARMING_LOCATIONS,
-        'combat': COMBAT_LOCATIONS,
-        'fishing': FISHING_LOCATIONS,
-        'foraging': FORAGING_LOCATIONS
-    }
-    return locations.get(location_type, {}).get(location_name)
+async def get_combat_locations() -> Dict[str, Dict]:
+    if 'combat' in _location_cache:
+        return _location_cache['combat']
+    
+    conn = await _get_db()
+    cursor = await conn.execute('SELECT * FROM combat_locations')
+    rows = await cursor.fetchall()
+    await conn.close()
+    
+    locations = {}
+    for row in rows:
+        locations[row['location_id']] = {
+            'name': row['name'],
+            'mobs': json.loads(row['mobs']),
+            'xp_range': (row['xp_min'], row['xp_max'])
+        }
+    _location_cache['combat'] = locations
+    return locations
+
+async def get_fishing_locations() -> Dict[str, Dict]:
+    if 'fishing' in _location_cache:
+        return _location_cache['fishing']
+    
+    conn = await _get_db()
+    cursor = await conn.execute('SELECT * FROM fishing_locations')
+    rows = await cursor.fetchall()
+    await conn.close()
+    
+    locations = {}
+    for row in rows:
+        locations[row['location_id']] = {
+            'name': row['name'],
+            'catches': json.loads(row['catches']),
+            'xp_range': (row['xp_min'], row['xp_max'])
+        }
+    _location_cache['fishing'] = locations
+    return locations
+
+async def get_foraging_locations() -> Dict[str, Dict]:
+    if 'foraging' in _location_cache:
+        return _location_cache['foraging']
+    
+    conn = await _get_db()
+    cursor = await conn.execute('SELECT * FROM foraging_locations')
+    rows = await cursor.fetchall()
+    await conn.close()
+    
+    locations = {}
+    for row in rows:
+        locations[row['location_id']] = {
+            'name': row['name'],
+            'trees': json.loads(row['trees']),
+            'xp_range': (row['xp_min'], row['xp_max'])
+        }
+    _location_cache['foraging'] = locations
+    return locations
+
+async def get_location_data(location_type: str, location_name: str) -> Optional[Dict]:
+    if location_type == 'mining':
+        locations = await get_mining_locations()
+    elif location_type == 'farming':
+        locations = await get_farming_locations()
+    elif location_type == 'combat':
+        locations = await get_combat_locations()
+    elif location_type == 'fishing':
+        locations = await get_fishing_locations()
+    elif location_type == 'foraging':
+        locations = await get_foraging_locations()
+    else:
+        return None
+    
+    return locations.get(location_name)

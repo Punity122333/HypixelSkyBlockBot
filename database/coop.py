@@ -5,12 +5,14 @@ from .core import DatabaseCore
 
 class CoopDB(DatabaseCore):
     
-    PERMISSIONS = {
-        'owner': ['manage_members', 'manage_permissions', 'use_bank', 'manage_minions', 'manage_island', 'invite_members', 'kick_members'],
-        'admin': ['use_bank', 'manage_minions', 'manage_island', 'invite_members'],
-        'member': ['use_bank', 'manage_minions'],
-        'guest': []
-    }
+    async def get_role_permissions(self, role: str) -> List[str]:
+        row = await self.fetchone(
+            'SELECT permissions FROM coop_permissions WHERE role = ?',
+            (role,)
+        )
+        if not row:
+            return []
+        return json.loads(row['permissions'])
     
     async def create_coop(self, owner_id: int, coop_name: str) -> int:
         existing = await self.fetchone(
@@ -29,10 +31,11 @@ class CoopDB(DatabaseCore):
         
         coop_id = cursor.lastrowid
         
+        owner_permissions = await self.get_role_permissions('owner')
         await self.execute(
             '''INSERT INTO coop_members (coop_id, user_id, role, permissions, joined_at)
                VALUES (?, ?, 'owner', ?, ?)''',
-            (coop_id, owner_id, json.dumps(self.PERMISSIONS['owner']), int(time.time()))
+            (coop_id, owner_id, json.dumps(owner_permissions), int(time.time()))
         )
         await self.commit()
         
@@ -49,13 +52,14 @@ class CoopDB(DatabaseCore):
         if existing:
             return False
         
-        if role not in self.PERMISSIONS:
+        role_permissions = await self.get_role_permissions(role)
+        if not role_permissions and role != 'guest':
             return False
         
         await self.execute(
             '''INSERT INTO coop_members (coop_id, user_id, role, permissions, joined_at)
                VALUES (?, ?, ?, ?, ?)''',
-            (coop_id, invitee_id, role, json.dumps(self.PERMISSIONS[role]), int(time.time()))
+            (coop_id, invitee_id, role, json.dumps(role_permissions), int(time.time()))
         )
         await self.commit()
         
@@ -185,7 +189,8 @@ class CoopDB(DatabaseCore):
         if not await self.has_permission(changer_id, coop_id, 'manage_permissions'):
             return False
         
-        if new_role not in self.PERMISSIONS:
+        new_role_permissions = await self.get_role_permissions(new_role)
+        if not new_role_permissions and new_role != 'guest':
             return False
         
         target_member = await self.fetchone(
@@ -198,7 +203,7 @@ class CoopDB(DatabaseCore):
         
         await self.execute(
             'UPDATE coop_members SET role = ?, permissions = ? WHERE coop_id = ? AND user_id = ?',
-            (new_role, json.dumps(self.PERMISSIONS[new_role]), coop_id, target_id)
+            (new_role, json.dumps(new_role_permissions), coop_id, target_id)
         )
         await self.commit()
         
