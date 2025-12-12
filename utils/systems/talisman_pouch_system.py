@@ -17,8 +17,7 @@ class TalismanPouchSystem:
         item = await db.game_data.get_game_item(talisman_id)
         if not item:
             return {'success': False, 'message': 'Invalid item!'}
-        
-        # Handle both dict and object formats
+
         item_type = item.get('item_type') or item.get('type') if isinstance(item, dict) else getattr(item, 'type', None)
         item_name = item.get('name') if isinstance(item, dict) else getattr(item, 'name', talisman_id)
         

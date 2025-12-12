@@ -291,18 +291,37 @@ class GameDatabaseMethods:
         current_time = int(time.time())
         
         cursor = await self.conn.execute('''
-            SELECT last_daily_claim FROM players WHERE user_id = ?
+            SELECT last_claim, streak FROM daily_rewards WHERE user_id = ?
         ''', (user_id,))
         result = await cursor.fetchone()
         
-        if result and (current_time - result['last_daily_claim']) < 86400:
-            return (0, 0)
+        if result:
+            last_claim = result['last_claim']
+            streak = result['streak']
+            
+            if (current_time - last_claim) < 86400:
+                return (0, streak)
+            
+            if (current_time - last_claim) < 172800:
+                streak += 1
+            else:
+                streak = 1
+        else:
+            streak = 1
         
-        coins = 5000
-        xp = 100
+        coins = 5000 + (streak * 100)
         
-        await self.update_player(user_id, coins=coins, last_daily_claim=current_time)
-        return (coins, xp)
+        await self.conn.execute('''
+            INSERT OR REPLACE INTO daily_rewards (user_id, last_claim, streak)
+            VALUES (?, ?, ?)
+        ''', (user_id, current_time, streak))
+        await self.conn.commit()
+        
+        player = await self.get_player(user_id)
+        if player:
+            await self.update_player(user_id, coins=player['coins'] + coins)
+        
+        return (coins, streak)
 
     async def claim_merchant_deal(self, user_id: int, deal_id: int):
         if not self.conn:
@@ -425,7 +444,6 @@ class GameDatabaseMethods:
     async def update_collection(self, user_id: int, collection_name: str, amount: int):
         if not self.conn:
             return
-        # Normalize collection name to lowercase snake_case
         normalized_name = collection_name.lower().replace(' ', '_')
         await self.conn.execute('''
             INSERT INTO collections (user_id, collection_name, amount)

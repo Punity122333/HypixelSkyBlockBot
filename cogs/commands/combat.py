@@ -178,25 +178,38 @@ class CombatCommands(commands.Cog):
         )
         
         boss_stats = {
-            'broodfather': (1000, 50, 1000, 200),
-            'sven': (1500, 60, 1500, 250),
-            'revenant': (2000, 70, 2000, 300),
-            'dragon': (10000, 200, 5000, 1000),
-            'necron': (20000, 300, 10000, 2000),
-            'goldor': (25000, 350, 12000, 2500),
+            'broodfather': (1000, 50, 1000, 200, 30),
+            'sven': (1500, 60, 500, 250, 35),
+            'revenant': (2000, 70, 2000, 300, 40),
+            'dragon': (10000, 200, 5000, 1000, 50),
+            'necron': (20000, 300, 10000, 2000, 60),
+            'goldor': (25000, 350, 12000, 2500, 65),
         }
         
-        health, damage, coins, xp = boss_stats.get(boss, boss_stats['broodfather'])
+        health, damage, coins, xp, boss_level = boss_stats.get(boss, boss_stats['broodfather'])
+        
+        from utils.systems.combat_system import CombatSystem
+        scaling = await CombatSystem.get_mob_level_scaling(self.bot.db, boss_level)
+        
+        health = int(health * scaling['health_multiplier'])
+        damage = int(damage * scaling['damage_multiplier'])
+        coins = int(coins * scaling['coins_multiplier'])
+        xp = int(xp * scaling['xp_multiplier'])
         
         view = CombatView(self.bot, interaction.user.id, boss.title(), health, damage, coins, xp)
         
+        level_color = discord.Color.dark_red()
+        if boss_level >= 50:
+            level_color = discord.Color.purple()
+        
         embed = discord.Embed(
-            title=f"💀 Boss Fight: {boss.title()}",
+            title=f"💀 Boss Fight: {boss.title()} [Lv {boss_level}]",
             description="A powerful boss has appeared!",
-            color=discord.Color.dark_red()
+            color=level_color
         )
         embed.add_field(name="Boss Health", value=f"❤️ {health} HP", inline=True)
         embed.add_field(name="Boss Damage", value=f"⚔️ ~{damage} damage", inline=True)
+        embed.add_field(name="Level", value=f"🎯 {boss_level}", inline=True)
         embed.set_footer(text="Use the buttons below to fight the boss!")
         
         await interaction.response.send_message(embed=embed, view=view)
