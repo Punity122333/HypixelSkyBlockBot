@@ -8,8 +8,7 @@ class EquipmentSelectView(discord.ui.View):
         self.user_id = user_id
         self.equipment_slot = equipment_slot
         self.items = items
-        
-        # Add a single "Choose" button instead of numbered buttons
+
         choose_button = discord.ui.Button(
             label="🔍 Choose Item",
             style=discord.ButtonStyle.primary,

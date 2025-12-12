@@ -1,7 +1,7 @@
 from components.views.equipment_select_view import EquipmentSelectView
 from components.views.talisman_select_view import TalismanSelectView
 import discord
-from utils.data.game_constants import MINION_DATA
+from utils.data.game_constants import get_minion_data
 
 async def get_minion_data_from_db(game_data_manager, minion_type: str):
     minion_data = await game_data_manager.get_minion_data(minion_type)
@@ -12,7 +12,9 @@ async def get_minion_data_from_db(game_data_manager, minion_type: str):
             'max_tier': minion_data['max_tier'],
             'category': minion_data['category']
         }
-    return MINION_DATA.get(minion_type, {})
+    
+    all_minion_data = await get_minion_data()
+    return all_minion_data.get(minion_type, {})
 
 
 async def show_equipment_select(interaction: discord.Interaction, equipment_slot: str, item_types: list):
