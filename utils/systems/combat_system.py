@@ -7,6 +7,18 @@ from ..stat_calculator import StatCalculator
 class CombatSystem:
     
     @classmethod
+    async def apply_health_regeneration(cls, db, user_id: int, current_health: int, max_health: int) -> int:
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
+        health_regen = stats.get('health_regen', 0)
+        
+        if health_regen > 0:
+            regen_amount = int(max_health * (health_regen / 100))
+            new_health = min(current_health + regen_amount, max_health)
+            return new_health
+        
+        return current_health
+    
+    @classmethod
     async def _get_equipped_armor_defense(cls, db, user_id: int) -> int:
         """Get total defense from all equipped armor pieces"""
         equipped_items = await db.get_equipped_items(user_id)
@@ -160,6 +172,8 @@ class CombatSystem:
         
         while mob_health > 0 and player_health > 0 and turns < 100:
             turns += 1
+            
+            player_health = await cls.apply_health_regeneration(db, user_id, int(player_health), int(player_stats['max_health']))
             
             damage_result = await cls.calculate_player_damage(db, user_id, mob_defense)
             damage_dealt = damage_result['damage']

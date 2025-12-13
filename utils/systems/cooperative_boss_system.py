@@ -6,6 +6,19 @@ import random
 class CooperativeBossSystem:
     
     @staticmethod
+    async def apply_health_regeneration(db, user_id: int, current_health: int, max_health: int) -> int:
+        from ..stat_calculator import StatCalculator
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
+        health_regen = stats.get('health_regen', 0)
+        
+        if health_regen > 0:
+            regen_amount = int(max_health * (health_regen / 100))
+            new_health = min(current_health + regen_amount, max_health)
+            return new_health
+        
+        return current_health
+    
+    @staticmethod
     async def create_coop_boss_session(db, boss_id: str, host_user_id: int, party_id: Optional[int] = None) -> Dict[str, Any]:
         member_ids = [host_user_id]
         

@@ -27,6 +27,12 @@ class DungeonOpenDoorButton(discord.ui.Button):
         
         self.parent_view.rooms_cleared += 1
         
+        if self.parent_view.current_health and self.parent_view.max_health:
+            self.parent_view.current_health = await CombatSystem.apply_health_regeneration(
+                self.parent_view.bot.db, self.parent_view.user_id, 
+                int(self.parent_view.current_health), int(self.parent_view.max_health)
+            )
+        
         room_types = ['mob', 'puzzle', 'trap', 'treasure', 'blood_door', 'wither_door', 'crypt']
         weights = [35, 20, 15, 15, 5, 5, 5]
         room_type = random.choices(room_types, weights=weights)[0]

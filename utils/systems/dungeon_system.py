@@ -191,6 +191,18 @@ class DungeonSystem:
         return mobs
     
     @classmethod
+    async def apply_health_regen_between_rooms(cls, db, user_id: int, current_health: int, max_health: int) -> int:
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
+        health_regen = stats.get('health_regen', 0)
+        
+        if health_regen > 0:
+            regen_amount = int(max_health * (health_regen / 100))
+            new_health = min(current_health + regen_amount, max_health)
+            return new_health
+        
+        return current_health
+    
+    @classmethod
     async def clear_room(cls, db, user_id: int, room: Dict[str, Any]) -> Dict[str, Any]:
         room_type = room['type']
         
@@ -222,6 +234,8 @@ class DungeonSystem:
             mob_damage = mob['damage']
             
             while mob_health > 0 and player_health > 0:
+                player_health = await cls.apply_health_regen_between_rooms(db, user_id, int(player_health), int(stats['max_health']))
+                
                 damage_result = await CombatSystem.calculate_player_damage(db, user_id, 0)
                 damage = damage_result['damage']
                 

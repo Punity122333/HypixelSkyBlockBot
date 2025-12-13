@@ -411,6 +411,22 @@ class PartySystem:
         
         room_type = room['type']
         
+        for member in party['members']:
+            player = await db.get_player(member['user_id'])
+            current_health = player.get('current_health', player.get('health', 100))
+            max_health = player.get('max_health', player.get('health', 100))
+            
+            from .combat_system import CombatSystem
+            regenerated_health = await CombatSystem.apply_health_regeneration(
+                db, member['user_id'], current_health, max_health
+            )
+            
+            await db.conn.execute(
+                'UPDATE players SET current_health = ? WHERE user_id = ?',
+                (regenerated_health, member['user_id'])
+            )
+            await db.conn.commit()
+        
         if room_type in ['mob', 'miniboss', 'boss']:
             result = await cls._clear_combat_room(db, party, room)
         elif room_type == 'puzzle':

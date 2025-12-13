@@ -79,7 +79,8 @@ class PotionSystem:
             'foraging_fortune': 50,
             'fishing_speed': 50,
             'sea_creature_chance': 15,
-            'attack_speed': 15
+            'attack_speed': 15,
+            'health_regen': 25
         }}
     }
     

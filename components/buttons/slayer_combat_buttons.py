@@ -24,6 +24,10 @@ class SlayerCombatAttackButton(Button):
             view.player_health = int(view.player_stats['max_health'])
             view.player_max_health = int(view.player_stats['max_health'])
         
+        view.player_health = await CombatSystem.apply_health_regeneration(
+            view.bot.db, view.user_id, int(view.player_health), int(view.player_max_health)
+        )
+        
         mob_id = view.mob_name.lower().split()[0]
         mob_stats = await view.bot.db.get_mob_stats(mob_id)
         mob_defense = mob_stats.get('defense', 0) if mob_stats else 0
@@ -156,6 +160,10 @@ class SlayerCombatDefendButton(Button):
             view.player_health = int(view.player_stats['max_health'])
             view.player_max_health = int(view.player_stats['max_health'])
         
+        view.player_health = await CombatSystem.apply_health_regeneration(
+            view.bot.db, view.user_id, int(view.player_health), int(view.player_max_health)
+        )
+        
         mob_damage = random.randint(view.mob_damage - 5, view.mob_damage + 5)
         damage_reduction = StatCalculator.calculate_damage_reduction(
             view.player_stats['defense'], 
@@ -202,6 +210,10 @@ class SlayerCombatAbilityButton(Button):
         if view.player_health is None:
             view.player_health = int(view.player_stats['max_health'])
             view.player_max_health = int(view.player_stats['max_health'])
+        
+        view.player_health = await CombatSystem.apply_health_regeneration(
+            view.bot.db, view.user_id, int(view.player_health), int(view.player_max_health)
+        )
         
         mana_cost = 50
         current_mana = view.player_stats.get('mana', view.player_stats['max_mana'])

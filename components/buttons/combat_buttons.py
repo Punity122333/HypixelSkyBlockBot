@@ -19,6 +19,10 @@ class CombatAttackButton(discord.ui.Button):
             self.parent_view.player_health = int(self.parent_view.player_stats['max_health'])
             self.parent_view.player_max_health = int(self.parent_view.player_stats['max_health'])
         
+        self.parent_view.player_health = await CombatSystem.apply_health_regeneration(
+            self.parent_view.bot.db, self.parent_view.user_id, int(self.parent_view.player_health), int(self.parent_view.player_max_health)
+        )
+        
         mob_id = self.parent_view.mob_name.lower().replace(' ', '_')
         mob_stats = await self.parent_view.bot.db.get_mob_stats(mob_id)
         mob_defense = mob_stats.get('defense', 0) if mob_stats else 0
@@ -173,6 +177,10 @@ class CombatDefendButton(discord.ui.Button):
         if self.parent_view.player_health is None:
             self.parent_view.player_health = int(self.parent_view.player_stats['max_health'])
             self.parent_view.player_max_health = int(self.parent_view.player_stats['max_health'])
+            
+        self.parent_view.player_health = await CombatSystem.apply_health_regeneration(
+            self.parent_view.bot.db, self.parent_view.user_id, int(self.parent_view.player_health), int(self.parent_view.player_max_health)
+        )
         
         mob_damage = random.randint(self.parent_view.mob_damage - 5, self.parent_view.mob_damage + 5)
         damage_reduction = StatCalculator.calculate_damage_reduction(
@@ -218,8 +226,12 @@ class CombatAbilityButton(discord.ui.Button):
         if self.parent_view.player_health is None:
             self.parent_view.player_health = int(self.parent_view.player_stats['max_health'])
             self.parent_view.player_max_health = int(self.parent_view.player_stats['max_health'])
+            
+        self.parent_view.player_health = await CombatSystem.apply_health_regeneration(
+            self.parent_view.bot.db, self.parent_view.user_id, int(self.parent_view.player_health), int(self.parent_view.player_max_health)
+        )
         
-        mana_cost = 50
+        mana_cost = random.randint(40, 60)
         current_mana = self.parent_view.player_stats.get('mana', self.parent_view.player_stats['max_mana'])
         if current_mana < mana_cost:
             await interaction.response.send_message("❌ Not enough mana!", ephemeral=True)

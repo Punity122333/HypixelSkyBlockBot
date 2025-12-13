@@ -38,25 +38,47 @@ class PotionSelectModal(discord.ui.Modal, title="Use Potion"):
                 return
             
             if potion_effect.get('type') == 'instant_heal':
-                result = await PotionSystem.use_health_potion_in_combat(
-                    self.bot.db,
-                    self.user_id,
-                    potion_id,
-                    self.parent_view.player_health,
-                    self.parent_view.player_max_health
-                )
-                
-                if result['success']:
-                    self.parent_view.player_health = result['new_health']
-                    await interaction.response.send_message(
-                        f"❤️ You used **{potion['name']}**! Healed {result['heal_amount']} HP!",
-                        ephemeral=True
+                if hasattr(self.parent_view, 'player_health') and self.parent_view.player_health is not None:
+                    result = await PotionSystem.use_health_potion_in_combat(
+                        self.bot.db,
+                        self.user_id,
+                        potion_id,
+                        self.parent_view.player_health,
+                        self.parent_view.player_max_health
                     )
+                    
+                    if result['success']:
+                        self.parent_view.player_health = result['new_health']
+                        await interaction.response.send_message(
+                            f"❤️ You used **{potion['name']}**! Healed {result['heal_amount']} HP!",
+                            ephemeral=True
+                        )
+                    else:
+                        await interaction.response.send_message(
+                            f"❌ {result['message']}",
+                            ephemeral=True
+                        )
                 else:
-                    await interaction.response.send_message(
-                        f"❌ {result['message']}",
-                        ephemeral=True
+                    result = await PotionSystem.use_potion(
+                        self.bot.db,
+                        self.user_id,
+                        potion_id
                     )
+                    
+                    if result['success']:
+                        embed = discord.Embed(
+                            title="❤️ Health Potion Used!",
+                            description=f"You consumed **{potion['name']}**!",
+                            color=discord.Color.red()
+                        )
+                        embed.add_field(name="Effect", value=f"Restores {result['amount']} HP (use in combat)", inline=True)
+                        embed.set_footer(text="Health potions work instantly in combat!")
+                        await interaction.response.send_message(embed=embed)
+                    else:
+                        await interaction.response.send_message(
+                            f"❌ {result['message']}",
+                            ephemeral=True
+                        )
             else:
                 result = await PotionSystem.use_potion(
                     self.bot.db,
@@ -67,18 +89,31 @@ class PotionSelectModal(discord.ui.Modal, title="Use Potion"):
                 if result['success']:
                     if result.get('type') == 'god':
                         duration_min = result['duration'] // 60
-                        await interaction.response.send_message(
-                            f"✨ You used **{potion['name']}**! All stat bonuses active for {duration_min} minutes!",
-                            ephemeral=True
+                        embed = discord.Embed(
+                            title="✨ God Potion Activated!",
+                            description=f"You consumed **{potion['name']}** and gained ALL stat bonuses!",
+                            color=discord.Color.gold()
                         )
+                        god_effects = PotionSystem.POTION_EFFECTS['god_potion']['effects']
+                        effects_text = "\n".join([f"+{amt} {stat.replace('_', ' ').title()}" for stat, amt in list(god_effects.items())[:10]])
+                        embed.add_field(name="Effects (showing 10)", value=effects_text, inline=False)
+                        embed.add_field(name="Duration", value=f"{duration_min} minutes", inline=True)
+                        embed.set_footer(text=f"Total: {len(god_effects)} stat bonuses active!")
+                        await interaction.response.send_message(embed=embed)
                     else:
                         duration_min = result['duration'] // 60
                         stat_name = result['stat'].replace('_', ' ').title()
-                        await interaction.response.send_message(
-                            f"✨ You used **{potion['name']}**! +{result['amount']} {stat_name} for {duration_min} minutes!",
-                            ephemeral=True
+                        embed = discord.Embed(
+                            title="🧪 Potion Used!",
+                            description=f"You consumed **{potion['name']}** and gained a temporary buff!",
+                            color=discord.Color.green()
                         )
-                    self.parent_view.player_stats = None
+                        embed.add_field(name="Effect", value=f"+{result['amount']} {stat_name}", inline=True)
+                        embed.add_field(name="Duration", value=f"{duration_min} minutes", inline=True)
+                        await interaction.response.send_message(embed=embed)
+                    
+                    if hasattr(self.parent_view, 'player_stats'):
+                        self.parent_view.player_stats = None
                 else:
                     await interaction.response.send_message(
                         f"❌ {result['message']}",

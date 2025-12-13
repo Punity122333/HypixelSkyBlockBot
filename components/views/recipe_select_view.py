@@ -21,6 +21,9 @@ class _Trie:
         node.items.append(item_id)
 
     def search_prefix(self, prefix: str):
+
+        norm = lambda s: s.lower().replace(' ', '').replace('_', '')
+        prefix = norm(prefix)
         node = self.root
         for ch in prefix:
             if ch not in node.children:

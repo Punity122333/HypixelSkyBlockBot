@@ -24,6 +24,7 @@ class StatCalculator:
         'farming_fortune': 0.0,
         'foraging_fortune': 0.0,
         'fishing_speed': 0.0,
+        'health_regen': 0.0,
     }
     
     SKILL_STAT_BONUSES = {
@@ -139,7 +140,7 @@ class StatCalculator:
                     armor_stats = await db.get_armor_stats(item_id)
                     if armor_stats:
                         for stat_key in ['defense', 'health', 'strength', 'crit_chance', 'crit_damage', 
-                                        'intelligence', 'speed', 'magic_find', 'pet_luck', 'true_defense']:
+                                        'intelligence', 'speed', 'magic_find', 'pet_luck', 'true_defense', 'health_regen']:
                             if stat_key in stats and armor_stats.get(stat_key):
                                 stats[stat_key] += armor_stats[stat_key]
                     else:
@@ -161,10 +162,22 @@ class StatCalculator:
             stats['crit_damage'] += 50
             stats['intelligence'] += 50
             stats['defense'] += 50
+            stats['health_regen'] += 10
         elif all('Strong' in name for name in armor_names):
             stats['strength'] += 100
         elif all('Wise' in name for name in armor_names):
             stats['intelligence'] += 200
+        elif all('Young' in name for name in armor_names):
+            stats['speed'] += 100
+            stats['health_regen'] += 5
+        elif all('Goldor' in name for name in armor_names):
+            stats['defense'] += 100
+            stats['health_regen'] += 15
+        elif all('Necron' in name for name in armor_names):
+            stats['strength'] += 40
+            stats['crit_damage'] += 30
+            stats['intelligence'] += 20
+            stats['health_regen'] += 8
     
     @classmethod
     async def _apply_weapon_stats(cls, db, user_id: int, stats: Dict):
@@ -408,7 +421,7 @@ class StatCalculator:
                     'intelligence', 'speed', 'attack_speed', 'sea_creature_chance',
                     'magic_find', 'pet_luck', 'ferocity', 'ability_damage', 'true_defense',
                     'mining_speed', 'mining_fortune', 'farming_fortune', 'foraging_fortune',
-                    'fishing_speed'
+                    'fishing_speed', 'health_regen'
                 ]
                 
                 for stat in stat_fields:
