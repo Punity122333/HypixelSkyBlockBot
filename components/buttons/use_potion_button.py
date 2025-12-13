@@ -1,5 +1,6 @@
 import discord
 from utils.systems.potion_system import PotionSystem
+from components.views.potion_select_view import PotionSelectView
 
 class UsePotionButton(discord.ui.Button):
     def __init__(self, view):
@@ -15,70 +16,54 @@ class UsePotionButton(discord.ui.Button):
             if item_id in PotionSystem.POTION_EFFECTS:
                 item = await self.parent_view.bot.game_data.get_item(item_id)
                 if item:
-                    potions.append((item_id, item.name))
+                    potions.append({
+                        'item_id': item_id,
+                        'name': item.name,
+                        'rarity': getattr(item, 'rarity', 'COMMON')
+                    })
         
         if not potions:
             await interaction.response.send_message("You don't have any potions!", ephemeral=True)
             return
         
-        class PotionSelect(discord.ui.Select):
-            def __init__(self, potions_list, parent_button):
-                self.parent_button = parent_button
-                options = [
-                    discord.SelectOption(label=name, value=potion_id)
-                    for potion_id, name in potions_list[:25]
-                ]
-                super().__init__(placeholder="Choose a potion...", options=options)
-            
-            async def callback(self, interaction: discord.Interaction):
-                potion_id = self.values[0]
-                potion_effect = PotionSystem.POTION_EFFECTS.get(potion_id)
-                
-                if potion_effect and potion_effect.get('type') == 'instant_heal':
-                    result = await PotionSystem.use_health_potion_in_combat(
-                        self.parent_button.parent_view.bot.db,
-                        self.parent_button.parent_view.user_id,
-                        potion_id,
-                        self.parent_button.parent_view.player_health,
-                        self.parent_button.parent_view.player_max_health
-                    )
-                    
-                    if result['success']:
-                        self.parent_button.parent_view.player_health = result['new_health']
-                        await interaction.response.send_message(
-                            f"❤️ You used a health potion! Healed {result['heal_amount']} HP!",
-                            ephemeral=True
-                        )
-                    else:
-                        await interaction.response.send_message(
-                            f"❌ {result['message']}",
-                            ephemeral=True
-                        )
-                else:
-                    result = await PotionSystem.use_potion(
-                        self.parent_button.parent_view.bot.db,
-                        self.parent_button.parent_view.user_id,
-                        potion_id
-                    )
-                    
-                    if result['success']:
-                        if result.get('type') == 'god':
-                            await interaction.response.send_message(
-                                f"✨ You used a God Potion! All stat bonuses active for {result['duration']}s!",
-                                ephemeral=True
-                            )
-                        else:
-                            await interaction.response.send_message(
-                                f"✨ You used the potion! +{result['amount']} {result['stat']} for {result['duration']}s",
-                                ephemeral=True
-                            )
-                        self.parent_button.parent_view.player_stats = None
-                    else:
-                        await interaction.response.send_message(
-                            f"❌ {result['message']}",
-                            ephemeral=True
-                        )
+        rarity_emojis = {
+            'COMMON': '⬜',
+            'UNCOMMON': '🟩',
+            'RARE': '🟦',
+            'EPIC': '🟪',
+            'LEGENDARY': '🟧',
+            'MYTHIC': '🟥'
+        }
         
-        view = discord.ui.View()
-        view.add_item(PotionSelect(potions, self))
-        await interaction.response.send_message("Select a potion to use:", view=view, ephemeral=True)
+        embed = discord.Embed(
+            title="🧪 Available Potions",
+            description="Choose a potion to use:",
+            color=discord.Color.green()
+        )
+        
+        potion_list = []
+        for i, potion in enumerate(potions[:20], 1):
+            rarity_emoji = rarity_emojis.get(potion['rarity'], '⬜')
+            effect = PotionSystem.POTION_EFFECTS.get(potion['item_id'], {})
+            
+            if effect.get('type') == 'instant_heal':
+                effect_text = f"Heals {effect['amount']} HP"
+            elif effect.get('type') == 'god':
+                effect_text = "All stat bonuses!"
+            else:
+                stat_name = effect.get('stat', 'unknown').replace('_', ' ').title()
+                effect_text = f"+{effect.get('amount', 0)} {stat_name}"
+            
+            potion_list.append(f"**{i}.** {rarity_emoji} {potion['name']}\n    {effect_text}")
+        
+        embed.add_field(
+            name="Potions",
+            value="\n".join(potion_list) if potion_list else "No potions available",
+            inline=False
+        )
+        
+        if len(potions) > 20:
+            embed.set_footer(text=f"Showing 20 of {len(potions)} potions")
+        
+        view = PotionSelectView(self.parent_view.bot, self.parent_view.user_id, potions, self.parent_view)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
