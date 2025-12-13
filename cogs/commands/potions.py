@@ -24,16 +24,39 @@ class PotionCommands(commands.Cog):
         result = await PotionSystem.use_potion(self.bot.db, interaction.user.id, potion_id)
         
         if result['success']:
-            stat_name = result['stat'].replace('_', ' ').title()
-            duration_min = result['duration'] // 60
-            embed = discord.Embed(
-                title="🧪 Potion Used!",
-                description=f"You consumed a potion and gained a temporary buff!",
-                color=discord.Color.green()
-            )
-            embed.add_field(name="Effect", value=f"+{result['amount']} {stat_name}", inline=True)
-            embed.add_field(name="Duration", value=f"{duration_min} minutes", inline=True)
-            await interaction.response.send_message(embed=embed)
+            if result.get('type') == 'instant_heal':
+                embed = discord.Embed(
+                    title="❤️ Health Potion Used!",
+                    description=f"You consumed a health potion!",
+                    color=discord.Color.red()
+                )
+                embed.add_field(name="Effect", value=f"Restores {result['amount']} HP", inline=True)
+                embed.set_footer(text="Use health potions in combat for instant healing!")
+                await interaction.response.send_message(embed=embed)
+            elif result.get('type') == 'god':
+                duration_min = result['duration'] // 60
+                embed = discord.Embed(
+                    title="✨ God Potion Activated!",
+                    description=f"You consumed a God Potion and gained ALL stat bonuses!",
+                    color=discord.Color.gold()
+                )
+                god_effects = PotionSystem.POTION_EFFECTS['god_potion']['effects']
+                effects_text = "\n".join([f"+{amt} {stat.replace('_', ' ').title()}" for stat, amt in list(god_effects.items())[:10]])
+                embed.add_field(name="Effects (showing 10)", value=effects_text, inline=False)
+                embed.add_field(name="Duration", value=f"{duration_min} minutes", inline=True)
+                embed.set_footer(text=f"Total: {len(god_effects)} stat bonuses active!")
+                await interaction.response.send_message(embed=embed)
+            else:
+                stat_name = result['stat'].replace('_', ' ').title()
+                duration_min = result['duration'] // 60
+                embed = discord.Embed(
+                    title="🧪 Potion Used!",
+                    description=f"You consumed a potion and gained a temporary buff!",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="Effect", value=f"+{result['amount']} {stat_name}", inline=True)
+                embed.add_field(name="Duration", value=f"{duration_min} minutes", inline=True)
+                await interaction.response.send_message(embed=embed)
         else:
             await interaction.response.send_message(f"❌ {result['message']}", ephemeral=True)
     

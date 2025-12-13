@@ -32,23 +32,52 @@ class UsePotionButton(discord.ui.Button):
             
             async def callback(self, interaction: discord.Interaction):
                 potion_id = self.values[0]
-                result = await PotionSystem.use_potion(
-                    self.parent_button.parent_view.bot.db,
-                    self.parent_button.parent_view.user_id,
-                    potion_id
-                )
+                potion_effect = PotionSystem.POTION_EFFECTS.get(potion_id)
                 
-                if result['success']:
-                    await interaction.response.send_message(
-                        f"✨ You used the potion! +{result['amount']} {result['stat']} for {result['duration']}s",
-                        ephemeral=True
+                if potion_effect and potion_effect.get('type') == 'instant_heal':
+                    result = await PotionSystem.use_health_potion_in_combat(
+                        self.parent_button.parent_view.bot.db,
+                        self.parent_button.parent_view.user_id,
+                        potion_id,
+                        self.parent_button.parent_view.player_health,
+                        self.parent_button.parent_view.player_max_health
                     )
-                    self.parent_button.parent_view.player_stats = None
+                    
+                    if result['success']:
+                        self.parent_button.parent_view.player_health = result['new_health']
+                        await interaction.response.send_message(
+                            f"❤️ You used a health potion! Healed {result['heal_amount']} HP!",
+                            ephemeral=True
+                        )
+                    else:
+                        await interaction.response.send_message(
+                            f"❌ {result['message']}",
+                            ephemeral=True
+                        )
                 else:
-                    await interaction.response.send_message(
-                        f"❌ {result['message']}",
-                        ephemeral=True
+                    result = await PotionSystem.use_potion(
+                        self.parent_button.parent_view.bot.db,
+                        self.parent_button.parent_view.user_id,
+                        potion_id
                     )
+                    
+                    if result['success']:
+                        if result.get('type') == 'god':
+                            await interaction.response.send_message(
+                                f"✨ You used a God Potion! All stat bonuses active for {result['duration']}s!",
+                                ephemeral=True
+                            )
+                        else:
+                            await interaction.response.send_message(
+                                f"✨ You used the potion! +{result['amount']} {result['stat']} for {result['duration']}s",
+                                ephemeral=True
+                            )
+                        self.parent_button.parent_view.player_stats = None
+                    else:
+                        await interaction.response.send_message(
+                            f"❌ {result['message']}",
+                            ephemeral=True
+                        )
         
         view = discord.ui.View()
         view.add_item(PotionSelect(potions, self))

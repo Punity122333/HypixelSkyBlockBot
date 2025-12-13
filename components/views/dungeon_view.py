@@ -16,6 +16,7 @@ from components.buttons.dungeon_buttons import (
     DungeonExitButton,
     DungeonGetHintButton
 )
+from components.buttons.use_potion_button import UsePotionButton
 
 if TYPE_CHECKING:
     from main import SkyblockBot
@@ -51,10 +52,13 @@ class DungeonView(View):
             if party:
                 self.party_size = len(party['members'])
         
+        self.player_stats: Optional[dict] = None
+        
         self.add_item(DungeonOpenDoorButton(self))
         self.add_item(DungeonSearchSecretsButton(self))
         self.add_item(DungeonExitButton(self))
         self.add_item(DungeonGetHintButton(self))
+        self.add_item(UsePotionButton(self))
         
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:

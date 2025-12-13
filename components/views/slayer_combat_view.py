@@ -12,6 +12,7 @@ from components.buttons.slayer_combat_buttons import (
     SlayerCombatAbilityButton,
     SlayerCombatRunButton
 )
+from components.buttons.use_potion_button import UsePotionButton
 
 if TYPE_CHECKING:
     from main import SkyblockBot
@@ -48,6 +49,10 @@ class SlayerCombatView(View):
         self.fight_in_progress = True
         
         self.add_item(SlayerCombatAttackButton(self))
+        self.add_item(SlayerCombatDefendButton(self))
+        self.add_item(SlayerCombatAbilityButton(self))
+        self.add_item(SlayerCombatRunButton(self))
+        self.add_item(UsePotionButton(self))
         self.add_item(SlayerCombatDefendButton(self))
         self.add_item(SlayerCombatAbilityButton(self))
         self.add_item(SlayerCombatRunButton(self))

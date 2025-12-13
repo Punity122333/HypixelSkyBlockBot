@@ -17,7 +17,9 @@ class EventCommands(commands.Cog):
         events = await self.bot.game_data.get_all_game_events()
         
         for event in events:
-            cycle_position = current_time % event['occurs_every']
+            start_offset = event.get('start_offset', 0)
+            adjusted_time = current_time - start_offset
+            cycle_position = adjusted_time % event['occurs_every']
             
             if cycle_position < event['duration']:
                 time_remaining = event['duration'] - cycle_position

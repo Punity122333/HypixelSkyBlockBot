@@ -57,6 +57,30 @@ class PotionSystem:
         'attack_speed_potion_1': {'stat': 'attack_speed', 'amount': 5, 'duration': 180},
         'attack_speed_potion_2': {'stat': 'attack_speed', 'amount': 10, 'duration': 180},
         'attack_speed_potion_3': {'stat': 'attack_speed', 'amount': 15, 'duration': 180},
+        'health_potion': {'type': 'instant_heal', 'amount': 100},
+        'greater_health_potion': {'type': 'instant_heal', 'amount': 250},
+        'super_health_potion': {'type': 'instant_heal', 'amount': 500},
+        'ultimate_health_potion': {'type': 'instant_heal', 'amount': 1000},
+        'god_potion': {'type': 'god', 'duration': 1200, 'effects': {
+            'strength': 50,
+            'defense': 50,
+            'speed': 50,
+            'crit_chance': 15,
+            'crit_damage': 50,
+            'intelligence': 50,
+            'magic_find': 25,
+            'pet_luck': 15,
+            'ferocity': 15,
+            'ability_damage': 30,
+            'true_defense': 25,
+            'mining_speed': 50,
+            'mining_fortune': 50,
+            'farming_fortune': 50,
+            'foraging_fortune': 50,
+            'fishing_speed': 50,
+            'sea_creature_chance': 15,
+            'attack_speed': 15
+        }}
     }
     
     @staticmethod
@@ -70,15 +94,59 @@ class PotionSystem:
         
         potion_effect = PotionSystem.POTION_EFFECTS[potion_id]
         
-        await db.potions.add_active_potion(user_id, potion_id, 1, potion_effect['duration'])
+        if potion_effect.get('type') == 'instant_heal':
+            await db.remove_item_from_inventory(user_id, potion_id, 1)
+            return {
+                'success': True,
+                'type': 'instant_heal',
+                'amount': potion_effect['amount']
+            }
+        elif potion_effect.get('type') == 'god':
+            for stat, amount in potion_effect['effects'].items():
+                await db.potions.add_active_potion(user_id, f"god_potion_{stat}", 1, potion_effect['duration'])
+            
+            await db.remove_item_from_inventory(user_id, potion_id, 1)
+            
+            return {
+                'success': True,
+                'type': 'god',
+                'duration': potion_effect['duration']
+            }
+        else:
+            await db.potions.add_active_potion(user_id, potion_id, 1, potion_effect['duration'])
+            
+            await db.remove_item_from_inventory(user_id, potion_id, 1)
+            
+            return {
+                'success': True,
+                'stat': potion_effect['stat'],
+                'amount': potion_effect['amount'],
+                'duration': potion_effect['duration']
+            }
+    
+    @staticmethod
+    async def use_health_potion_in_combat(db, user_id: int, potion_id: str, current_health: int, max_health: int) -> Dict:
+        if potion_id not in PotionSystem.POTION_EFFECTS:
+            return {'success': False, 'message': 'Invalid potion!'}
+        
+        potion_effect = PotionSystem.POTION_EFFECTS[potion_id]
+        if potion_effect.get('type') != 'instant_heal':
+            return {'success': False, 'message': 'This is not a health potion!'}
+        
+        item_count = await db.get_item_count(user_id, potion_id)
+        if item_count < 1:
+            return {'success': False, 'message': "You don't have this potion!"}
+        
+        heal_amount = potion_effect['amount']
+        new_health = min(current_health + heal_amount, max_health)
+        actual_heal = new_health - current_health
         
         await db.remove_item_from_inventory(user_id, potion_id, 1)
         
         return {
             'success': True,
-            'stat': potion_effect['stat'],
-            'amount': potion_effect['amount'],
-            'duration': potion_effect['duration']
+            'new_health': new_health,
+            'heal_amount': actual_heal
         }
     
     @staticmethod
@@ -95,10 +163,18 @@ class PotionSystem:
         
         for potion_data in active_potions:
             potion_id = potion_data['potion_id']
-            if potion_id in PotionSystem.POTION_EFFECTS:
+            
+            if potion_id.startswith('god_potion_'):
+                stat = potion_id.replace('god_potion_', '')
+                god_potion_effect = PotionSystem.POTION_EFFECTS['god_potion']
+                if stat in god_potion_effect['effects']:
+                    amount = god_potion_effect['effects'][stat]
+                    bonuses[stat] = bonuses.get(stat, 0) + amount
+            elif potion_id in PotionSystem.POTION_EFFECTS:
                 effect = PotionSystem.POTION_EFFECTS[potion_id]
-                stat = effect['stat']
-                amount = effect['amount']
-                bonuses[stat] = bonuses.get(stat, 0) + amount
+                if 'stat' in effect:
+                    stat = effect['stat']
+                    amount = effect['amount']
+                    bonuses[stat] = bonuses.get(stat, 0) + amount
         
         return bonuses

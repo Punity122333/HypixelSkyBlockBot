@@ -13,6 +13,7 @@ from components.buttons.slayer_combat_buttons import (
     SlayerCombatAbilityButton,
     SlayerCombatRunButton
 )
+from components.buttons.use_potion_button import UsePotionButton
 
 if TYPE_CHECKING:
     from main import SkyblockBot
@@ -56,6 +57,7 @@ class BossRotationCombatView(View):
         self.add_item(SlayerCombatDefendButton(self))
         self.add_item(SlayerCombatAbilityButton(self))
         self.add_item(SlayerCombatRunButton(self))
+        self.add_item(UsePotionButton(self))
     
     async def interaction_check(self, interaction: "Interaction") -> bool:
         if interaction.user.id not in self.coop_session['member_ids']:
