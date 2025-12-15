@@ -13,6 +13,7 @@ class GameDatabaseMethods:
     game_data: Any = None
     world: Any = None
     events: Any = None
+    minion_upgrades: Any = None
 
     async def init_bot_traders(self):
         if not self.conn:
@@ -467,6 +468,65 @@ class GameDatabaseMethods:
             UPDATE player_minions SET tier = tier + 1 WHERE id = ?
         ''', (minion_id,))
         await self.conn.commit()
+        
+    async def collect_minion(self, minion_id: int):
+        if not self.conn:
+            return []
+        
+        cursor = await self.conn.execute('''
+            SELECT user_id, minion_type, tier, storage, last_collected FROM player_minions WHERE id = ?
+        ''', (minion_id,))
+        minion = await cursor.fetchone()
+        
+        if not minion:
+            return []
+        
+        user_id = minion['user_id']
+        minion_type = minion['minion_type']
+        tier = minion['tier']
+        storage = minion['storage'] if minion['storage'] else '[]'
+        last_collected = minion['last_collected']
+        
+        import json
+        stored_items = json.loads(storage) if isinstance(storage, str) else []
+        
+        current_time = int(time.time())
+        time_passed = current_time - last_collected
+        
+        base_speed = 60
+        items_per_action = 1
+        speed_seconds = base_speed / tier
+        
+        upgrades = await self.minion_upgrades.get_minion_upgrades(minion_id)
+        if 'fuel' in upgrades and upgrades['fuel'].get('expires_at', 0) > current_time:
+            speed_boost = upgrades['fuel'].get('speed_boost', 1.0)
+            speed_seconds = speed_seconds * speed_boost
+        
+        actions_performed = int(time_passed / speed_seconds)
+        items_generated = actions_performed * items_per_action
+        
+        total_items = len(stored_items) + items_generated
+        max_storage = 64
+        
+        if total_items > max_storage:
+            total_items = max_storage
+        
+        collected_items = []
+        if total_items > 0:
+            item_id = f"{minion_type}"
+            collected_items.append({
+                'item_id': item_id,
+                'amount': total_items
+            })
+            
+            await self.add_item_to_inventory(user_id, item_id, total_items)
+        
+        await self.conn.execute('''
+            UPDATE player_minions SET storage = '[]', last_collected = ? WHERE id = ?
+        ''', (current_time, minion_id))
+        await self.conn.commit()
+        
+        return collected_items
         
     async def get_xp_table(self):
         if not self.conn:

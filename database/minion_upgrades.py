@@ -15,7 +15,7 @@ class MinionUpgradeDB(DatabaseCore):
             return False
         
         minion = await self.fetchone(
-            'SELECT user_id FROM user_minions WHERE id = ?',
+            'SELECT user_id FROM player_minions WHERE id = ?',
             (minion_id,)
         )
         
@@ -62,7 +62,7 @@ class MinionUpgradeDB(DatabaseCore):
             return False
         
         minion = await self.fetchone(
-            'SELECT user_id, minion_type FROM user_minions WHERE id = ?',
+            'SELECT user_id, minion_type FROM player_minions WHERE id = ?',
             (minion_id,)
         )
         
@@ -117,7 +117,7 @@ class MinionUpgradeDB(DatabaseCore):
             return False
         
         minion = await self.fetchone(
-            'SELECT user_id FROM user_minions WHERE id = ?',
+            'SELECT user_id FROM player_minions WHERE id = ?',
             (minion_id,)
         )
         
@@ -161,28 +161,16 @@ class MinionUpgradeDB(DatabaseCore):
     
     async def apply_storage_upgrade(self, minion_id: int) -> bool:
         minion = await self.fetchone(
-            'SELECT storage_slots FROM user_minions WHERE id = ?',
+            'SELECT * FROM player_minions WHERE id = ?',
             (minion_id,)
         )
         
         if not minion:
             return False
         
-        current_storage = minion['storage_slots'] or 9
-        
-        if current_storage >= 21:
-            return False
-        
-        new_storage = current_storage + 3
-        
-        await self.execute(
-            'UPDATE user_minions SET storage_slots = ? WHERE id = ?',
-            (new_storage, minion_id)
-        )
-        
         upgrade_info = {
-            'old_slots': current_storage,
-            'new_slots': new_storage
+            'upgraded': True,
+            'timestamp': int(time.time())
         }
         
         await self.execute(

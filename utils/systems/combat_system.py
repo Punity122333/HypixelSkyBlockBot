@@ -49,7 +49,7 @@ class CombatSystem:
         combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
         combat_level = combat_skill['level'] if combat_skill else 0
         
-        skill_multiplier = 1.0 + (combat_level * 0.05)
+        skill_multiplier = 1.0 + (combat_level * 0.1)
         base_damage *= skill_multiplier
         
         defense_multiplier = 1.0 - (target_defense / (target_defense + 100))

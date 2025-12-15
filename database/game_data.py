@@ -353,3 +353,20 @@ class GameDataDB:
                 recipe['ingredients'] = json.loads(recipe['ingredients'])
             recipes.append(recipe)
         return recipes
+
+    async def get_minion_data(self, minion_type: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('''
+            SELECT * FROM game_minions WHERE minion_type = ?
+        ''', (minion_type,))
+        row = await cursor.fetchone()
+        if row:
+            return dict(row)
+        return None
+
+    async def fetchall(self, query: str, params: tuple = ()):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute(query, params)
+        return await cursor.fetchall()

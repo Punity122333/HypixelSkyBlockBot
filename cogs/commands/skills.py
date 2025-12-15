@@ -221,8 +221,7 @@ class SkillCommands(commands.Cog):
             description=f"You combined some runes!",
             color=discord.Color.purple()
         )
-        
-        # Get active events to check if we should display bonuses
+
         active_events = await self.event_effects.get_active_events()
         if active_events and xp_multiplier > 1.0:
             event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"

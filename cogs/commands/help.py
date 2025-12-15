@@ -178,32 +178,6 @@ class MiscCommands(commands.Cog):
             
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @app_commands.command(name="settings", description="Configure bot settings")
-    async def settings(self, interaction: discord.Interaction):
-        embed = discord.Embed(
-            title="⚙️ Bot Settings",
-            description="Configure your bot preferences",
-            color=discord.Color.blue()
-        )
-        
-        embed.add_field(
-            name="Notifications",
-            value="✅ Enabled",
-            inline=True
-        )
-        embed.add_field(
-            name="DM Alerts",
-            value="❌ Disabled",
-            inline=True
-        )
-        embed.add_field(
-            name="Public Profile",
-            value="✅ Enabled",
-            inline=True
-        )
-        
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-
     @app_commands.command(name="claim_starter_pack", description="Claim your starter pack (one time only)")
     async def claim_starter_pack(self, interaction: discord.Interaction):
         await interaction.response.defer()
