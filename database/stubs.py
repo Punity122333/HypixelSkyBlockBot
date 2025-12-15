@@ -90,6 +90,9 @@ class GameDatabase(GameDatabaseMethods):
         await self.badges.connect()
         self.badges.conn = self.conn
         
+        await self.achievements.connect()
+        self.achievements.conn = self.conn
+        
         await self.item_modifiers.connect()
         self.item_modifiers.conn = self.conn
         
