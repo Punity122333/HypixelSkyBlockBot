@@ -1,6 +1,4 @@
 import discord
-
-
 class DepositModal(discord.ui.Modal, title="Deposit Coins"):
     amount = discord.ui.TextInput(label="Amount", placeholder="Enter amount to deposit", required=True)
     
@@ -35,6 +33,9 @@ class DepositModal(discord.ui.Modal, title="Deposit Coins"):
         new_bank = player['bank'] + amount
         if new_bank >= 1000000:
             await BadgeSystem.unlock_badge(self.bot.db, interaction.user.id, 'bank_1m')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_bank_balance_achievements(self.bot.db, interaction, interaction.user.id, new_bank)
         
         embed = await self.view.get_embed()
         await interaction.response.send_message(f"✅ Deposited {amount:,} coins to your bank!", ephemeral=True)

@@ -50,6 +50,14 @@ class PartyFinderCreateModal(discord.ui.Modal, title="Create Dungeon Party"):
                 await interaction.response.send_message(f"❌ {result['error']}", ephemeral=True)
                 return
             
+            stats = await self.parent_view.bot.db.get_player_stats(interaction.user.id)
+            if stats:
+                total_parties_hosted = stats.get('total_parties_hosted', 0) + 1
+                await self.parent_view.bot.db.update_player_stats(interaction.user.id, total_parties_hosted=total_parties_hosted)
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_parties_hosted_achievements(self.parent_view.bot.db, interaction, interaction.user.id, total_parties_hosted)
+            
             self.parent_view.current_party_id = result['party_id']
             self.parent_view.current_view = 'party'
             await self.parent_view.load_parties()
@@ -99,6 +107,14 @@ class PartyFinderJoinModal(discord.ui.Modal, title="Join Dungeon Party"):
             )
             
             if result['success']:
+                stats = await self.parent_view.bot.db.get_player_stats(interaction.user.id)
+                if stats:
+                    total_parties_joined = stats.get('total_parties_joined', 0) + 1
+                    await self.parent_view.bot.db.update_player_stats(interaction.user.id, total_parties_joined=total_parties_joined)
+                    
+                    from utils.systems.achievement_system import AchievementSystem
+                    await AchievementSystem.check_parties_joined_achievements(self.parent_view.bot.db, interaction, interaction.user.id, total_parties_joined)
+                
                 self.parent_view.current_party_id = party_id
                 self.parent_view.current_view = 'party'
                 await self.parent_view.load_parties()

@@ -73,6 +73,9 @@ class IslandCommands(commands.Cog):
                 if total_souls >= 50:
                     await BadgeSystem.unlock_badge(self.bot.db, interaction.user.id, 'fairy_souls_50')
                 
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_fairy_soul_achievements(self.bot.db, interaction, interaction.user.id, total_souls)
+                
                 health_bonus = total_souls * 3
                 mana_bonus = total_souls * 2
                 

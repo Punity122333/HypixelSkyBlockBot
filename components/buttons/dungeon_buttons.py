@@ -348,6 +348,20 @@ class DungeonExitButton(discord.ui.Button):
         embed.add_field(name="💰 Reward", value=f"{total_rewards} coins", inline=True)
         embed.add_field(name="⭐ XP Gained", value=f"{xp_rewards} XP", inline=True)
         
+        stats = await self.parent_view.bot.db.get_player_stats(interaction.user.id)
+        if stats:
+            total_dungeons = stats.get('total_dungeons', 0) + 1
+            await self.parent_view.bot.db.update_player_stats(interaction.user.id, total_dungeons=total_dungeons)
+            
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_dungeon_achievements(self.parent_view.bot.db, interaction, interaction.user.id, total_dungeons)
+            
+            if score >= 300:
+                await AchievementSystem.unlock_action_achievement(self.parent_view.bot.db, interaction, interaction.user.id, 'dungeon_s_rank')
+            
+            if self.parent_view.death_count == 0:
+                await AchievementSystem.unlock_action_achievement(self.parent_view.bot.db, interaction, interaction.user.id, 'dungeon_no_death')
+        
         if self.parent_view.party_id:
             await PartySystem.end_dungeon(self.parent_view.bot.db, self.parent_view.party_id)
             embed.set_footer(text=f"Party rewards distributed to {self.parent_view.party_size} members")

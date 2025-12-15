@@ -50,6 +50,14 @@ class MinionUpgradeModal(discord.ui.Modal, title="Upgrade Minion"):
             await self.bot.db.players.update_player(self.user_id, coins=player['coins'] - upgrade_cost)
             await self.bot.db.upgrade_minion(minion['id'])
             
+            new_tier = current_tier + 1
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_minion_tier_achievements(self.bot.db, interaction, self.user_id, new_tier)
+            
+            minion_slots = await self.bot.db.get_user_minions(self.user_id)
+            total_slots = len(minion_slots)
+            await AchievementSystem.check_minion_slots_achievements(self.bot.db, interaction, self.user_id, total_slots)
+            
             await interaction.response.send_message(
                 f"✅ Successfully upgraded **{minion['minion_type'].title()} Minion** to Tier {current_tier + 1} for {upgrade_cost:,} coins!",
                 ephemeral=True

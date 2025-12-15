@@ -145,4 +145,22 @@ class RecipeSelectView(discord.ui.View):
             embed.add_field(name="Result", value=f"🐾 **{total_crafted}x** {name} added to your pet collection!", inline=False)
         else:
             embed.add_field(name="Result", value=f"**{total_crafted}x** {name}", inline=False)
+        
+        stats = await self.bot.db.get_player_stats(interaction.user.id)
+        if stats:
+            total_crafts = stats.get('total_crafts', 0) + total_crafted
+            await self.bot.db.update_player_stats(interaction.user.id, total_crafts=total_crafts)
+            
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_craft_achievements(self.bot.db, interaction, interaction.user.id, total_crafts)
+
+            rarity = None
+            if item_obj:
+                if isinstance(item_obj, dict):
+                    rarity = item_obj.get('rarity')
+                else:
+                    rarity = getattr(item_obj, 'rarity', None)
+            if rarity == 'legendary':
+                await AchievementSystem.unlock_action_achievement(self.bot.db, interaction, interaction.user.id, 'craft_legendary')
+        
         await interaction.followup.send(embed=embed)

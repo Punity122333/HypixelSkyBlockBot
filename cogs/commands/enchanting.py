@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from utils.event_effects import EventEffects
 from utils.autocomplete import item_autocomplete
+from utils.systems.achievement_system import AchievementSystem
 
 class EnchantingAdvanced(commands.Cog):
     def __init__(self, bot):
@@ -57,11 +58,44 @@ class EnchantingAdvanced(commands.Cog):
             new_xp = enchanting_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('enchanting', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'enchanting', xp=new_xp, level=new_level)
+
+            await AchievementSystem.check_skill_achievements(
+                self.bot.db, interaction, interaction.user.id, 'enchanting', new_level
+            )
             
             from utils.systems.badge_system import BadgeSystem
             await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='enchanting', level=new_level)
             if new_level >= 50:
                 await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+
+        progression = await self.bot.db.get_player_progression(interaction.user.id)
+        if not progression or not progression.get('first_enchant_date'):
+            import time
+            await self.bot.db.update_progression(
+                interaction.user.id,
+                first_enchant_date=int(time.time())
+            )
+            await AchievementSystem.unlock_single_achievement(
+                self.bot.db, interaction, interaction.user.id, 'first_enchant'
+            )
+
+        stats = await self.bot.db.get_player_stats(interaction.user.id)
+        if stats:
+            total_enchants = stats.get('total_enchants', 0) + 1
+            await self.bot.db.update_player_stats(interaction.user.id, total_enchants=total_enchants)
+
+            from utils.achievement_tracker import AchievementTracker
+            enchant_achievements = await AchievementTracker.check_value_based_achievements(
+                self.bot.db, interaction.user.id, 'enchants', total_enchants
+            )
+            await AchievementSystem.check_and_notify(
+                self.bot.db, interaction, interaction.user.id, enchant_achievements
+            )
+
+        if level >= enchant_data['max_level']:
+            await AchievementSystem.unlock_single_achievement(
+                self.bot.db, interaction, interaction.user.id, 'enchant_max'
+            )
         
         embed = discord.Embed(
             title="✨ Enchanted!",

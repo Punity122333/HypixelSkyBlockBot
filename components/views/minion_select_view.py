@@ -30,7 +30,6 @@ class MinionSelectView(discord.ui.View):
             await interaction.response.send_message("This isn't your menu!", ephemeral=True)
             return
 
-        # Fix: Check if interaction.data and values are present
         if not interaction.data or not interaction.data.get('values'):
             await interaction.response.send_message(
                 "❌ Could not process your selection. Please try again.",
@@ -50,6 +49,10 @@ class MinionSelectView(discord.ui.View):
             next_slot = len(existing_minions) + 1
             
             await self.bot.db.add_minion(self.user_id, minion_type, 1, next_slot)
+            
+            new_minion_count = len(existing_minions) + 1
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_minion_achievements(self.bot.db, interaction, self.user_id, new_minion_count)
             
             await interaction.response.send_message(
                 f"✅ Successfully placed **{minion['name']}** in slot {next_slot}!",

@@ -111,6 +111,17 @@ class CombatAttackButton(discord.ui.Button):
                 await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill', skill_name='combat', level=new_level)
                 if new_level >= 50:
                     await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill_50')
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_skill_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, 'combat', new_level)
+            
+            stats = await self.parent_view.bot.db.get_player_stats(self.parent_view.user_id)
+            if stats:
+                total_kills = stats.get('kills', 0) + 1
+                await self.parent_view.bot.db.update_player_stats(self.parent_view.user_id, kills=total_kills)
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_combat_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, kills=total_kills)
             
             self.parent_view.stop()
             for child in self.parent_view.children:
@@ -138,6 +149,14 @@ class CombatAttackButton(discord.ui.Button):
             
             from utils.systems.badge_system import BadgeSystem
             player = await self.parent_view.bot.db.get_player(self.parent_view.user_id)
+            
+            stats = await self.parent_view.bot.db.get_player_stats(self.parent_view.user_id)
+            if stats:
+                total_deaths = stats.get('deaths', 0) + 1
+                await self.parent_view.bot.db.update_player_stats(self.parent_view.user_id, deaths=total_deaths)
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_death_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, total_deaths)
             if player:
                 death_count = player.get('deaths', 0) + 1
                 await self.parent_view.bot.db.update_player(self.parent_view.user_id, deaths=death_count)

@@ -11,6 +11,7 @@ from .events import EventsDB
 from .coop import CoopDB
 from .party_finder import PartyFinderDB
 from .badges import BadgeDB
+from .achievements import AchievementsDB
 from .item_modifiers import ItemModifierDB
 from .market_graphing import MarketGraphingDB
 from .minion_upgrades import MinionUpgradeDB
@@ -40,6 +41,7 @@ class GameDatabase(GameDatabaseMethods):
         self.coop = CoopDB(db_path)
         self.party_finder = PartyFinderDB(db_path)
         self.badges = BadgeDB(db_path)
+        self.achievements = AchievementsDB(db_path)
         self.item_modifiers = ItemModifierDB(db_path)
         self.market_graphing = MarketGraphingDB(db_path)
         self.minion_upgrades = MinionUpgradeDB(db_path)

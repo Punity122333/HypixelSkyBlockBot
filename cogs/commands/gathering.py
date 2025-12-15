@@ -4,6 +4,7 @@ from discord import app_commands
 import random
 from utils.stat_calculator import StatCalculator
 from utils.systems.gathering_system import GatheringSystem
+from utils.systems.achievement_system import AchievementSystem
 from utils.event_effects import EventEffects
 from components.views.mining_location_view import MiningLocationView
 
@@ -44,8 +45,8 @@ class GatheringCommands(commands.Cog):
                 interaction.user.id,
                 first_farm_date=int(time.time())
             )
-            from utils.achievement_tracker import AchievementTracker
-            achievement = await AchievementTracker.unlock_achievement(self.bot.db, interaction.user.id, 'first_farm')
+            # Unlock first farm achievement
+            await AchievementSystem.unlock_single_achievement(self.bot.db, interaction, interaction.user.id, 'first_farm')
         
         active_events = await self.event_effects.get_active_events()
         event_multiplier = await self.event_effects.get_gathering_multiplier() if active_events else 1.0
@@ -103,8 +104,9 @@ class GatheringCommands(commands.Cog):
             new_xp = farming_skill['xp'] + total_xp
             new_level = await self.bot.game_data.calculate_level_from_xp('farming', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'farming', xp=new_xp, level=new_level)
-            from utils.achievement_tracker import AchievementTracker
-            skill_achievements = await AchievementTracker.check_and_unlock_skill(self.bot.db, interaction.user.id, 'farming', new_level)
+
+            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'farming', new_level)
+            
             from utils.systems.badge_system import BadgeSystem
             await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='farming', level=new_level)
             if new_level >= 50:
@@ -115,8 +117,7 @@ class GatheringCommands(commands.Cog):
             description=f"Using **{tool_id.replace('_', ' ').title()}** ({multiplier * event_multiplier:.1f}x efficiency)\n**Farming Level {farming_level}** ({skill_yield_multiplier:.2f}x yield, {skill_drop_multiplier:.2f}x drops)\nYou went farming and found:",
             color=discord.Color.green()
         )
-        
-        # Add tool bonuses display
+
         if tool_bonuses_display:
             tool_bonus_text = []
             if tool_bonuses_display.get('fortune', 0) > 0:
@@ -126,8 +127,7 @@ class GatheringCommands(commands.Cog):
             if tool_bonus_text:
                 current_desc = embed.description or ""
                 embed.description = f"{current_desc}\n🔧 **Tool Bonuses:** {' • '.join(tool_bonus_text)}"
-        
-        # Get active events to check if we should display bonuses
+
         active_events = await self.event_effects.get_active_events()
         if active_events and (event_multiplier > 1.0 or xp_multiplier > 1.0 or coin_multiplier > 1.0 or fortune_bonus > 0):
             event_text = "🎪 **Active Event Bonuses:** "
@@ -211,8 +211,7 @@ class GatheringCommands(commands.Cog):
                 description=f"Using **{tool_id.replace('_', ' ').title()}**\n**Fishing Level {fishing_level}** ({skill_speed_multiplier:.2f}x speed bonus)\nYou caught:",
                 color=discord.Color.blue()
             )
-            
-            # Add tool bonuses display
+
             tool_bonus_text = []
             if tool_bonuses.get('speed', 0) > 0:
                 tool_bonus_text.append(f"+{int(tool_bonuses['speed'])} Fishing Speed")
@@ -238,7 +237,7 @@ class GatheringCommands(commands.Cog):
             if new_level >= 50:
                 await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         await self.bot.player_manager.add_coins(interaction.user.id, total_coins)
-        # Get active events to check if we should display bonuses
+
         active_events = await self.event_effects.get_active_events()
         if active_events and (xp_multiplier > 1.0 or coin_multiplier > 1.0 or sea_creature_bonus > 0):
             event_text = "🎪 **Active Event Bonuses:** "

@@ -30,6 +30,14 @@ class BazaarOrderModal(discord.ui.Modal, title="Place Bazaar Order"):
         result = await EconomySystem.create_bazaar_order(self.bot.db, interaction.user.id, item_id_normalized, order_type, amount, price)
         
         if result['success']:
+            stats = await self.bot.db.get_player_stats(interaction.user.id)
+            if stats:
+                total_bazaar_orders = stats.get('total_bazaar_orders', 0) + 1
+                await self.bot.db.update_player_stats(interaction.user.id, total_bazaar_orders=total_bazaar_orders)
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_bazaar_order_achievements(self.bot.db, interaction, interaction.user.id, total_bazaar_orders)
+            
             embed = discord.Embed(title="✅ Order Placed!", color=discord.Color.green())
             embed.add_field(name="Type", value=order_type, inline=True)
             embed.add_field(name="Item", value=f"{amount}x {item_id_normalized.replace('_', ' ').title()}", inline=True)

@@ -52,6 +52,17 @@ class SlayerCombatAttackButton(Button):
             slayer_id = view.mob_name.lower().split()[0]
             await view.bot.db.skills.update_slayer_xp(view.user_id, slayer_id, view.xp_reward)
 
+            stats = await view.bot.db.get_player_stats(view.user_id)
+            if stats:
+                total_slayers = stats.get('total_slayers', 0) + 1
+                await view.bot.db.update_player_stats(view.user_id, total_slayers=total_slayers)
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_slayer_achievements(view.bot.db, interaction, view.user_id, total_slayers)
+                
+                if hasattr(view, 'tier') and view.tier:
+                    await AchievementSystem.check_slayer_tier_achievements(view.bot.db, interaction, view.user_id, view.tier)
+
             magic_find = view.player_stats.get('magic_find', 0)
             fortune = view.player_stats.get('looting', 0)
             drops = await compat_roll_loot(view.bot.game_data, view.loot_table, magic_find, fortune)

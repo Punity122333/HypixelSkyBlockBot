@@ -49,6 +49,14 @@ class AuctionCreateModal(discord.ui.Modal, title="Create Auction"):
             if len(auctions) >= 100:
                 await BadgeSystem.unlock_badge(self.bot.db, interaction.user.id, 'auction_100')
             
+            stats = await self.bot.db.get_player_stats(interaction.user.id)
+            if stats:
+                total_auctions = stats.get('total_auctions', 0) + 1
+                await self.bot.db.update_player_stats(interaction.user.id, total_auctions=total_auctions)
+                
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_auction_achievements(self.bot.db, interaction, interaction.user.id, total_auctions)
+            
             await self.bot.db.remove_item_from_inventory(interaction.user.id, item_id_normalized, amount)
             embed = discord.Embed(title="✅ Auction Created!", color=discord.Color.green())
             embed.add_field(name="Item", value=f"{amount}x {item.name}", inline=True)

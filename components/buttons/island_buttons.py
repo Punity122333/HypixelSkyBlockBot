@@ -54,6 +54,9 @@ class IslandSearchButton(discord.ui.Button):
                     max_mana=base_mana + mana_bonus
                 )
                 
+                from utils.systems.achievement_system import AchievementSystem
+                await AchievementSystem.check_fairy_soul_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, total_souls)
+                
                 await interaction.followup.send(f"✨ **Fairy Soul Found!**\nYou found a fairy soul at **{location.replace('_', ' ')}**!\nTotal Souls: {total_souls}/{len(all_locations)}", ephemeral=True)
             else:
                 await interaction.followup.send("✨ You've already collected this fairy soul!", ephemeral=True)
