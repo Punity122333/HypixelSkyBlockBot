@@ -281,23 +281,19 @@ class StatCalculator:
         if not active_pet:
             return
         
-        pet_type = active_pet['pet_type']
-        rarity = active_pet['rarity']
+        pet_type = active_pet['pet_type'].lower()
+        rarity = active_pet['rarity'].upper()
         level = active_pet.get('level', 1)
         
-        if not db.conn:
-            return
-            
-        cursor = await db.conn.execute('SELECT * FROM game_pets WHERE pet_type = ? AND rarity = ?', (pet_type, rarity))
-        pet_config = await cursor.fetchone()
+        pet_rarity_stats = await db.get_pet_stats_by_type_rarity(pet_type, rarity)
         
-        if not pet_config:
+        if not pet_rarity_stats:
             return
         
-        base_stats = json.loads(pet_config['stats']) if pet_config['stats'] else {}
+        level_multiplier = 1 + (level / 100)
         
-        for stat, base_value in base_stats.items():
-            scaled_value = int(base_value * (level / 100))
+        for stat, base_value in pet_rarity_stats.items():
+            scaled_value = int(base_value * level_multiplier)
             if stat in stats:
                 stats[stat] += scaled_value
     

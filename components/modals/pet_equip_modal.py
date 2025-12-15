@@ -1,5 +1,5 @@
 import discord
-from utils.data.game_constants import PET_STATS
+from database.misc import get_pet_stats
 
 class PetEquipModal(discord.ui.Modal, title="Equip Pet"):
     pet_type = discord.ui.TextInput(label="Pet Type", placeholder="Enter pet type (e.g. wolf)", required=True)
@@ -46,6 +46,7 @@ class PetEquipModal(discord.ui.Modal, title="Equip Pet"):
             color=color
         )
         
+        PET_STATS = await get_pet_stats()
         stats = PET_STATS.get(self.pet_type.value.lower(), {}).get(self.rarity.value.upper(), {})
         level_multiplier = 1 + (matching_pet['level'] / 100)
         scaled_stats = {k: int(v * level_multiplier) for k, v in stats.items()}

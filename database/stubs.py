@@ -619,3 +619,30 @@ class GameDatabase(GameDatabaseMethods):
             UPDATE player_dungeon_stats SET {set_clause} WHERE user_id = ?
         ''', values)
         await self.conn.commit()
+
+    async def get_pet_stats_by_type_rarity(self, pet_type: str, rarity: str):
+        if not self.conn:
+            return None
+        pet_id = f"{pet_type}_{rarity}"
+        cursor = await self.conn.execute('SELECT stats FROM game_pets WHERE pet_id = ?', (pet_id,))
+        row = await cursor.fetchone()
+        if row and row['stats']:
+            import json
+            return json.loads(row['stats'])
+        return None
+    
+    async def get_all_pet_stats_dict(self):
+        if not self.conn:
+            return {}
+        import json
+        cursor = await self.conn.execute('SELECT pet_type, rarity, stats FROM game_pets')
+        rows = await cursor.fetchall()
+        pet_stats_dict = {}
+        for row in rows:
+            pet_type = row['pet_type']
+            rarity = row['rarity']
+            stats = json.loads(row['stats']) if row['stats'] else {}
+            if pet_type not in pet_stats_dict:
+                pet_stats_dict[pet_type] = {}
+            pet_stats_dict[pet_type][rarity] = stats
+        return pet_stats_dict

@@ -213,6 +213,32 @@ class InventoryMenuView(discord.ui.View):
                     inline=True
                 )
         
+        active_pet = await self.bot.db.get_active_pet(self.user_id)
+        if active_pet:
+            from database.misc import get_pet_stats
+            pet_type = active_pet['pet_type'].lower()
+            rarity = active_pet['rarity'].upper()
+            level = active_pet.get('level', 1)
+            
+            PET_STATS = await get_pet_stats()
+            pet_stats = PET_STATS.get(pet_type, {}).get(rarity, {})
+            level_multiplier = 1 + (level / 100)
+            scaled_stats = {k: int(v * level_multiplier) for k, v in pet_stats.items()}
+            
+            stat_display = '\n'.join([f"{k.replace('_', ' ').title()}: +{v}" for k, v in list(scaled_stats.items())[:3]])
+            
+            embed.add_field(
+                name=f"🐾 Active Pet",
+                value=f"**{pet_type.title()} (Lvl {level})**\n{rarity}\n{stat_display if stat_display else 'No stats'}",
+                inline=True
+            )
+        else:
+            embed.add_field(
+                name=f"🐾 Active Pet",
+                value="*None*\n\nEquip a pet for bonuses",
+                inline=True
+            )
+        
         embed.set_footer(text="Use the buttons below to equip or unequip items")
         return embed
     

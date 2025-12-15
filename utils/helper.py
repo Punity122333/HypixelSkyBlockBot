@@ -2,7 +2,7 @@ from components.views.equipment_select_view import EquipmentSelectView
 from components.views.talisman_select_view import TalismanSelectView
 from components.views.potion_select_view import PotionSelectView
 import discord
-from utils.data.game_constants import get_minion_data
+from database.misc import get_minion_data
 
 async def get_minion_data_from_db(game_data_manager, minion_type: str):
     minion_data = await game_data_manager.get_minion_data(minion_type)
@@ -126,7 +126,6 @@ async def show_potion_select(interaction: discord.Interaction):
     bot = interaction.client
     user_id = interaction.user.id
     
-    # Move import here to avoid circular import issues
     from utils.systems.potion_system import PotionSystem
     
     inventory = await bot.db.get_inventory(user_id) #type: ignore
@@ -205,5 +204,58 @@ async def show_potion_select(interaction: discord.Interaction):
     
     if len(matching_potions) > 20:
         embed.set_footer(text=f"Showing 20 of {len(matching_potions)} potions")
+    
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
+async def show_pet_select(interaction: discord.Interaction):
+    bot = interaction.client
+    user_id = interaction.user.id
+    
+    pets = await bot.db.get_user_pets(user_id) #type: ignore
+    
+    if not pets:
+        await interaction.response.send_message(
+            "❌ You don't have any pets! Get pets from combat or the bazaar.",
+            ephemeral=True
+        )
+        return
+    
+    from components.views.pet_select_view import PetSelectView
+    
+    view = PetSelectView(bot, user_id, pets)
+    
+    embed = discord.Embed(
+        title="🐾 Select Pet to Equip",
+        description=f"Choose a pet to equip\nFound {len(pets)} pets\n\nClick 'Choose Pet' and enter the number.",
+        color=discord.Color.orange()
+    )
+    
+    rarity_emojis = {
+        'COMMON': '⬜',
+        'UNCOMMON': '🟩',
+        'RARE': '🟦',
+        'EPIC': '🟪',
+        'LEGENDARY': '🟧',
+        'MYTHIC': '🟥'
+    }
+    
+    for idx, pet in enumerate(pets[:25], 1):
+        pet_type = pet['pet_type']
+        rarity = pet['rarity']
+        level = pet.get('level', 1)
+        is_active = pet.get('active', 0)
+        
+        rarity_emoji = rarity_emojis.get(rarity, '⬜')
+        active_text = " ✅" if is_active else ""
+        
+        embed.add_field(
+            name=f"{idx}. {rarity_emoji} {pet_type.title()} (Lvl {level}){active_text}",
+            value=f"Rarity: {rarity}",
+            inline=False
+        )
+    
+    if len(pets) > 25:
+        embed.set_footer(text=f"Showing 25 of {len(pets)} pets")
     
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)

@@ -16,7 +16,6 @@ class EquipItemModal(discord.ui.Modal, title="Equip Item"):
     async def on_submit(self, interaction: discord.Interaction):
         slot_value = self.slot.value.lower().strip()
         
-        # Map slot to item types
         slot_mappings = {
             'helmet': ['HELMET'],
             'chestplate': ['CHESTPLATE'],
@@ -35,7 +34,7 @@ class EquipItemModal(discord.ui.Modal, title="Equip Item"):
         
         if slot_value not in slot_mappings:
             await interaction.response.send_message(
-                f"❌ Invalid slot! Choose from: {', '.join(slot_mappings.keys())}",
+                f"❌ Invalid slot! Choose from: {', '.join(list(slot_mappings.keys()))}",
                 ephemeral=True
             )
             return

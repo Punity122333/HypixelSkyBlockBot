@@ -1,6 +1,8 @@
 import discord
 from components.buttons.equip_item_button import EquipItemButton
 from components.buttons.unequip_item_button import UnequipItemButton
+from components.buttons.equip_pet_button import EquipPetButton
+from components.buttons.unequip_pet_button import UnequipPetButton
 
 class ProfileButton(discord.ui.Button):
     def __init__(self, view):
@@ -48,6 +50,8 @@ class ProfileWardrobeButton(discord.ui.Button):
         if self.parent_view.current_view == 'wardrobe':
             self.parent_view.add_item(EquipItemButton())
             self.parent_view.add_item(UnequipItemButton())
+            self.parent_view.add_item(EquipPetButton())
+            self.parent_view.add_item(UnequipPetButton())
         
         await interaction.response.edit_message(embed=await self.parent_view.get_embed(), view=self.parent_view)
 

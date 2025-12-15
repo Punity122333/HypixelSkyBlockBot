@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from utils.data.game_constants import PET_STATS
+from database.misc import get_pet_stats
 from utils.autocomplete import pet_autocomplete
 from components.views.pet_menu_view import PetMenuView
 
@@ -34,9 +34,11 @@ class PetCommands(commands.Cog):
 
         matching_pets = {k: v for k, v in all_pets.items() if v['pet_type'] == pet_type}
         
-        if not matching_pets and pet_type not in PET_STATS:
-            await interaction.followup.send(f"❌ Unknown pet type: {pet_type}", ephemeral=True)
-            return
+        if not matching_pets:
+            PET_STATS = await get_pet_stats()
+            if pet_type not in PET_STATS:
+                await interaction.followup.send(f"❌ Unknown pet type: {pet_type}", ephemeral=True)
+                return
         
         embed = discord.Embed(
             title=f"🐾 {pet_type.title()} Pet Info",
@@ -55,6 +57,7 @@ class PetCommands(commands.Cog):
                     inline=False
                 )
         else:
+            PET_STATS = await get_pet_stats()
             for rarity, stats in PET_STATS[pet_type].items():
                 stats_str = ", ".join([f"+{v} {k.replace('_', ' ').title()}" for k, v in stats.items()])
                 embed.add_field(

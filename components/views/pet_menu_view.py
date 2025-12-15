@@ -1,5 +1,5 @@
 import discord
-from utils.data.game_constants import PET_STATS
+from database.misc import get_pet_stats
 from components.modals.pet_equip_modal import PetEquipModal
 from components.buttons.pet_buttons import (
     PetListButton,
@@ -63,6 +63,7 @@ class PetMenuView(discord.ui.View):
             if pet_data:
                 stats = pet_data.get('stats', {})
             else:
+                PET_STATS = await get_pet_stats()
                 stats = PET_STATS.get(pet_type, {}).get(rarity, {})
             
             level_multiplier = 1 + (level / 100)
