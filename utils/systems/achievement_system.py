@@ -18,24 +18,38 @@ class AchievementSystem:
         user_id: int,
         achievements: List[Dict[str, Any]]
     ):
-        """
-        Check if achievements were unlocked and notify the user
-        """
         if not achievements:
             return
         
+        title = "🏆 Achievement Unlocked!" if len(achievements) == 1 else "🏆 Achievements Unlocked!"
+        description = "" if len(achievements) == 1 else f"You've unlocked {len(achievements)} achievements!"
+        
+        embed = discord.Embed(
+            title=title,
+            description=description,
+            color=discord.Color.gold()
+        )
+        
         for achievement in achievements:
-            if achievement:
-                notification = await AchievementTracker.format_achievement_notification(achievement)
-                try:
-                    await interaction.followup.send(notification, ephemeral=True)
-                except:
-                    try:
-                        from discord.abc import Messageable
-                        if interaction.channel and isinstance(interaction.channel, Messageable):
-                            await interaction.channel.send(f"{interaction.user.mention}\n{notification}")
-                    except:
-                        pass
+            if achievement and 'name' in achievement and 'description' in achievement:
+                icon = achievement.get('icon', '🏆')
+                name = achievement.get('name', 'Unknown')
+                description = achievement.get('description', '')
+                embed.add_field(
+                    name=f"{icon} {name}",
+                    value=description,
+                    inline=False
+                )
+        
+        try:
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        except:
+            try:
+                from discord.abc import Messageable
+                if interaction.channel and isinstance(interaction.channel, Messageable):
+                    await interaction.channel.send(f"{interaction.user.mention}", embed=embed)
+            except:
+                pass
     
     @staticmethod
     async def check_skill_achievements(db, interaction: discord.Interaction, user_id: int, skill_name: str, level: int):

@@ -341,7 +341,6 @@ class PuzzleSystem:
             PuzzleType.LOGIC,
             PuzzleType.PATTERN,
             PuzzleType.SEQUENCE,
-            PuzzleType.MEMORY,
             PuzzleType.RIDDLE,
             PuzzleType.MATH
         ]

@@ -50,6 +50,10 @@ class PuzzleView(View):
                     button.callback = self.create_sequence_callback(str(i))
                     self.add_item(button)
             
+            view_pattern_btn = Button(label="👁️ View Pattern", style=discord.ButtonStyle.blurple, custom_id="view_pattern", row=4)
+            view_pattern_btn.callback = self.view_pattern
+            self.add_item(view_pattern_btn)
+            
             submit_btn = Button(label="✅ Submit Sequence", style=discord.ButtonStyle.green, custom_id="submit_seq", row=4)
             submit_btn.callback = self.submit_sequence
             self.add_item(submit_btn)
@@ -287,6 +291,35 @@ class PuzzleView(View):
             color=discord.Color.purple()
         )
         await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def view_pattern(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("This isn't your puzzle!", ephemeral=True)
+            return
+        
+        sequence = self.puzzle.data.get('sequence', [])
+        seq_type = self.puzzle.data.get('type', '')
+        
+        if seq_type == 'color_simon':
+            pattern_str = ' → '.join(str(s) for s in sequence)
+            title = "🎨 Color Pattern"
+        elif seq_type == 'number_sequence':
+            pattern_str = ' → '.join(str(s) for s in sequence)
+            title = "🔢 Number Pattern"
+        elif seq_type == 'direction_sequence':
+            pattern_str = ' → '.join(str(s) for s in sequence)
+            title = "🧭 Direction Pattern"
+        else:
+            pattern_str = ' → '.join(str(s) for s in sequence)
+            title = "📋 Pattern"
+        
+        embed = discord.Embed(
+            title=title,
+            description=f"**Pattern to remember:**\n{pattern_str}\n\nCurrent input: {' '.join(self.sequence_input) if self.sequence_input else 'None'}",
+            color=discord.Color.purple()
+        )
+        embed.set_footer(text=f"Attempts: {self.puzzle.attempts}/{self.puzzle.max_attempts}")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     async def solve_memory(self, interaction: discord.Interaction):
         if interaction.user.id != self.user_id:

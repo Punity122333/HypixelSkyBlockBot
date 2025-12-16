@@ -41,7 +41,7 @@ class AchievementsDB(DatabaseCore):
             return False
 
         existing = await self.fetchone(
-            'SELECT id FROM player_achievements WHERE user_id = ? AND achievement_id = ?',
+            'SELECT user_id FROM player_achievements WHERE user_id = ? AND achievement_id = ?',
             (user_id, achievement_id)
         )
         
@@ -72,7 +72,7 @@ class AchievementsDB(DatabaseCore):
     async def has_achievement(self, user_id: int, achievement_id: str) -> bool:
         """Check if a user has unlocked a specific achievement"""
         row = await self.fetchone(
-            'SELECT id FROM player_achievements WHERE user_id = ? AND achievement_id = ?',
+            'SELECT user_id FROM player_achievements WHERE user_id = ? AND achievement_id = ?',
             (user_id, achievement_id)
         )
         return row is not None

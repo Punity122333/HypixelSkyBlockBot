@@ -42,6 +42,12 @@ class DungeonCombatView(View):
             if isinstance(item, Button) and item.custom_id:
                 item.callback = self.create_callback(item.custom_id)
     
+    def _create_health_bar(self, current: int, maximum: int) -> str:
+        percentage = current / maximum if maximum > 0 else 0
+        filled = int(percentage * 20)
+        bar = "█" * filled + "░" * (20 - filled)
+        return f"[{bar}]"
+    
     def create_callback(self, button_id: str):
         async def callback(interaction: discord.Interaction):
             if interaction.user.id != self.user_id:
@@ -173,7 +179,8 @@ class DungeonCombatView(View):
         else:
             embed.add_field(name="Your Health", value=f"❤️ {self.player_health}/{self.player_max_health}", inline=True)
         
-        embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}", inline=True)
+        mob_health_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
+        embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}\n{mob_health_bar}", inline=True)
         
         await interaction.response.edit_message(embed=embed, view=self)
     
@@ -245,7 +252,8 @@ class DungeonCombatView(View):
         else:
             embed.add_field(name="Your Health", value=f"❤️ {self.player_health}/{self.player_max_health}", inline=True)
         
-        embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}", inline=True)
+        mob_health_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
+        embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}\n{mob_health_bar}", inline=True)
         
         await interaction.response.edit_message(embed=embed, view=self)
     
@@ -257,6 +265,14 @@ class DungeonCombatView(View):
             secret_count = random.randint(1, 2)
             self.dungeon_view.secrets_found += secret_count
             result += f"\n✨ Found {secret_count} secret(s) while fighting!"
+        
+        # Check if this was a boss (all rooms cleared)
+        is_boss = self.dungeon_view.rooms_cleared > self.dungeon_view.total_rooms
+        
+        if is_boss:
+            # Boss defeated - trigger dungeon completion
+            await self._complete_dungeon_after_boss(interaction, result)
+            return
         
         embed = discord.Embed(
             title=f"✅ {self.mob_name} Defeated!",
@@ -307,23 +323,195 @@ class DungeonCombatView(View):
         
         await interaction.response.edit_message(embed=embed, view=self)
     
-    async def handle_continue(self, interaction: discord.Interaction):
-        for child in self.dungeon_view_buttons_backup:
-            self.dungeon_view.add_item(child)
+    async def _complete_dungeon_after_boss(self, interaction: discord.Interaction, combat_result: str):
+        await interaction.response.defer()
+        
+        from utils.systems.party_system import PartySystem
+        from utils.normalize import normalize_item_id
+        from utils.compat import roll_loot as compat_roll_loot
+        
+        floor_id = self.dungeon_view.floor_name.lower().replace(' ', '')
+        score = self.dungeon_view._calculate_score()
+        
+        score += 100
+        boss_coins = random.randint(500, 1000)
+        self.dungeon_view.coins_gained_in_run += boss_coins
         
         embed = discord.Embed(
-            title=f"🏰 {self.dungeon_view.floor_name} - Room {self.dungeon_view.rooms_cleared}/{self.dungeon_view.total_rooms}",
+            title=f"🏆 {self.dungeon_view.floor_name} CLEARED!",
+            description=f"**BOSS DEFEATED!**\n{combat_result}\n\n💰 +{boss_coins} bonus coins!\n\n**Final Score: {score}**",
+            color=discord.Color.gold()
+        )
+        embed.add_field(name="Rooms Cleared", value=f"{self.dungeon_view.rooms_cleared}/{self.dungeon_view.total_rooms}", inline=True)
+        embed.add_field(name="Secrets Found", value=f"{self.dungeon_view.secrets_found}/{self.dungeon_view.max_secrets}", inline=True)
+        embed.add_field(name="Deaths", value=str(self.dungeon_view.death_count), inline=True)
+        
+        floor_key = normalize_item_id(self.dungeon_view.floor_name)
+        loot_table = await self.bot.game_data.get_loot_table(floor_key, 'dungeon')
+        if not loot_table:
+            loot_table = {}
+        
+        player_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+        magic_find = player_stats.get('magic_find', 0)
+        
+        drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find)
+        dungeon_loot = await self.dungeon_view._roll_dungeon_loot(floor_key, score, magic_find)
+        
+        items_obtained = []
+        if self.party_id:
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                member_ids = [m['user_id'] for m in party['members']]
+                
+                for member_id in member_ids:
+                    member_stats = await StatCalculator.calculate_full_stats(self.bot.db, member_id)
+                    member_magic_find = member_stats.get('magic_find', 0)
+                    
+                    member_drops = await compat_roll_loot(self.bot.game_data, loot_table, member_magic_find)
+                    member_dungeon_loot = await self.dungeon_view._roll_dungeon_loot(floor_key, score, member_magic_find)
+                    
+                    for item_id, amount in member_drops:
+                        await self.bot.db.add_item_to_inventory(member_id, item_id, amount)
+                        if member_id == self.user_id:
+                            items_obtained.append(f"{item_id.replace('_', ' ').title()} x{amount}")
+                    
+                    for item_id, amount in member_dungeon_loot:
+                        await self.bot.db.add_item_to_inventory(member_id, item_id, amount)
+                        if member_id == self.user_id:
+                            items_obtained.append(f"✨ {item_id.replace('_', ' ').title()} x{amount}")
+                
+                embed.set_footer(text=f"🎁 Each of the {len(member_ids)} party members received their own loot drops!")
+        else:
+            for item_id, amount in drops:
+                await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
+                items_obtained.append(f"{item_id.replace('_', ' ').title()} x{amount}")
+            
+            for item_id, amount in dungeon_loot:
+                await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
+                items_obtained.append(f"✨ {item_id.replace('_', ' ').title()} x{amount}")
+        
+        coin_rewards = (self.dungeon_view.rooms_cleared * 100) + (self.dungeon_view.secrets_found * 50) - (self.dungeon_view.death_count * 50)
+        xp_rewards = (self.dungeon_view.rooms_cleared * 20) + (self.dungeon_view.secrets_found * 10) + 100
+        total_rewards = coin_rewards + self.dungeon_view.coins_gained_in_run
+        
+        if self.party_id:
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                member_data = party['members']
+                coins_per_member = total_rewards // len(member_data)
+                
+                for member in member_data:
+                    member_id = member['user_id']
+                    await self.bot.player_manager.add_coins(member_id, coins_per_member)
+                
+                embed.add_field(name="💰 Coins Per Member", value=f"{coins_per_member} coins", inline=True)
+        else:
+            await self.bot.player_manager.add_coins(self.user_id, total_rewards)
+            embed.add_field(name="💰 Total Coins", value=f"{total_rewards} coins", inline=True)
+        
+        if items_obtained:
+            items_display = "\n".join(items_obtained[:10])
+            if len(items_obtained) > 10:
+                items_display += f"\n... and {len(items_obtained) - 10} more items!"
+            embed.add_field(name="🎁 Your Loot", value=items_display, inline=False)
+        
+        embed.add_field(name="⭐ XP Gained", value=f"{xp_rewards} XP", inline=True)
+        
+        self.dungeon_view.stop()
+        self.stop()
+        
+        for child in self.children:
+            if isinstance(child, Button):
+                child.disabled = True
+        
+        if interaction.message:
+            await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=self)
+        else:
+            await interaction.edit_original_response(embed=embed, view=self)
+        
+        await self.bot.db.increment_dungeon_stats(
+            self.user_id,
+            total_runs=1,
+            secrets_found=self.dungeon_view.secrets_found,
+            total_deaths=self.dungeon_view.death_count,
+            catacombs_xp=xp_rewards
+        )
+        
+        dungeon_stats_row = await self.bot.db.get_dungeon_stats(self.user_id)
+        if dungeon_stats_row:
+            dungeon_stats = dict(dungeon_stats_row)
+            from utils.systems.achievement_system import AchievementSystem
+            total_dungeons = dungeon_stats.get('total_runs', 0)
+            await AchievementSystem.check_dungeon_achievements(self.bot.db, interaction, self.user_id, total_dungeons)
+            
+            if score >= 300:
+                await AchievementSystem.unlock_action_achievement(self.bot.db, interaction, self.user_id, 'dungeon_s_rank')
+            
+            if self.dungeon_view.death_count == 0:
+                await AchievementSystem.unlock_action_achievement(self.bot.db, interaction, self.user_id, 'dungeon_no_death')
+        
+        stats_row = await self.bot.db.get_dungeon_stats(self.user_id)
+        stats = dict(stats_row) if stats_row else {}
+        if not stats or score > stats.get('best_score', 0):
+            await self.bot.db.update_dungeon_stats(self.user_id, best_score=score)
+        
+        from utils.systems.badge_system import BadgeSystem
+        if dungeon_stats_row:
+            dungeon_stats = dict(dungeon_stats_row)
+            total_runs = dungeon_stats.get('total_runs', 0)
+            if total_runs == 1:
+                await BadgeSystem.unlock_badge(self.bot.db, self.user_id, 'first_dungeon')
+            elif total_runs >= 100:
+                await BadgeSystem.unlock_badge(self.bot.db, self.user_id, 'dungeon_master')
+        
+        if self.party_id:
+            await PartySystem.end_dungeon(self.bot.db, self.party_id)
+    
+    async def handle_continue(self, interaction: discord.Interaction):
+        from components.views.dungeon_view import DungeonView
+        
+        new_view = DungeonView(
+            self.bot,
+            self.user_id,
+            self.dungeon_view.floor_name,
+            self.dungeon_view.floor_data,
+            self.dungeon_view.party_id
+        )
+        
+        new_view.rooms_cleared = self.dungeon_view.rooms_cleared
+        new_view.total_rooms = self.dungeon_view.total_rooms
+        new_view.current_health = self.dungeon_view.current_health
+        new_view.max_health = self.dungeon_view.max_health
+        new_view.keys = self.dungeon_view.keys
+        new_view.wither_doors_unlocked = self.dungeon_view.wither_doors_unlocked
+        new_view.blood_doors_unlocked = self.dungeon_view.blood_doors_unlocked
+        new_view.total_damage = self.dungeon_view.total_damage
+        new_view.secrets_found = self.dungeon_view.secrets_found
+        new_view.max_secrets = self.dungeon_view.max_secrets
+        new_view.crypts_opened = self.dungeon_view.crypts_opened
+        new_view.puzzles_failed = self.dungeon_view.puzzles_failed
+        new_view.death_count = self.dungeon_view.death_count
+        new_view.room_history = self.dungeon_view.room_history
+        new_view.coins_gained_in_run = self.dungeon_view.coins_gained_in_run
+        new_view.current_puzzle = self.dungeon_view.current_puzzle
+        new_view.party_size = self.dungeon_view.party_size
+        new_view.player_stats = self.dungeon_view.player_stats
+        
+        self.dungeon_view.stop()
+        
+        embed = discord.Embed(
+            title=f"🏰 {new_view.floor_name} - Room {new_view.rooms_cleared}/{new_view.total_rooms}",
             description="Continue exploring the dungeon!",
             color=discord.Color.blue()
         )
-        embed.add_field(name="❤️ Health", value=f"{self.dungeon_view.current_health or 0}/{self.dungeon_view.max_health or 0}", inline=True)
-        embed.add_field(name="🗝️ Keys", value=str(self.dungeon_view.keys), inline=True)
-        embed.add_field(name="✨ Secrets", value=f"{self.dungeon_view.secrets_found}/{self.dungeon_view.max_secrets}", inline=True)
-        embed.add_field(name="💀 Deaths", value=str(self.dungeon_view.death_count), inline=True)
-        embed.add_field(name="🚪 Doors Unlocked", value=f"W:{self.dungeon_view.wither_doors_unlocked} B:{self.dungeon_view.blood_doors_unlocked}", inline=True)
-        embed.add_field(name="⚰️ Crypts", value=str(self.dungeon_view.crypts_opened), inline=True)
+        embed.add_field(name="❤️ Health", value=f"{new_view.current_health or 0}/{new_view.max_health or 0}", inline=True)
+        embed.add_field(name="🗝️ Keys", value=str(new_view.keys), inline=True)
+        embed.add_field(name="✨ Secrets", value=f"{new_view.secrets_found}/{new_view.max_secrets}", inline=True)
+        embed.add_field(name="💀 Deaths", value=str(new_view.death_count), inline=True)
+        embed.add_field(name="🚪 Doors Unlocked", value=f"W:{new_view.wither_doors_unlocked} B:{new_view.blood_doors_unlocked}", inline=True)
+        embed.add_field(name="⚰️ Crypts", value=str(new_view.crypts_opened), inline=True)
         
-        await interaction.response.edit_message(embed=embed, view=self.dungeon_view)
+        await interaction.response.edit_message(embed=embed, view=new_view)
     
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:

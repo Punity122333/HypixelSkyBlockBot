@@ -25,7 +25,9 @@ class DungeonOpenDoorButton(discord.ui.Button):
             self.parent_view.current_health = int(player_stats['max_health'])
             self.parent_view.max_health = int(player_stats['max_health'])
         
-        if self.parent_view.rooms_cleared >= self.parent_view.total_rooms:
+        self.parent_view.rooms_cleared += 1
+        
+        if self.parent_view.rooms_cleared > self.parent_view.total_rooms:
             from components.views.dungeon_combat_view import DungeonCombatView
             
             floor_difficulty = {
@@ -53,20 +55,20 @@ class DungeonOpenDoorButton(discord.ui.Button):
                 self.parent_view.party_id
             )
             
+            boss_health_bar = combat_view._create_health_bar(boss_health, boss_health)
+            
             embed = discord.Embed(
                 title=f"👹 BOSS - {boss_name}!",
                 description=f"The final boss has appeared!\n\nDefeat it to complete the dungeon!",
                 color=discord.Color.dark_red()
             )
-            embed.add_field(name="Boss Health", value=f"❤️ {boss_health:,} HP", inline=True)
+            embed.add_field(name="Boss Health", value=f"❤️ {boss_health:,} HP\n{boss_health_bar}", inline=True)
             embed.add_field(name="Boss Defense", value=f"🛡️ {boss_defense:,}", inline=True)
             embed.add_field(name="Boss Damage", value=f"⚔️ ~{boss_damage} damage", inline=True)
             embed.set_footer(text="This is the final battle!")
             
             await interaction.response.edit_message(embed=embed, view=combat_view)
             return
-        
-        self.parent_view.rooms_cleared += 1
         
         if self.parent_view.current_health and self.parent_view.max_health:
             self.parent_view.current_health = await CombatSystem.apply_health_regeneration(
@@ -148,6 +150,8 @@ class DungeonOpenDoorButton(discord.ui.Button):
                 self.parent_view.party_id
             )
             
+            mob_health_bar = combat_view._create_health_bar(config['health'], config['health'])
+            
             level_color = discord.Color.green()
             if mob_difficulty == 'medium':
                 level_color = discord.Color.gold()
@@ -161,7 +165,7 @@ class DungeonOpenDoorButton(discord.ui.Button):
                 description=f"Prepare for battle!",
                 color=level_color
             )
-            embed.add_field(name="Enemy Health", value=f"❤️ {config['health']} HP", inline=True)
+            embed.add_field(name="Enemy Health", value=f"❤️ {config['health']} HP\n{mob_health_bar}", inline=True)
             embed.add_field(name="Enemy Defense", value=f"🛡️ {config['defense']}", inline=True)
             embed.add_field(name="Enemy Damage", value=f"⚔️ ~{config['damage']} damage", inline=True)
             embed.set_footer(text="Use the buttons below to fight!")
@@ -196,7 +200,7 @@ class DungeonOpenDoorButton(discord.ui.Button):
         elif room_type == 'trap':
             trap_types = ['Arrow Trap', 'Lava Pit', 'TNT Trap', 'Poison Darts', 'Falling Blocks']
             trap_name = random.choice(trap_types)
-            base_damage = random.randint(10, 25)
+            base_damage = random.randint(5, 15)
             
             player_stats = await StatCalculator.calculate_full_stats(self.parent_view.bot.db, self.parent_view.user_id)
             player_defense = player_stats.get('defense', 0)
@@ -390,12 +394,10 @@ class DungeonExitButton(discord.ui.Button):
         embed.add_field(name="💰 Reward", value=f"{total_rewards} coins", inline=True)
         embed.add_field(name="⭐ XP Gained", value=f"{xp_rewards} XP", inline=True)
         
-        stats = await self.parent_view.bot.db.get_player_stats(interaction.user.id)
-        if stats:
-            total_dungeons = stats.get('total_dungeons', 0) + 1
-            await self.parent_view.bot.db.update_player_stats(interaction.user.id, total_dungeons=total_dungeons)
-            
-            from utils.systems.achievement_system import AchievementSystem
+        from utils.systems.achievement_system import AchievementSystem
+        dungeon_stats = await self.parent_view.bot.db.get_dungeon_stats(interaction.user.id)
+        if dungeon_stats:
+            total_dungeons = dungeon_stats.get('total_runs', 0)
             await AchievementSystem.check_dungeon_achievements(self.parent_view.bot.db, interaction, interaction.user.id, total_dungeons)
             
             if score >= 300:
