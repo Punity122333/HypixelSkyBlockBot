@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Any
 from .core import DatabaseCore
 
-
 class TalismansDB(DatabaseCore):
     """Database operations for talisman pouch system"""
     

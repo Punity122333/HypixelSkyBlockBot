@@ -1,5 +1,4 @@
 import asyncio
-import sys
 import aiosqlite
 from pathlib import Path
 

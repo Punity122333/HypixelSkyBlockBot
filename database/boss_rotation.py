@@ -1,8 +1,6 @@
 from typing import Dict, Optional, List, Any
 from .core import DatabaseCore
 import time
-import json
-
 
 class BossRotationDB(DatabaseCore):
     

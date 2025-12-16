@@ -4,7 +4,7 @@ from discord.ext import commands
 import asyncio
 import json
 import hashlib
-from typing import List, Dict, Set, Optional, Union, Any
+from typing import List, Dict, Optional, Union, Any
 from pathlib import Path
 
 

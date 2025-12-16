@@ -1,9 +1,6 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import time
-from utils.systems.economy_system import EconomySystem
-from utils.normalize import normalize_item_id
 from components.views.auction_menu_view import AuctionMenuView
 
 class AuctionCommands(commands.Cog):

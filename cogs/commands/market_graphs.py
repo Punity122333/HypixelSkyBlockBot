@@ -1,8 +1,6 @@
 import discord
-import time
 from discord.ext import commands
 from discord import app_commands
-from utils.systems.market_graphing_system import MarketGraphingSystem
 from utils.decorators import auto_defer
 from components.views.market_graphs_view import MarketGraphsView
 

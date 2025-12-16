@@ -1,7 +1,5 @@
 import aiosqlite
-from pathlib import Path
 from typing import Optional
-
 
 class DatabaseCore:
     def __init__(self, db_path: str):

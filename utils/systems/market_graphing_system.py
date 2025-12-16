@@ -1,6 +1,6 @@
 import io
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

@@ -1,6 +1,5 @@
 import discord
 from database.misc import get_pet_stats
-from components.modals.pet_equip_modal import PetEquipModal
 from components.buttons.pet_buttons import (
     PetListButton,
     PetPreviousButton,

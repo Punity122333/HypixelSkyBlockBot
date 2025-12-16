@@ -3,8 +3,6 @@ from utils.stat_calculator import StatCalculator
 from utils.systems.badge_system import BadgeSystem
 from utils.systems.market_graphing_system import MarketGraphingSystem
 import json
-from components.buttons.equip_item_button import EquipItemButton
-from components.buttons.unequip_item_button import UnequipItemButton
 from components.buttons.profile_buttons import (
     ProfileButton,
     DetailedStatsButton,

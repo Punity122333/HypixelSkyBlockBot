@@ -1,7 +1,6 @@
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from .core import DatabaseCore
 import time
-
 
 class IslandDB(DatabaseCore):
     

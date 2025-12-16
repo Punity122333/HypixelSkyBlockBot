@@ -1,7 +1,6 @@
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List
 import aiosqlite
 import json
-
 
 class EventsDB:
     def __init__(self, db_path: str):

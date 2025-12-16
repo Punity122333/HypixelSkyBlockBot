@@ -2,7 +2,6 @@ from typing import Dict, Any, List, Optional
 from .core import DatabaseCore
 import time
 
-
 class DwarvenMinesDB(DatabaseCore):
     """Database operations for Dwarven Mines system"""
     

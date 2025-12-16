@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, Optional, Any, Tuple
 import random
-import asyncio
 
 
 class PuzzleType:

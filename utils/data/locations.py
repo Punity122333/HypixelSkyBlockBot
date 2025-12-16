@@ -1,6 +1,6 @@
 import json
 import aiosqlite
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 
 _db_path = 'skyblock.db'
 _location_cache = {}

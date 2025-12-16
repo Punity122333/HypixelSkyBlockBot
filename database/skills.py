@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional
 from .core import DatabaseCore
 
-
 class SkillsDB(DatabaseCore):
     async def get_skills(self, user_id: int) -> List[Dict]:
         rows = await self.fetchall(

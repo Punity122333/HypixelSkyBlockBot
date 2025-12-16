@@ -1,9 +1,6 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from typing import Optional
-from utils.systems.coop_system import CoopSystem
-from utils.systems.badge_system import BadgeSystem
 from utils.decorators import auto_defer
 from components.views.coop_view import CoopView
 

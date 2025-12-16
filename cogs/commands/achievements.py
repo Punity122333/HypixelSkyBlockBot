@@ -4,7 +4,6 @@ from discord import app_commands
 from typing import Optional
 from components.views.achievements_view import AchievementsMenuView
 
-
 class AchievementsCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

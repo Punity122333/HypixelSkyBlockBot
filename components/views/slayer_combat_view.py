@@ -1,9 +1,6 @@
 import discord
 from typing import TYPE_CHECKING, Dict, Any, Optional
 from discord.ui import View, Button
-import random
-from utils.systems.combat_system import CombatSystem
-from utils.stat_calculator import StatCalculator
 from utils.event_effects import EventEffects
 from utils.compat import roll_loot as compat_roll_loot
 from components.buttons.slayer_combat_buttons import (

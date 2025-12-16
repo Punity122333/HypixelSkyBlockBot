@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 import time
 from .core import DatabaseCore
 

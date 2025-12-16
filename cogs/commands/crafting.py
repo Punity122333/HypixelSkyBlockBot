@@ -6,7 +6,7 @@ import time
 from typing import Dict, List
 from utils.autocomplete import recipe_autocomplete
 from utils.normalize import normalize_item_id
-from components.views.recipe_select_view import RecipeSelectView, _Trie
+from components.views.recipe_select_view import RecipeSelectView
 
 class CraftingCommands(commands.Cog):
     def __init__(self, bot):

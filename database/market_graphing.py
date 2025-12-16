@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Any, TYPE_CHECKING
 import time
 import io
-import json
 from .core import DatabaseCore
 
 try:
@@ -10,8 +9,7 @@ try:
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
     import matplotlib.dates as mdates
-    from datetime import datetime, timedelta
-    import numpy as np
+    from datetime import datetime
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
@@ -20,8 +18,6 @@ except ImportError:
         import matplotlib.cm as cm
         from datetime import datetime
         import matplotlib.dates as mdates
-        import numpy as np
-
 
 class MarketGraphingDB(DatabaseCore):
     

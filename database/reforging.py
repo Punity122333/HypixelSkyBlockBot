@@ -3,7 +3,6 @@ from .core import DatabaseCore
 import random
 import json
 
-
 class ReforgingDB(DatabaseCore):
     
     async def get_rarity_stat_ranges(self, rarity: str) -> Optional[Dict[str, tuple]]:

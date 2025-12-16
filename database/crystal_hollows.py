@@ -1,6 +1,5 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from .core import DatabaseCore
-
 
 class CrystalHollowsDB(DatabaseCore):
     """Database operations for Crystal Hollows system"""

@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 import json
-
 
 class StatCalculator:
     

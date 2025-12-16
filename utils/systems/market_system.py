@@ -4,7 +4,6 @@ import time
 
 if TYPE_CHECKING:
     from database import GameDatabase
-    from utils.data.all_items import Item
 
 class MarketSystem:
     def __init__(self, db: 'GameDatabase'):

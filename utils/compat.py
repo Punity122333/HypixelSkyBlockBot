@@ -1,5 +1,5 @@
 import random
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple
 
 async def get_item(game_data_manager, item_id: str):
     return await game_data_manager.get_item(item_id)

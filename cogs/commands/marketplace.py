@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord import app_commands
 from components.views.marketplace_view import MarketplaceView
 
-
 class MarketplaceInteractive(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot

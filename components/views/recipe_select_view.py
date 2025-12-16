@@ -7,37 +7,6 @@ class _TrieNode:
             self.children = {}
             self.items = []
 
-
-class _Trie:
-    def __init__(self):
-        self.root = _TrieNode()
-
-    def insert(self, key: str, item_id: str):
-        node = self.root
-        for ch in key:
-            if ch not in node.children:
-                node.children[ch] = _TrieNode()
-            node = node.children[ch]
-        node.items.append(item_id)
-
-    def search_prefix(self, prefix: str):
-
-        norm = lambda s: s.lower().replace(' ', '').replace('_', '')
-        prefix = norm(prefix)
-        node = self.root
-        for ch in prefix:
-            if ch not in node.children:
-                return []
-            node = node.children[ch]
-        stack = [node]
-        out = []
-        while stack:
-            n = stack.pop()
-            out.extend(n.items)
-            for child in n.children.values():
-                stack.append(child)
-        return out
-
 class RecipeSelectView(discord.ui.View):
     def __init__(self, bot, user_id, item_id, recipes, quantity):
         super().__init__(timeout=180)

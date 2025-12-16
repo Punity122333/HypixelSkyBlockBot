@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord import app_commands
 from components.views.hotm_menu_view import HotmMenuView
 
-
 class HotMCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

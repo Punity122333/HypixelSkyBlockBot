@@ -1,7 +1,5 @@
 from typing import Dict, Any, List, Optional
 from .core import DatabaseCore
-import json
-
 
 class HotmDB(DatabaseCore):
     """Database operations for Heart of the Mountain (HotM) system"""

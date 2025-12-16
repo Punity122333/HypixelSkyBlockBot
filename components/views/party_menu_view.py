@@ -1,7 +1,5 @@
 import discord
 from utils.systems.party_system import PartySystem
-from components.modals.party_invite_modal import PartyInviteModal
-from components.modals.party_kick_modal import PartyKickModal
 from components.buttons.party_buttons import (
     PartyCreateButton,
     PartyLeaveButton,

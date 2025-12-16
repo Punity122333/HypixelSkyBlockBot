@@ -1,9 +1,6 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import typing
-import json
-from utils.stat_calculator import StatCalculator
 from components.views.profile_menu_view import ProfileMenuView
 
 class ProfileCommands(commands.Cog):

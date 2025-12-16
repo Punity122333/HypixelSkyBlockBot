@@ -1,15 +1,9 @@
-"""
-Achievement System Helper
-Provides convenience functions for checking and unlocking achievements in commands
-"""
-
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 import discord
 from utils.achievement_tracker import AchievementTracker
 
 
 class AchievementSystem:
-    """Helper class for achievement operations in commands"""
     
     @staticmethod
     async def check_and_notify(

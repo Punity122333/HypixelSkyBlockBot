@@ -3,7 +3,6 @@ from discord.ui import Button, View, Select
 from typing import Dict, List, Optional
 from components.modals.trade_modals import TradeOfferModal, TradeCoinsModal
 
-
 class TradeView(View):
     def __init__(self, bot, trade_id: int, initiator_id: int, receiver_id: int, initiator_name: str, receiver_name: str):
         super().__init__(timeout=300)

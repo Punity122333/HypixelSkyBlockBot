@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Any, Union
 from .core import DatabaseCore
 
-
 class BestiaryDB(DatabaseCore):
 
     async def get_player_bestiary(self, user_id: int, mob_id: Optional[str] = None) -> Union[Optional[Dict[str, Any]], List[Dict[str, Any]]]:

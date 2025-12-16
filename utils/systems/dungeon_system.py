@@ -1,6 +1,6 @@
 import random
 import json
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Any, Tuple
 from ..stat_calculator import StatCalculator
 from .combat_system import CombatSystem
 

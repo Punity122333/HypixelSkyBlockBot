@@ -1,5 +1,4 @@
 import random
-import json
 from typing import Dict, List, Optional, Any
 from ..stat_calculator import StatCalculator
 
@@ -15,16 +14,14 @@ class GatheringSystem:
     
     @classmethod
     async def _get_equipped_tool_stats(cls, db, user_id: int, tool_type: str) -> Dict[str, float]:
-        """Get stats from the equipped tool matching the tool_type"""
         equipped_items = await db.get_equipped_items(user_id)
-        
-        # Map tool types to equipment slots (direct mapping now)
+  
         tool_slot_mapping = {
             'pickaxe': 'pickaxe',
             'axe': 'axe',
             'hoe': 'hoe',
             'fishing_rod': 'fishing_rod',
-            'shovel': 'pickaxe'  # Shovel uses pickaxe slot
+            'shovel': 'pickaxe' 
         }
         
         slot_name = tool_slot_mapping.get(tool_type, tool_type)
@@ -38,8 +35,7 @@ class GatheringSystem:
         
         if not tool_stats:
             return {}
-        
-        # Return actual stat values from the tool_stats table
+
         return {
             'mining_speed': tool_stats.get('mining_speed', 0),
             'mining_fortune': tool_stats.get('mining_fortune', 0),
@@ -63,11 +59,9 @@ class GatheringSystem:
             }
         
         stats = await StatCalculator.calculate_full_stats(db, user_id)
-        
-        # Get tool bonuses from equipped tool
+
         tool_stats = await cls._get_equipped_tool_stats(db, user_id, tool_type)
-        
-        # Apply event bonuses to stats
+
         if event_bonuses:
             for stat, value in event_bonuses.items():
                 if stat in stats:
@@ -82,43 +76,40 @@ class GatheringSystem:
         skill_yield_multiplier = 1.0 + (skill_level * 0.15)
         skill_speed_multiplier = max(0.5, 1.0 - (skill_level * 0.01))
         
-        # Apply tool bonuses based on gathering type
         tool_yield_multiplier = 1.0
         tool_speed_multiplier = 1.0
         
         if gathering_skill == 'mining':
-            # Add tool mining fortune and speed to stats before calculating yield
+
             stats['mining_fortune'] = stats.get('mining_fortune', 0) + tool_stats.get('mining_fortune', 0)
             stats['mining_speed'] = stats.get('mining_speed', 0) + tool_stats.get('mining_speed', 0)
             
             yield_amount = StatCalculator.calculate_mining_yield(stats, 1)
             gather_speed = StatCalculator.calculate_mining_speed(stats, base_time)
-            
-            # Apply ore yield multiplier from tool
+
             tool_yield_multiplier = tool_stats.get('ore_yield_multiplier', 1.0)
             
         elif gathering_skill == 'farming':
-            # Add tool farming fortune to stats before calculating yield
+
             stats['farming_fortune'] = stats.get('farming_fortune', 0) + tool_stats.get('farming_fortune', 0)
             
             yield_amount = StatCalculator.calculate_farming_yield(stats, 1)
             gather_speed = base_time
-            
-            # Apply crop yield multiplier from tool
+
             tool_yield_multiplier = tool_stats.get('crop_yield_multiplier', 1.0)
             
         elif gathering_skill == 'foraging':
-            # Add tool foraging fortune to stats before calculating yield
+  
             stats['foraging_fortune'] = stats.get('foraging_fortune', 0) + tool_stats.get('foraging_fortune', 0)
             
             yield_amount = StatCalculator.calculate_foraging_yield(stats, 1)
             gather_speed = base_time
             
-            # Apply wood yield multiplier from tool
+
             tool_yield_multiplier = tool_stats.get('wood_yield_multiplier', 1.0)
             
         elif gathering_skill == 'fishing':
-            # Add tool fishing speed and sea creature chance to stats
+
             stats['fishing_speed'] = stats.get('fishing_speed', 0) + tool_stats.get('fishing_speed', 0)
             stats['sea_creature_chance'] = stats.get('sea_creature_chance', 0) + tool_stats.get('sea_creature_chance', 0)
             
@@ -129,7 +120,7 @@ class GatheringSystem:
             yield_amount = 1
             gather_speed = base_time
         
-        # Apply all multipliers
+
         yield_amount = int(yield_amount * skill_yield_multiplier * tool_yield_multiplier)
         gather_speed = gather_speed * skill_speed_multiplier * tool_speed_multiplier
         
@@ -221,23 +212,21 @@ class GatheringSystem:
     @classmethod
     def _calculate_gathering_xp(cls, amount: int, resource_type: str) -> int:
         base_xp_map = {
-            # Mining
-            'cobblestone': 10,    # cheap/basic, small XP
-            'coal': 15,          # slightly better
-            'iron_ingot': 20,    # mid-tier
-            'gold_ingot': 30,    # higher-tier
-            'diamond': 50,       # rare, big XP
+        
+            'cobblestone': 10,    
+            'coal': 15,          
+            'iron_ingot': 20,   
+            'gold_ingot': 30,    
+            'diamond': 50,       
 
-            # Farming
-            'wheat': 15,         # small crop XP
+            'wheat': 15,         
             'carrot': 15,
             'potato': 20,
-            'sugar_cane': 25,    # slightly better
+            'sugar_cane': 25,    
             'pumpkin': 30,
             'melon': 40,
 
-            # Foraging / wood
-            'oak_wood': 20,      # basic wood
+            'oak_wood': 20,    
             'jungle_wood': 30,
             'dark_oak_wood': 40
         }

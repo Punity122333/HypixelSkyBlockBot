@@ -1,5 +1,4 @@
 from typing import Optional, Dict, Any, List
-import discord
 
 class AchievementTracker:
     """
