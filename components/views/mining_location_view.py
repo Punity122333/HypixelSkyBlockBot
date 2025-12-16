@@ -183,6 +183,17 @@ class MiningLocationView(View):
         from utils.event_effects import EventEffects
         import random
         
+        skills = await self.bot.db.get_skills(interaction.user.id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 12:
+            await interaction.followup.send(
+                f"❌ You need Mining Level 12+ to access the Dwarven Mines! (Current: {mining_level})",
+                ephemeral=True
+            )
+            return
+        
         equipped_items = await self.bot.db.get_equipped_items(interaction.user.id)
         pickaxe = equipped_items.get('pickaxe')
         if not pickaxe:

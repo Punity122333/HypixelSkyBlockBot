@@ -62,6 +62,9 @@ class StatCalculator:
         await cls._apply_talisman_bonuses(db, user_id, stats)
         await cls._apply_bestiary_bonuses(db, user_id, stats)
         
+        achievement_crit_bonus = await db.achievements.calculate_achievement_crit_bonus(user_id)
+        stats['crit_chance'] += achievement_crit_bonus * 100
+        
         if context == 'dungeon':
             await cls._apply_dungeon_scaling(db, user_id, stats)
         

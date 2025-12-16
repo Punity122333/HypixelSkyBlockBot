@@ -83,6 +83,13 @@ class DwarvenMinesSystem:
         if not db.conn:
             return []
         
+        skills = await db.get_skills(user_id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 12:
+            return []
+        
         await db.dwarven_mines.clear_incomplete_commissions(user_id)
         
         commission_count = 4

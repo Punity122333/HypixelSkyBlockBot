@@ -173,7 +173,8 @@ class GatheringSystem:
                                        base_amount: int, stats: Dict) -> List[Dict[str, Any]]:
         drops = []
         
-        skills = await db.get_skills(stats.get('user_id', 0)) if 'user_id' in stats else []
+        user_id = stats.get('user_id', 0)
+        skills = await db.get_skills(user_id) if user_id else []
         skill_data = next((s for s in skills if s['skill_name'] == gathering_type), None)
         skill_level = skill_data['level'] if skill_data else 0
         
@@ -194,6 +195,11 @@ class GatheringSystem:
         drop_configs = await cursor.fetchall()
         
         drop_multiplier = StatCalculator.calculate_drop_multiplier(stats)
+        
+        if user_id:
+            museum_bonus = await db.museum.calculate_museum_drop_bonus(user_id)
+            achievement_luck = await db.achievements.calculate_achievement_luck_bonus(user_id)
+            drop_multiplier *= museum_bonus * achievement_luck
         
         for drop_config in drop_configs:
             drop_chance = drop_config['drop_chance'] * drop_multiplier
@@ -355,6 +361,8 @@ class GatheringSystem:
     
     @classmethod
     async def apply_gathering_xp(cls, db, user_id: int, skill: str, xp_amount: int):
+        achievement_bonus = await db.achievements.calculate_achievement_skill_bonus(user_id, skill)
+        xp_amount = int(xp_amount * achievement_bonus)
         await db.update_skill(user_id, skill, xp=xp_amount)
     
     @classmethod

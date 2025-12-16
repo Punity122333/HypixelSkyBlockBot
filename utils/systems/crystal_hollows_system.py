@@ -76,6 +76,16 @@ class CrystalHollowsSystem:
         if zone not in cls.ZONES:
             return {'success': False, 'error': 'Invalid zone'}
         
+        skills = await db.get_skills(user_id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 15:
+            return {
+                'success': False,
+                'error': f'Mining Level 15+ required (Current: {mining_level})'
+            }
+        
         zone_data = cls.ZONES[zone]
         
         from utils.systems.dwarven_mines_system import DwarvenMinesSystem
@@ -109,6 +119,16 @@ class CrystalHollowsSystem:
     async def explore_nucleus(cls, db, user_id: int) -> Dict[str, Any]:
         if not db.conn:
             return {'success': False}
+        
+        skills = await db.get_skills(user_id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 15:
+            return {
+                'success': False,
+                'error': f'Mining Level 15+ required (Current: {mining_level})'
+            }
         
         from utils.stat_calculator import StatCalculator
         stats = await StatCalculator.calculate_full_stats(db, user_id)

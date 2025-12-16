@@ -16,6 +16,17 @@ class HotMCommands(commands.Cog):
             interaction.user.id, interaction.user.name
         )
         
+        skills = await self.bot.db.get_skills(interaction.user.id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 12:
+            await interaction.followup.send(
+                f"❌ You need Mining Level 12+ to access Heart of the Mountain! (Current: {mining_level})",
+                ephemeral=True
+            )
+            return
+        
         view = HotmMenuView(self.bot, interaction.user.id)
         await view.refresh_data()
         embed = await view.get_embed()

@@ -126,3 +126,10 @@ class MuseumDB(DatabaseCore):
                 }
         
         return None
+    
+    async def calculate_museum_drop_bonus(self, user_id: int) -> float:
+        total_donations = await self.get_total_donations(user_id)
+        total_points = await self.get_total_points(user_id)
+        donation_bonus = min(0.05, (total_donations / 10) * 0.001)
+        rarity_bonus = min(0.03, (total_points / 100) * 0.0005)
+        return 1.0 + donation_bonus + rarity_bonus

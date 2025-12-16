@@ -65,6 +65,17 @@ class HotmCrystalNucleusButton(discord.ui.Button):
         
         from utils.systems.crystal_hollows_system import CrystalHollowsSystem
         
+        skills = await self.parent_view.bot.db.get_skills(interaction.user.id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 15:
+            await interaction.followup.send(
+                f"❌ You need Mining Level 15+ to access the Crystal Hollows! (Current: {mining_level})",
+                ephemeral=True
+            )
+            return
+        
         player = await self.parent_view.bot.player_manager.get_player_fresh(self.parent_view.user_id)
         
         if player['coins'] < 10000:

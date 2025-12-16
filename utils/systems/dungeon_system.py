@@ -320,7 +320,7 @@ class DungeonSystem:
         coins = int(base_rewards * score_multiplier * time_multiplier)
         xp = int(coins / 10)
         
-        drops = await cls._generate_dungeon_loot(db, floor_id, score_multiplier)
+        drops = await cls._generate_dungeon_loot(db, user_id, floor_id, score_multiplier)
         
         return {
             'success': True,
@@ -335,9 +335,13 @@ class DungeonSystem:
         }
     
     @classmethod
-    async def _generate_dungeon_loot(cls, db, floor_id: str, multiplier: float) -> List[Dict[str, Any]]:
+    async def _generate_dungeon_loot(cls, db, user_id: int, floor_id: str, multiplier: float) -> List[Dict[str, Any]]:
         if not db.conn:
             return []
+        
+        museum_bonus = await db.museum.calculate_museum_drop_bonus(user_id)
+        achievement_luck = await db.achievements.calculate_achievement_luck_bonus(user_id)
+        multiplier *= museum_bonus * achievement_luck
         
         cursor = await db.conn.execute('''
             SELECT * FROM loot_tables WHERE table_id = ? AND category = 'dungeon'

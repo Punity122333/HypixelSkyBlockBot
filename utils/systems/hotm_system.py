@@ -48,6 +48,19 @@ class HeartOfTheMountainSystem:
     
     @classmethod
     async def add_hotm_xp(cls, db, user_id: int, xp: int) -> Dict[str, Any]:
+        skills = await db.get_skills(user_id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 12:
+            return {
+                'xp_gained': 0,
+                'new_xp': 0,
+                'new_tier': 1,
+                'tier_up': False,
+                'tokens_gained': 0
+            }
+        
         hotm_data = await cls.get_hotm_data(db, user_id)
         new_xp = hotm_data['hotm_xp'] + xp
         new_tier = cls._calculate_tier_from_xp(new_xp)
@@ -81,6 +94,16 @@ class HeartOfTheMountainSystem:
     async def unlock_perk(cls, db, user_id: int, perk_id: str) -> Dict[str, Any]:
         if not db.conn:
             return {'success': False, 'error': 'Database not connected'}
+        
+        skills = await db.get_skills(user_id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 12:
+            return {
+                'success': False,
+                'error': f'Mining Level 12+ required (Current: {mining_level})'
+            }
         
         perk_data = await db.hotm.get_perk_data(perk_id)
         if not perk_data:
@@ -210,6 +233,13 @@ class HeartOfTheMountainSystem:
     @classmethod
     async def add_powder(cls, db, user_id: int, powder_type: str, amount: int):
         if not db.conn:
+            return
+        
+        skills = await db.get_skills(user_id)
+        mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)
+        mining_level = mining_skill['level'] if mining_skill else 0
+        
+        if mining_level < 12:
             return
         
         await db.hotm.add_powder(user_id, powder_type, amount)

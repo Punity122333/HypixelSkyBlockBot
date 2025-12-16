@@ -14,6 +14,9 @@ class GameDatabaseMethods:
     world: Any = None
     events: Any = None
     minion_upgrades: Any = None
+    bestiary: Any = None
+    museum: Any = None
+    achievements: Any = None
 
     async def init_bot_traders(self):
         if not self.conn:
@@ -335,9 +338,12 @@ class GameDatabaseMethods:
         if not deal:
             return False
         
+        bestiary_discount = await self.bestiary.calculate_bestiary_merchant_discount(user_id)
+        final_price = int(deal['price'] * bestiary_discount)
+        
         player = await self.get_player(user_id)
-        if player and player['coins'] >= deal['price']:
-            await self.update_player(user_id, coins=player['coins'] - deal['price'])
+        if player and player['coins'] >= final_price:
+            await self.update_player(user_id, coins=player['coins'] - final_price)
             await self.add_item_to_inventory(user_id, deal['item_id'], 1)
             
             await self.conn.execute('''

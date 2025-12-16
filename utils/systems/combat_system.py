@@ -239,6 +239,11 @@ class CombatSystem:
         player_stats = await StatCalculator.calculate_full_stats(db, user_id)
         drop_multiplier = StatCalculator.calculate_drop_multiplier(player_stats)
         
+        museum_bonus = await db.museum.calculate_museum_drop_bonus(user_id)
+        achievement_luck = await db.achievements.calculate_achievement_luck_bonus(user_id)
+        
+        drop_multiplier *= museum_bonus * achievement_luck
+        
         skills = await db.get_skills(user_id)
         combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
         combat_level = combat_skill['level'] if combat_skill else 0
@@ -333,6 +338,8 @@ class CombatSystem:
     
     @classmethod
     async def apply_combat_xp(cls, db, user_id: int, xp_amount: int):
+        achievement_bonus = await db.achievements.calculate_achievement_skill_bonus(user_id, 'combat')
+        xp_amount = int(xp_amount * achievement_bonus)
         await db.update_skill(user_id, 'combat', xp=xp_amount)
     
     @classmethod

@@ -30,6 +30,10 @@ class EconomySystem:
     @classmethod
     async def buy_from_npc(cls, db, user_id: int, item_id: str, amount: int) -> Dict[str, Any]:
         price = await cls.get_item_value(db, item_id)
+        
+        bestiary_discount = await db.bestiary.calculate_bestiary_merchant_discount(user_id)
+        price = int(price * bestiary_discount)
+        
         total_cost = price * amount
         
         player = await db.get_player(user_id)
@@ -46,7 +50,8 @@ class EconomySystem:
             'success': True,
             'item_id': item_id,
             'amount': amount,
-            'total_cost': total_cost
+            'total_cost': total_cost,
+            'discount_applied': bestiary_discount
         }
     
     @classmethod
@@ -59,6 +64,11 @@ class EconomySystem:
             }
         
         price = await cls.get_item_value(db, item_id)
+        
+        bestiary_bonus = await db.bestiary.calculate_bestiary_merchant_discount(user_id)
+        sell_multiplier = 2.0 - bestiary_bonus
+        price = int(price * sell_multiplier)
+        
         total_value = price * amount
         
         await db.remove_item_from_inventory(user_id, item_id, amount)
@@ -71,7 +81,8 @@ class EconomySystem:
             'success': True,
             'item_id': item_id,
             'amount': amount,
-            'total_value': total_value
+            'total_value': total_value,
+            'bonus_applied': sell_multiplier
         }
     
     @classmethod

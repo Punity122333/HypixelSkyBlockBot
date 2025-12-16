@@ -132,6 +132,29 @@ class BestiaryDB(DatabaseCore):
         
         return total_stats
     
+    async def calculate_bestiary_merchant_discount(self, user_id: int) -> float:
+        bestiary_entries = await self.get_player_bestiary(user_id)
+        if not bestiary_entries or isinstance(bestiary_entries, dict):
+            return 1.0
+        total_level = 0
+        max_level_entries = 0
+        total_kills = 0
+        for entry in bestiary_entries:
+            level = entry['bestiary_level']
+            kills = entry['kills']
+            total_level += level
+            total_kills += kills
+            level_info = await self.get_bestiary_level_requirements(entry['mob_id'])
+            if level_info:
+                max_level = level_info.get('max_level', 9)
+                if level >= max_level:
+                    max_level_entries += 1
+        level_discount = min(0.10, (total_level / 10) * 0.005)
+        max_entry_discount = min(0.15, max_level_entries * 0.01)
+        kill_discount = min(0.05, (total_kills / 100) * 0.001)
+        total_discount = level_discount + max_entry_discount + kill_discount
+        return 1.0 - total_discount
+    
     def _calculate_bestiary_level(self, kills: int, level_info: Optional[Dict[str, Any]]) -> int:
         if not level_info:
             if kills >= 5000:

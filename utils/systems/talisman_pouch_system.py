@@ -81,7 +81,7 @@ class TalismanPouchSystem:
                     'intelligence', 'speed', 'attack_speed', 'sea_creature_chance',
                     'magic_find', 'pet_luck', 'ferocity', 'ability_damage', 'true_defense',
                     'mining_speed', 'mining_fortune', 'farming_fortune', 'foraging_fortune',
-                    'fishing_speed', 'health_regen'
+                    'fishing_speed'
                 ]
                 
                 for stat in stat_fields:
