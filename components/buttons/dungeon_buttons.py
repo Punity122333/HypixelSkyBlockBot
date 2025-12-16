@@ -25,6 +25,47 @@ class DungeonOpenDoorButton(discord.ui.Button):
             self.parent_view.current_health = int(player_stats['max_health'])
             self.parent_view.max_health = int(player_stats['max_health'])
         
+        if self.parent_view.rooms_cleared >= self.parent_view.total_rooms:
+            from components.views.dungeon_combat_view import DungeonCombatView
+            
+            floor_difficulty = {
+                'entrance': 1, 'floor1': 2, 'floor2': 3, 'floor3': 5,
+                'floor4': 7, 'floor5': 10, 'floor6': 15, 'floor7': 20
+            }
+            floor_id = self.parent_view.floor_name.lower().replace(' ', '')
+            difficulty = floor_difficulty.get(floor_id, 1)
+            
+            boss_health = 2000 * difficulty
+            boss_damage = 100 * difficulty
+            boss_defense = 150 * difficulty
+            
+            boss_names = ['Necromancer', 'Watcher', 'Shadow Lord', 'Crypt Master', 'Ancient Guardian']
+            boss_name = random.choice(boss_names)
+            
+            combat_view = DungeonCombatView(
+                self.parent_view.bot,
+                self.parent_view.user_id,
+                boss_name,
+                boss_health,
+                boss_damage,
+                boss_defense,
+                self.parent_view,
+                self.parent_view.party_id
+            )
+            
+            embed = discord.Embed(
+                title=f"👹 BOSS - {boss_name}!",
+                description=f"The final boss has appeared!\n\nDefeat it to complete the dungeon!",
+                color=discord.Color.dark_red()
+            )
+            embed.add_field(name="Boss Health", value=f"❤️ {boss_health:,} HP", inline=True)
+            embed.add_field(name="Boss Defense", value=f"🛡️ {boss_defense:,}", inline=True)
+            embed.add_field(name="Boss Damage", value=f"⚔️ ~{boss_damage} damage", inline=True)
+            embed.set_footer(text="This is the final battle!")
+            
+            await interaction.response.edit_message(embed=embed, view=combat_view)
+            return
+        
         self.parent_view.rooms_cleared += 1
         
         if self.parent_view.current_health and self.parent_view.max_health:
@@ -74,48 +115,59 @@ class DungeonOpenDoorButton(discord.ui.Button):
                 self.parent_view.total_damage += damage_taken
                 result = f"⚰️ **Crypt!** Undead burst out and dealt {damage_taken} damage!"
         elif room_type == 'mob':
+            from components.views.dungeon_combat_view import DungeonCombatView
+            
             mob_difficulty = random.choice(['easy', 'medium', 'hard', 'miniboss'])
             
             mob_configs = {
-                'easy': {'defense': 10, 'damage_range': (5, 15), 'coins': (20, 50)},
-                'medium': {'defense': 25, 'damage_range': (15, 30), 'coins': (50, 100)},
-                'hard': {'defense': 50, 'damage_range': (25, 45), 'coins': (100, 200)},
-                'miniboss': {'defense': 100, 'damage_range': (40, 80), 'coins': (150, 400)}
+                'easy': {'health': 150, 'damage': 10, 'defense': 10},
+                'medium': {'health': 300, 'damage': 20, 'defense': 25},
+                'hard': {'health': 500, 'damage': 35, 'defense': 50},
+                'miniboss': {'health': 1000, 'damage': 60, 'defense': 100}
             }
             
             config = mob_configs[mob_difficulty]
             
-            damage_result = await CombatSystem.calculate_player_damage(
-                self.parent_view.bot.db, self.parent_view.user_id, config['defense']
+            mob_names = {
+                'easy': ['Zombie', 'Skeleton', 'Spider'],
+                'medium': ['Crypt Ghoul', 'Lost Adventurer', 'Dungeon Zombie'],
+                'hard': ['Dungeon Knight', 'Crypt Lurker', 'Shadow Assassin'],
+                'miniboss': ['Super Archer', 'Super Tank', 'Lonely Spider']
+            }
+            
+            mob_name = random.choice(mob_names[mob_difficulty])
+            
+            combat_view = DungeonCombatView(
+                self.parent_view.bot,
+                self.parent_view.user_id,
+                mob_name,
+                config['health'],
+                config['damage'],
+                config['defense'],
+                self.parent_view,
+                self.parent_view.party_id
             )
             
-            mob_base_hp = config['damage_range'][1] * 3
-            player_damage = damage_result['damage']
-            
-            if player_damage >= mob_base_hp:
-                damage_taken = config['damage_range'][0]
-            else:
-                damage_taken = random.randint(*config['damage_range'])
-            
-            coins = random.randint(*config['coins'])
-            self.parent_view.coins_gained_in_run += coins
-            
-            if mob_difficulty == 'miniboss':
-                result = f"👑 **Miniboss Room!** You defeated a mini-boss! Took {damage_taken} damage but gained {coins} coins!"
+            level_color = discord.Color.green()
+            if mob_difficulty == 'medium':
+                level_color = discord.Color.gold()
             elif mob_difficulty == 'hard':
-                result = f"⚔️ **Mob Room (Hard)!** Tough enemies dealt {damage_taken} damage! ({int(player_damage)} damage dealt)"
-            elif mob_difficulty == 'medium':
-                result = f"⚔️ **Mob Room (Medium)!** You took {damage_taken} damage clearing the room! ({int(player_damage)} damage dealt)"
-            else:
-                result = f"⚔️ **Mob Room (Easy)!** You took {damage_taken} damage clearing the room! ({int(player_damage)} damage dealt)"
+                level_color = discord.Color.red()
+            elif mob_difficulty == 'miniboss':
+                level_color = discord.Color.purple()
             
-            self.parent_view.current_health = (self.parent_view.current_health or 0) - damage_taken
-            self.parent_view.total_damage += damage_taken
+            embed = discord.Embed(
+                title=f"⚔️ Mob Room - {mob_name} appeared!",
+                description=f"Prepare for battle!",
+                color=level_color
+            )
+            embed.add_field(name="Enemy Health", value=f"❤️ {config['health']} HP", inline=True)
+            embed.add_field(name="Enemy Defense", value=f"🛡️ {config['defense']}", inline=True)
+            embed.add_field(name="Enemy Damage", value=f"⚔️ ~{config['damage']} damage", inline=True)
+            embed.set_footer(text="Use the buttons below to fight!")
             
-            if random.random() > 0.6:
-                secret_count = random.randint(1, 2)
-                self.parent_view.secrets_found += secret_count
-                result += f"\n✨ Found {secret_count} secret(s) while fighting!"
+            await interaction.response.edit_message(embed=embed, view=combat_view)
+            return
         elif room_type == 'puzzle':
             floor_id = self.parent_view.floor_name.lower().replace(' ', '')
             puzzle_difficulty = min(10, max(1, (self.parent_view.rooms_cleared // 2) + 1))
@@ -144,7 +196,13 @@ class DungeonOpenDoorButton(discord.ui.Button):
         elif room_type == 'trap':
             trap_types = ['Arrow Trap', 'Lava Pit', 'TNT Trap', 'Poison Darts', 'Falling Blocks']
             trap_name = random.choice(trap_types)
-            damage_taken = random.randint(20, 50)
+            base_damage = random.randint(10, 25)
+            
+            player_stats = await StatCalculator.calculate_full_stats(self.parent_view.bot.db, self.parent_view.user_id)
+            player_defense = player_stats.get('defense', 0)
+            
+            damage_taken = int(CombatSystem._calculate_mob_damage(base_damage, player_defense))
+            
             self.parent_view.current_health = (self.parent_view.current_health or 0) - damage_taken
             self.parent_view.total_damage += damage_taken
             result = f"🪤 **Trap Room ({trap_name})!** You triggered traps and took {damage_taken} damage!"
@@ -175,22 +233,6 @@ class DungeonOpenDoorButton(discord.ui.Button):
             self.parent_view.death_count += 1
             self.parent_view.current_health = self.parent_view.max_health // 2 if self.parent_view.max_health else 50
             result += f"\n💀 **You died!** Respawning with half health... (Deaths: {self.parent_view.death_count})"
-        
-        if self.parent_view.rooms_cleared >= self.parent_view.total_rooms:
-            embed = discord.Embed(
-                title=f"🏆 Blood Room Complete!",
-                description="All rooms cleared! Time to face the boss!",
-                color=discord.Color.gold()
-            )
-            embed.add_field(name="Secrets Found", value=f"{self.parent_view.secrets_found}/{self.parent_view.max_secrets}", inline=True)
-            embed.add_field(name="Deaths", value=str(self.parent_view.death_count), inline=True)
-            
-            self.parent_view.remove_item(self)
-            if len(self.parent_view.children) > 0 and isinstance(self.parent_view.children[0], Button):
-                self.parent_view.children[0].label = "🐲 Fight Boss"   
-                self.parent_view.children[0].style = discord.ButtonStyle.red   
-            await interaction.response.edit_message(embed=embed, view=self.parent_view)
-            return
         
         embed = discord.Embed(
             title=f"🏰 {self.parent_view.floor_name} - Room {self.parent_view.rooms_cleared}/{self.parent_view.total_rooms}",

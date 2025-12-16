@@ -290,8 +290,8 @@ class DungeonSystem:
     async def _clear_trap_room(cls, db, user_id: int, room: Dict[str, Any]) -> Dict[str, Any]:
         stats = await StatCalculator.calculate_full_stats(db, user_id)
         
-        trap_damage = room['difficulty'] * 50
-        damage_taken = CombatSystem._calculate_mob_damage(trap_damage, stats['defense'])
+        trap_base_damage = room['difficulty'] * 50
+        damage_taken = int(CombatSystem._calculate_mob_damage(trap_base_damage, stats['defense']))
         
         return {
             'success': True,

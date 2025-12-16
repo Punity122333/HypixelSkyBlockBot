@@ -53,9 +53,6 @@ class SlayerCombatView(View):
         self.add_item(SlayerCombatAbilityButton(self))
         self.add_item(SlayerCombatRunButton(self))
         self.add_item(UsePotionButton(self))
-        self.add_item(SlayerCombatDefendButton(self))
-        self.add_item(SlayerCombatAbilityButton(self))
-        self.add_item(SlayerCombatRunButton(self))
     
     async def interaction_check(self, interaction: "Interaction") -> bool:
         if interaction.user.id != self.user_id:
