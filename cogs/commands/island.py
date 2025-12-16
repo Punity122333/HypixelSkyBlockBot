@@ -21,10 +21,6 @@ class IslandCommands(commands.Cog):
         
         await interaction.followup.send(embed=embed, view=view)
 
-
-        
-        await interaction.response.send_message(embed=embed)
-
     @app_commands.command(name="search_fairy_soul", description="Search for a fairy soul!")
     async def search_fairy_soul(self, interaction: discord.Interaction):
         await interaction.response.defer()

@@ -24,6 +24,8 @@ from .bestiary import BestiaryDB
 from .reforging import ReforgingDB
 from .boss_rotation import BossRotationDB
 from .museum import MuseumDB
+from .trading import TradingDB
+from .island import IslandDB
 from .methods import GameDatabaseMethods
 import json
 
@@ -54,6 +56,8 @@ class GameDatabase(GameDatabaseMethods):
         self.reforging = ReforgingDB(db_path)
         self.boss_rotation = BossRotationDB(db_path)
         self.museum = MuseumDB(db_path)
+        self.trading = TradingDB(db_path)
+        self.island = IslandDB(db_path)
         self.conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self):
@@ -128,6 +132,12 @@ class GameDatabase(GameDatabaseMethods):
         
         await self.museum.connect()
         self.museum.conn = self.conn
+        
+        await self.trading.connect()
+        self.trading.conn = self.conn
+        
+        await self.island.connect()
+        self.island.conn = self.conn
         
         await self._create_dungeon_loot_tables()
 

@@ -1,0 +1,416 @@
+🏝️ Island Customization Guide
+
+Customize and decorate your private island with themes, decorations, and special blocks!
+
+🎮 ISLAND COMMANDS:
+/island - Access your island menu
+/island_shop - Browse available decorations
+/island_theme <theme_id> - Apply a theme to your island
+
+🏠 ISLAND BASICS:
+
+YOUR ISLAND:
+- Personal space in SkyBlock
+- Place minions to generate resources
+- Decorate with custom items
+- Apply themes to change appearance
+- Control visitor access
+- Upgrade and expand over time
+
+ISLAND STATS:
+📊 Island Level - Increases with upgrades
+🎨 Theme - Current visual style
+✨ Fairy Souls - Permanent stat bonuses
+🤖 Active Minions - Working automatons
+🎭 Decorations - Placed decorative items
+🧱 Custom Blocks - Placed building blocks
+👥 Visitors - Enable/disable access
+⭐ Upgrade Points - For island improvements
+
+🎨 DECORATION SYSTEM:
+
+WHAT ARE DECORATIONS:
+- Cosmetic items for your island
+- Various types and rarities
+- Different sizes (1x1 to 6x8)
+- Cost coins to purchase
+- Require specific island level
+
+DECORATION TYPES:
+🌳 Nature - Trees, plants, flowers
+🏛️ Structures - Buildings, gazebos
+💡 Lighting - Lamps, torches
+💧 Water Features - Fountains, ponds
+🪑 Furniture - Benches, tables
+🛤️ Paths - Stone paths, bridges
+
+DECORATION RARITIES:
+⚪ COMMON - Basic decorations
+🟢 UNCOMMON - Nicer decorations
+🔵 RARE - Special decorations
+🟣 EPIC - Impressive decorations
+🟠 LEGENDARY - Ultimate decorations
+
+PLACING DECORATIONS:
+
+METHOD 1 - ISLAND MENU:
+1. Open /island
+2. Click "Place Decoration"
+3. Enter decoration ID
+4. Enter X coordinate (0-20)
+5. Enter Y coordinate (0-20)
+6. Enter rotation (0, 90, 180, 270)
+7. Decoration is placed!
+
+METHOD 2 - SHOP FIRST:
+1. Browse /island_shop
+2. Note decoration IDs
+3. Purchase with coins (automatic)
+4. Place using island menu
+
+VIEWING DECORATIONS:
+- Click "View Decorations" on island menu
+- See all placed decorations
+- Shows names, positions, rarities
+- Plan your island layout
+
+REMOVING DECORATIONS:
+- Currently requires direct database access
+- Use carefully when placing
+- Plan your layout first
+- Future update will add removal
+
+📋 AVAILABLE DECORATIONS:
+
+COMMON (Level 1+):
+⚪ Oak Tree (oak_tree) - 500 coins
+⚪ Stone Path (stone_path) - 100 coins
+⚪ Flower Bed (flower_bed) - 250 coins
+⚪ Lamp Post (lamp_post) - 750 coins
+⚪ Hedge (hedge) - 500 coins
+⚪ Standing Torch (torch) - 200 coins
+
+UNCOMMON (Level 2-8):
+🟢 Fountain (fountain) - 5,000 coins - Level 5
+🟢 Garden Bench (garden_bench) - 1,000 coins - Level 3
+🟢 Koi Pond (pond) - 7,500 coins - Level 8
+🟢 Wooden Bridge (bridge) - 3,000 coins - Level 5
+🟢 Stone Well (well) - 5,000 coins - Level 6
+🟢 Banner Flag (flag) - 1,500 coins - Level 4
+
+RARE (Level 10-15):
+🔵 Statue (statue) - 10,000 coins - Level 10
+🔵 Gazebo (gazebo) - 15,000 coins - Level 12
+
+EPIC (Level 15+):
+🟣 Windmill (windmill) - 25,000 coins - Level 15
+
+🎭 THEME SYSTEM:
+
+WHAT ARE THEMES:
+- Change your island's appearance
+- Different biomes and styles
+- Require island level
+- Cost coins to unlock
+- Some have special requirements
+
+APPLYING THEMES:
+Use /island_theme <theme_id>
+Example: /island_theme desert
+
+AVAILABLE THEMES:
+
+FREE:
+Default (default) - Level 1
+The classic SkyBlock island look
+
+PURCHASABLE:
+Desert Oasis (desert) - 50,000 coins - Level 10
+Sandy desert with palm trees
+
+Winter Wonderland (snow) - 50,000 coins - Level 10
+Snowy winter landscape
+
+Tropical Jungle (jungle) - 75,000 coins - Level 15
+Dense jungle environment
+
+Mushroom Fields (mushroom) - 75,000 coins - Level 15
+Mystical mushroom biome
+
+SPECIAL UNLOCK:
+Crimson Wastes (nether) - 100,000 coins - Level 20
+Requirement: Visit Crimson Isle
+
+Void Dimension (end) - 100,000 coins - Level 20
+Requirement: Visit The End
+
+Crystal Cavern (crystal) - 150,000 coins - Level 25
+Requirement: Access Crystal Hollows
+
+🎯 ISLAND UPGRADES:
+
+ISLAND LEVELS:
+- Start at Level 1
+- Earn XP through activities
+- Higher levels unlock more decorations
+- Unlock better themes
+- Increase island capabilities
+
+EARNING ISLAND XP:
+- Place minions
+- Collect resources
+- Add decorations
+- Complete island quests
+- Upgrade structures
+
+UPGRADE POINTS:
+- Special currency for islands
+- Spend on permanent upgrades
+- Unlock new features
+- Expand island size
+- Improve efficiency
+
+👥 VISITOR MANAGEMENT:
+
+VISITOR SYSTEM:
+- Control who can visit your island
+- Toggle on/off anytime
+- Visitors can view but not modify
+- Show off your decorations
+- Social feature
+
+ENABLING VISITORS:
+1. Open /island menu
+2. Click "Toggle Visitors"
+3. Status changes instantly
+4. Players can now visit
+
+DISABLING VISITORS:
+- Same button to toggle off
+- Makes island private
+- Good for work-in-progress
+- Maintain privacy
+
+🧱 CUSTOM BLOCKS:
+
+BLOCK PLACEMENT:
+- Place custom blocks
+- Build structures
+- Create patterns
+- 3D positioning (X, Y, Z)
+- Multiple block types
+
+FUTURE FEATURE:
+Full block system coming soon!
+- More block types
+- Easier placement
+- Block removal
+- Copy/paste areas
+- Blueprints
+
+🤖 MINIONS ON ISLANDS:
+
+MINION DISPLAY:
+Your island shows active minion count
+Currently: X minions active
+
+MINION MANAGEMENT:
+- Place with /minions command
+- Work 24/7 on your island
+- Generate resources offline
+- Essential for progression
+- Visible on island stats
+
+💡 ISLAND TIPS:
+
+PLANNING YOUR ISLAND:
+1. Browse decorations first
+2. Plan layout on paper
+3. Start with paths
+4. Add focal points (fountain, statue)
+5. Fill in with smaller items
+6. Add lighting last
+
+DECORATION PLACEMENT:
+- Check size before placing
+- Avoid overlapping
+- Create symmetry
+- Use paths to connect areas
+- Group similar items
+- Leave space for minions
+
+THEME SELECTION:
+- Match your playstyle
+- Consider decoration compatibility
+- Save coins for best themes
+- Unlock requirements first
+- Change themes freely
+
+BUDGET MANAGEMENT:
+- Start with cheap decorations
+- Save for epic items
+- Don't buy everything at once
+- Prioritize key pieces
+- Earn coins through gameplay
+
+🏅 ISLAND BADGES:
+
+INTERIOR DESIGNER:
+Badge: 🎨 Interior Designer
+Requirement: Place 10 decorations
+Reward: Recognition as decorator
+
+MASTER ARCHITECT:
+Badge: 🏗️ Master Architect
+Requirement: Place 50 decorations
+Reward: Master builder status
+
+THEME COLLECTOR:
+Badge: 🎭 Theme Collector
+Requirement: Unlock 5 themes
+Reward: Theme enthusiast
+
+📊 ISLAND STATS TRACKING:
+
+VIEW YOUR STATS:
+Open /island to see:
+- Island name
+- Current level
+- Applied theme
+- Minion count
+- Decoration count
+- Block count
+- Visitor status
+- Upgrade points
+
+COMPARING ISLANDS:
+- Share screenshots
+- Show off decorations
+- Compete for best island
+- Get inspiration
+- Community events
+
+🎨 DECORATION STRATEGIES:
+
+THEMED BUILDS:
+- Choose decoration theme
+- Match with island theme
+- Create cohesive look
+- Example: All nature items
+- Example: Medieval castle
+
+FUNCTIONAL LAYOUTS:
+- Organized minion areas
+- Central gathering point
+- Resource storage zones
+- Crafting areas
+- Efficient pathways
+
+AESTHETIC DESIGNS:
+- Focus on appearance
+- Create landmarks
+- Use symmetry
+- Add variety
+- Consider colors
+
+BALANCED APPROACH:
+- Mix function and form
+- Practical yet beautiful
+- Room for expansion
+- Easy to navigate
+- Impressive to visitors
+
+🚀 GETTING STARTED:
+
+FIRST DECORATION:
+1. Use /island_shop to browse
+2. Choose a cheap item (torch, path)
+3. Open /island menu
+4. Click "Place Decoration"
+5. Enter decoration details
+6. See it on your island!
+
+BEGINNER SETUP:
+Level 1-5:
+- Stone paths around minions
+- A few torches for light
+- Flower beds for color
+- Oak trees for nature
+- Save coins for fountain
+
+Level 6-10:
+- Add fountain centerpiece
+- Create defined paths
+- More varied decorations
+- Consider first theme change
+- Plan expansion
+
+Level 11-15:
+- Add rare decorations
+- Multiple theme unlocks
+- Structured layout
+- Impressive focal points
+- Visitor-ready island
+
+RENAMING YOUR ISLAND:
+
+CUSTOM NAME:
+1. Open /island menu
+2. Click "Rename Island"
+3. Enter new name (max 50 chars)
+4. Island name updates
+5. Shows on all views
+
+NAME IDEAS:
+- Your username + "'s Paradise"
+- Themed names (Desert Oasis)
+- Creative names (Cloud Nine)
+- Location names (Sunset Shore)
+- Funny names (Lag Island)
+
+🎯 ADVANCED FEATURES:
+
+COORDINATE SYSTEM:
+- X axis: 0-20 (left to right)
+- Y axis: 0-20 (front to back)
+- Z axis: For blocks (height)
+- Plan positions carefully
+- No overlap allowed
+
+ROTATION SYSTEM:
+0° - Default orientation
+90° - Rotated right
+180° - Rotated back
+270° - Rotated left
+
+SIZE PLANNING:
+1x1 - Single tile (torch, path)
+2x2 - Small item (tree, bench)
+3x3 - Medium item (fountain)
+4x4 - Large item (pond)
+5x5+ - Huge item (gazebo, windmill)
+
+📈 PROGRESSION GOALS:
+
+SHORT TERM:
+✓ Place first 5 decorations
+✓ Reach island level 5
+✓ Unlock first paid theme
+✓ Create basic path system
+✓ Enable visitors
+
+MEDIUM TERM:
+✓ 20+ decorations placed
+✓ Island level 10
+✓ 3+ themes unlocked
+✓ Themed decoration set
+✓ Organized minion area
+
+LONG TERM:
+✓ 50+ decorations
+✓ Island level 25
+✓ All themes unlocked
+✓ Master Architect badge
+✓ Most impressive island
+
+Transform your island into a masterpiece! 🏝️✨

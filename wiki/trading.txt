@@ -1,0 +1,223 @@
+🤝 Trading System Guide
+
+The Trading System allows secure player-to-player trades with confirmation, trade history, and reputation tracking!
+
+🎮 TRADING COMMANDS:
+/trade <player> - Start a trade with another player
+/trade_history - View your trading history and stats
+
+📊 HOW TRADING WORKS:
+
+STARTING A TRADE:
+1. Use /trade @player to initiate
+2. Both players are notified
+3. Trade window opens with buttons
+4. 5-minute timeout to complete
+
+TRADE WINDOW:
+📦 Add Items - Add items from your inventory
+💰 Add Coins - Offer coins in the trade
+✅ Accept Trade - Mark yourself as ready
+❌ Cancel Trade - Cancel the entire trade
+
+ADDING ITEMS:
+1. Click "Add Items" button
+2. Enter the item ID (exact name)
+3. Enter the amount
+4. Item appears in your offer section
+
+ADDING COINS:
+1. Click "Add Coins" button
+2. Enter coin amount
+3. Coins added to your offer
+
+COMPLETING THE TRADE:
+- Both players must click "Accept Trade"
+- Once both accept, trade executes automatically
+- Items and coins are transferred
+- Trade is recorded in history
+- Both players gain trading reputation
+
+⚠️ IMPORTANT RULES:
+
+SAFETY:
+✓ Always verify the trade before accepting
+✓ Check item names carefully
+✓ Confirm coin amounts
+✓ Both players must accept to complete
+✓ You can cancel anytime before both accept
+
+RESTRICTIONS:
+✗ Cannot trade with yourself
+✗ Cannot trade with bots
+✗ Must have items in inventory to offer
+✗ Must have coins to offer coins
+✗ Cannot modify offer after accepting (resets ready state)
+
+📈 TRADING REPUTATION:
+
+WHAT IS IT:
+- Earned by completing trades
+- +1 reputation per successful trade
+- Displayed on your profile
+- Shows you're a trusted trader
+
+BENEFITS:
+- Trust indicator for other players
+- Unlock trading badges
+- Track your trading activity
+- Compare with other traders
+
+📜 TRADE HISTORY:
+
+VIEW YOUR HISTORY:
+Use /trade_history to see:
+- Total trades completed
+- Total coins traded
+- Your trading reputation
+- Recent trade partners
+- Trade timestamps
+
+TRADE RECORDS:
+- All completed trades are saved
+- Includes items and coins exchanged
+- Shows who you traded with
+- Timestamp of completion
+- Cannot be deleted or modified
+
+🏅 TRADING BADGES:
+
+FIRST TRADE:
+Badge: 🤝 First Trade
+Requirement: Complete your first trade
+Reward: Shows you're no longer a trading newbie
+
+EXPERIENCED TRADER:
+Badge: 💼 Experienced Trader
+Requirement: Complete 50 trades
+Reward: Proves you're an active trader
+
+TRADING TYCOON:
+Badge: 🏪 Trading Tycoon  
+Requirement: Complete 100 trades
+Reward: Master trader status
+
+💡 TRADING TIPS:
+
+FAIR TRADES:
+- Check market prices on /bazaar
+- Use /auction to compare values
+- Don't accept unfair trades
+- Ask for price checks in chat
+
+COMMUNICATION:
+- Discuss trade terms before starting
+- Agree on prices beforehand
+- Be clear about what you want
+- Be respectful to trade partners
+
+AVOIDING SCAMS:
+- Double-check all items
+- Verify item rarities
+- Confirm enchantments match
+- Don't rush the trade
+- Cancel if something seems wrong
+
+EFFICIENT TRADING:
+- Prepare items beforehand
+- Have exact amounts ready
+- Know item IDs ahead of time
+- Complete trades quickly
+- Build your reputation
+
+🔍 COMMON ISSUES:
+
+TRADE WON'T COMPLETE:
+- Make sure both players accepted
+- Check you have the items/coins
+- Verify no one modified their offer
+- Try canceling and restarting
+
+ITEM NOT FOUND:
+- Use exact item ID from inventory
+- Check spelling carefully
+- Verify you own the item
+- Confirm item is in inventory (not equipped)
+
+TIMEOUT:
+- Trade expires after 5 minutes
+- Start a new trade if needed
+- Be ready before initiating
+
+💬 TRADE ETIQUETTE:
+
+DO:
+✓ Be polite and respectful
+✓ Honor agreed-upon prices
+✓ Complete trades promptly
+✓ Thank your trade partner
+✓ Build positive reputation
+
+DON'T:
+✗ Spam trade requests
+✗ Lowball offers constantly
+✗ Waste people's time
+✗ Cancel at the last second
+✗ Be rude or aggressive
+
+🎯 TRADING STRATEGIES:
+
+COLLECTING:
+- Trade for collection items
+- Complete item sets
+- Find rare items
+- Build your museum
+
+PROFIT TRADING:
+- Buy low, sell high
+- Flip items for profit
+- Watch market trends
+- Build coin wealth
+
+BULK TRADING:
+- Trade large quantities
+- Save time on multiple items
+- Better deals on bulk
+- Efficient coin making
+
+📊 ADVANCED FEATURES:
+
+TRADE STATISTICS:
+Track your performance:
+- Total successful trades
+- Coins traded overall
+- Most traded items
+- Favorite trade partners
+- Trading streaks
+
+REPUTATION SYSTEM:
+Build your standing:
+- Complete more trades
+- Be a reliable trader
+- Earn trust from community
+- Unlock special perks
+
+🚀 GETTING STARTED:
+
+FIRST TRADE CHECKLIST:
+1. Find a trade partner
+2. Agree on terms
+3. Use /trade command
+4. Add your items/coins
+5. Wait for partner to add theirs
+6. Both click Accept
+7. Trade completes!
+
+NEW TRADER TIPS:
+- Start with small trades
+- Learn item values first
+- Don't trade rare items yet
+- Build reputation slowly
+- Ask experienced players for help
+
+Happy Trading! 🤝
