@@ -62,3 +62,43 @@ class BackupManager:
     def stop(self) -> None:
         if self.backup_task:
             self.backup_task.cancel()
+    
+    async def restore_from_backup(self, backup_filename: str) -> Optional[bool]:
+        """Restore database from a specific backup file"""
+        try:
+            backup_path = os.path.join(self.backup_dir, backup_filename)
+            
+            if not os.path.exists(backup_path):
+                print(f"❌ Backup file not found: {backup_path}")
+                return False
+            
+            # Backup the current (corrupted) database
+            if os.path.exists(self.db_path):
+                corrupted_backup = f"{self.db_path}.corrupted.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                await asyncio.to_thread(shutil.copy2, self.db_path, corrupted_backup)
+                print(f"💾 Current database backed up to: {corrupted_backup}")
+                await asyncio.to_thread(os.remove, self.db_path)
+            
+            # Extract and restore from zip
+            await asyncio.to_thread(self._extract_backup, backup_path, self.db_path)
+            print(f"✅ Database restored from: {backup_filename}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Restore failed: {e}")
+            return False
+    
+    def _extract_backup(self, zip_path: str, dest: str) -> None:
+        """Extract database from zip backup"""
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            with zf.open(zf.namelist()[0]) as source:
+                with open(dest, 'wb') as target:
+                    shutil.copyfileobj(source, target)
+    
+    def get_latest_backup(self) -> Optional[str]:
+        """Get the filename of the most recent backup"""
+        backups = sorted(
+            [f for f in os.listdir(self.backup_dir) if f.startswith("skyblock_backup_") and f.endswith(".zip")],
+            reverse=True
+        )
+        return backups[0] if backups else None

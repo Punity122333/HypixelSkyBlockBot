@@ -43,16 +43,23 @@ class AuctionCreateModal(discord.ui.Modal, title="Create Auction"):
         if result['success']:
             from utils.systems.badge_system import BadgeSystem
             await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'auction_created')
-            auctions = await self.bot.db.get_player_auctions(interaction.user.id)
+            auctions = await self.bot.db.get_user_auctions(interaction.user.id)
             if len(auctions) >= 1:
                 await BadgeSystem.unlock_badge(self.bot.db, interaction.user.id, 'first_auction')
             if len(auctions) >= 100:
                 await BadgeSystem.unlock_badge(self.bot.db, interaction.user.id, 'auction_100')
             
-            stats = await self.bot.db.get_player_stats(interaction.user.id)
-            if stats:
-                total_auctions = stats.get('total_auctions', 0) + 1
-                await self.bot.db.update_player_stats(interaction.user.id, total_auctions=total_auctions)
+            player_economy = await self.bot.db.fetchone(
+                'SELECT total_auctions FROM player_economy WHERE user_id = ?',
+                (interaction.user.id,)
+            )
+            if player_economy:
+                total_auctions = player_economy['total_auctions'] + 1
+                await self.bot.db.execute(
+                    'UPDATE player_economy SET total_auctions = ? WHERE user_id = ?',
+                    (total_auctions, interaction.user.id)
+                )
+                await self.bot.db.commit()
                 
                 from utils.systems.achievement_system import AchievementSystem
                 await AchievementSystem.check_auction_achievements(self.bot.db, interaction, interaction.user.id, total_auctions)

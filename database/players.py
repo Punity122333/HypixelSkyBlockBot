@@ -60,7 +60,6 @@ class PlayersDB(DatabaseCore):
             'attack_speed', 'true_defense'
         ]
 
-        # Merged economy fields into players table
         economy_fields = [
             'coins', 'bank', 'bank_capacity', 'total_earned', 'total_spent',
             'trading_reputation', 'merchant_level'
@@ -70,7 +69,8 @@ class PlayersDB(DatabaseCore):
         player_fields = ['username', 'playtime_minutes']
 
         stat_updates = {k: v for k, v in kwargs.items() if k in stat_fields}
-        player_updates = {k: v for k, v in kwargs.items() if k in player_fields or k in economy_fields}
+        player_updates = {k: v for k, v in kwargs.items() if k in player_fields}
+        economy_updates = {k: v for k, v in kwargs.items() if k in economy_fields}
         dungeon_updates = {k: v for k, v in kwargs.items() if k in dungeon_fields}
 
         if stat_updates:
@@ -89,6 +89,14 @@ class PlayersDB(DatabaseCore):
                 tuple(values)
             )
 
+        if economy_updates:
+            set_clause = ', '.join([f'{k} = ?' for k in economy_updates.keys()])
+            values = list(economy_updates.values()) + [user_id]
+            await self.execute(
+                f'UPDATE player_economy SET {set_clause} WHERE user_id = ?',
+                tuple(values)
+            )
+
         if dungeon_updates:
             set_clause = ', '.join([f'{k} = ?' for k in dungeon_updates.keys()])
             values = list(dungeon_updates.values()) + [user_id]
@@ -99,6 +107,29 @@ class PlayersDB(DatabaseCore):
 
         await self.commit()
 
+    async def get_player_stats(self, user_id: int) -> Optional[Dict]:
+        row = await self.fetchone(
+            'SELECT * FROM player_stats WHERE user_id = ?',
+            (user_id,)
+        )
+        return dict(row) if row else None
+
+    async def update_player_stats(self, user_id: int, **kwargs):
+        await self.execute(
+            'INSERT OR IGNORE INTO player_stats (user_id) VALUES (?)',
+            (user_id,)
+        )
+        
+        if not kwargs:
+            return
+        
+        set_clause = ', '.join([f'{k} = ?' for k in kwargs.keys()])
+        values = list(kwargs.values()) + [user_id]
+        await self.execute(
+            f'UPDATE player_stats SET {set_clause} WHERE user_id = ?',
+            tuple(values)
+        )
+        await self.commit()
 
     async def get_leaderboard(self, category: str, limit: int = 100) -> List[Dict]:
         category = category.lower().strip()

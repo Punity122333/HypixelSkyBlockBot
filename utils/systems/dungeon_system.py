@@ -10,14 +10,21 @@ class DungeonSystem:
     DUNGEON_CLASSES = ['healer', 'mage', 'berserk', 'archer', 'tank']
     
     FLOOR_REQUIREMENTS = {
-        'entrance': {'level': 0, 'gear_score': 0},
-        'floor1': {'level': 5, 'gear_score': 50},
-        'floor2': {'level': 10, 'gear_score': 100},
-        'floor3': {'level': 15, 'gear_score': 150},
-        'floor4': {'level': 20, 'gear_score': 250},
-        'floor5': {'level': 25, 'gear_score': 400},
-        'floor6': {'level': 30, 'gear_score': 600},
-        'floor7': {'level': 35, 'gear_score': 900},
+        'entrance': {'catacombs_level': 0, 'gear_score': 0},
+        'floor1': {'catacombs_level': 5, 'gear_score': 50},
+        'floor2': {'catacombs_level': 8, 'gear_score': 100},
+        'floor3': {'catacombs_level': 10, 'gear_score': 150},
+        'floor4': {'catacombs_level': 13, 'gear_score': 250},
+        'floor5': {'catacombs_level': 16, 'gear_score': 400},
+        'floor6': {'catacombs_level': 19, 'gear_score': 600},
+        'floor7': {'catacombs_level': 22, 'gear_score': 900},
+        'm1': {'catacombs_level': 25, 'gear_score': 1200},
+        'm2': {'catacombs_level': 28, 'gear_score': 1500},
+        'm3': {'catacombs_level': 30, 'gear_score': 2000},
+        'm4': {'catacombs_level': 33, 'gear_score': 2500},
+        'm5': {'catacombs_level': 36, 'gear_score': 3000},
+        'm6': {'catacombs_level': 39, 'gear_score': 4000},
+        'm7': {'catacombs_level': 42, 'gear_score': 5000},
     }
     
     @classmethod
@@ -27,17 +34,20 @@ class DungeonSystem:
         
         requirements = cls.FLOOR_REQUIREMENTS[floor_id]
         
-        player = await db.get_player(user_id)
-        if not player:
-            return False, 'Player not found'
+        dungeon_stats = await db.get_dungeon_stats(user_id)
+        if not dungeon_stats:
+            await db.update_dungeon_stats(user_id)
+            dungeon_stats = await db.get_dungeon_stats(user_id)
         
-        player_level = player.get('level', 1)
-        if player_level < requirements['level']:
-            return False, f"Level {requirements['level']} required"
+        catacombs_level = dungeon_stats['catacombs_level'] if dungeon_stats else 0
+        if catacombs_level is None:
+            catacombs_level = 0
+        if catacombs_level < requirements['catacombs_level']:
+            return False, f"Catacombs Level {requirements['catacombs_level']} required (you have {catacombs_level})"
         
         gear_score = await cls.calculate_gear_score(db, user_id)
         if gear_score < requirements['gear_score']:
-            return False, f"Gear score {requirements['gear_score']} required"
+            return False, f"Gear score {requirements['gear_score']} required (you have {gear_score})"
         
         return True, 'OK'
     

@@ -337,15 +337,6 @@ class DungeonCombatView(View):
         boss_coins = random.randint(500, 1000)
         self.dungeon_view.coins_gained_in_run += boss_coins
         
-        embed = discord.Embed(
-            title=f"🏆 {self.dungeon_view.floor_name} CLEARED!",
-            description=f"**BOSS DEFEATED!**\n{combat_result}\n\n💰 +{boss_coins} bonus coins!\n\n**Final Score: {score}**",
-            color=discord.Color.gold()
-        )
-        embed.add_field(name="Rooms Cleared", value=f"{self.dungeon_view.rooms_cleared}/{self.dungeon_view.total_rooms}", inline=True)
-        embed.add_field(name="Secrets Found", value=f"{self.dungeon_view.secrets_found}/{self.dungeon_view.max_secrets}", inline=True)
-        embed.add_field(name="Deaths", value=str(self.dungeon_view.death_count), inline=True)
-        
         floor_key = normalize_item_id(self.dungeon_view.floor_name)
         loot_table = await self.bot.game_data.get_loot_table(floor_key, 'dungeon')
         if not loot_table:
@@ -379,8 +370,6 @@ class DungeonCombatView(View):
                         await self.bot.db.add_item_to_inventory(member_id, item_id, amount)
                         if member_id == self.user_id:
                             items_obtained.append(f"✨ {item_id.replace('_', ' ').title()} x{amount}")
-                
-                embed.set_footer(text=f"🎁 Each of the {len(member_ids)} party members received their own loot drops!")
         else:
             for item_id, amount in drops:
                 await self.bot.db.add_item_to_inventory(self.user_id, item_id, amount)
@@ -403,10 +392,26 @@ class DungeonCombatView(View):
                 for member in member_data:
                     member_id = member['user_id']
                     await self.bot.player_manager.add_coins(member_id, coins_per_member)
-                
-                embed.add_field(name="💰 Coins Per Member", value=f"{coins_per_member} coins", inline=True)
         else:
             await self.bot.player_manager.add_coins(self.user_id, total_rewards)
+        
+        embed = discord.Embed(
+            title=f"🏆 {self.dungeon_view.floor_name} CLEARED!",
+            description=f"**BOSS DEFEATED!**\n{combat_result}\n\n💰 +{boss_coins} bonus coins!\n\n**Final Score: {score}**",
+            color=discord.Color.gold()
+        )
+        embed.add_field(name="Rooms Cleared", value=f"{self.dungeon_view.rooms_cleared}/{self.dungeon_view.total_rooms}", inline=True)
+        embed.add_field(name="Secrets Found", value=f"{self.dungeon_view.secrets_found}/{self.dungeon_view.max_secrets}", inline=True)
+        embed.add_field(name="Deaths", value=str(self.dungeon_view.death_count), inline=True)
+        
+        if self.party_id:
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                member_data = party['members']
+                coins_per_member = total_rewards // len(member_data)
+                embed.add_field(name="💰 Coins Per Member", value=f"{coins_per_member} coins", inline=True)
+                embed.set_footer(text=f"🎁 Each of the {len(member_data)} party members received their own loot drops!")
+        else:
             embed.add_field(name="💰 Total Coins", value=f"{total_rewards} coins", inline=True)
         
         if items_obtained:
@@ -414,6 +419,8 @@ class DungeonCombatView(View):
             if len(items_obtained) > 10:
                 items_display += f"\n... and {len(items_obtained) - 10} more items!"
             embed.add_field(name="🎁 Your Loot", value=items_display, inline=False)
+        else:
+            embed.add_field(name="🎁 Your Loot", value="No items dropped this time!", inline=False)
         
         embed.add_field(name="⭐ XP Gained", value=f"{xp_rewards} XP", inline=True)
         
@@ -424,10 +431,11 @@ class DungeonCombatView(View):
             if isinstance(child, Button):
                 child.disabled = True
         
-        if interaction.message:
-            await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=self)
-        else:
+        try:
             await interaction.edit_original_response(embed=embed, view=self)
+        except:
+            if interaction.message:
+                await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=self)
         
         await self.bot.db.increment_dungeon_stats(
             self.user_id,
@@ -436,6 +444,14 @@ class DungeonCombatView(View):
             total_deaths=self.dungeon_view.death_count,
             catacombs_xp=xp_rewards
         )
+        
+        dungeon_stats_row = await self.bot.db.get_dungeon_stats(self.user_id)
+        if dungeon_stats_row:
+            current_cata_xp = dungeon_stats_row['catacombs_xp'] or 0
+            current_cata_level = dungeon_stats_row['catacombs_level'] or 0
+            new_cata_level = await self.bot.game_data.calculate_level_from_xp('dungeoneering', current_cata_xp)
+            if new_cata_level != current_cata_level:
+                await self.bot.db.update_dungeon_stats(self.user_id, catacombs_level=new_cata_level)
         
         dungeon_stats_row = await self.bot.db.get_dungeon_stats(self.user_id)
         if dungeon_stats_row:

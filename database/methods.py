@@ -141,10 +141,16 @@ class GameDatabaseMethods:
     async def create_bazaar_order(self, user_id: int, product_id: str, order_type: str, amount: float, price: float):
         if not self.conn:
             return
-        await self.conn.execute('''
-            INSERT INTO bazaar_orders (user_id, product_id, order_type, amount, price, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (user_id, product_id, order_type, amount, price, int(time.time())))
+        if order_type.lower() == 'buy':
+            await self.conn.execute('''
+                INSERT INTO bazaar_buy_orders (user_id, product_id, price, amount, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, product_id, price, amount, int(time.time())))
+        elif order_type.lower() == 'sell':
+            await self.conn.execute('''
+                INSERT INTO bazaar_sell_orders (user_id, product_id, price, amount, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, product_id, price, amount, int(time.time())))
         await self.conn.commit()
 
     async def buy_bin(self, user_id: int, auction_id: int, price: int):
@@ -155,7 +161,10 @@ class GameDatabaseMethods:
             return False
         
         cursor = await self.conn.execute('''
-            SELECT * FROM auction_house WHERE id = ? AND bin = 1 AND ended = 0
+            SELECT ah.*, ai.item_id, ai.amount
+            FROM auction_house ah
+            JOIN auction_items ai ON ah.id = ai.auction_id
+            WHERE ah.id = ? AND ah.bin = 1 AND ah.ended = 0
         ''', (auction_id,))
         auction = await cursor.fetchone()
         
@@ -166,7 +175,7 @@ class GameDatabaseMethods:
         await self.add_item_to_inventory(user_id, auction['item_id'], auction['amount'])
         
         await self.conn.execute('''
-            UPDATE auction_house SET ended = 1, winner_id = ? WHERE id = ?
+            UPDATE auction_house SET ended = 1, highest_bidder_id = ? WHERE id = ?
         ''', (user_id, auction_id))
         await self.conn.commit()
         return True
@@ -281,12 +290,24 @@ class GameDatabaseMethods:
         minion_count = len(list(minions)) if minions else 0
         await BadgeSystem.check_and_unlock_badges(self, user_id, 'minion', minion_count=minion_count)
 
-    async def cancel_bazaar_order(self, order_id: int):
+    async def cancel_bazaar_order(self, order_id: int, order_type: Optional[str] = None):
         if not self.conn:
             return
-        await self.conn.execute('''
-            DELETE FROM bazaar_orders WHERE id = ?
-        ''', (order_id,))
+        if order_type and order_type.lower() == 'buy':
+            await self.conn.execute('''
+                DELETE FROM bazaar_buy_orders WHERE id = ?
+            ''', (order_id,))
+        elif order_type and order_type.lower() == 'sell':
+            await self.conn.execute('''
+                DELETE FROM bazaar_sell_orders WHERE id = ?
+            ''', (order_id,))
+        else:
+            await self.conn.execute('''
+                DELETE FROM bazaar_buy_orders WHERE id = ?
+            ''', (order_id,))
+            await self.conn.execute('''
+                DELETE FROM bazaar_sell_orders WHERE id = ?
+            ''', (order_id,))
         await self.conn.commit()
 
     async def claim_daily_reward(self, user_id: int):
@@ -420,17 +441,23 @@ class GameDatabaseMethods:
         if not self.conn:
             return []
         cursor = await self.conn.execute('''
-            SELECT * FROM auction_house WHERE seller_id = ? AND ended = 0
+            SELECT ah.*, ai.item_id, ai.amount, ai.metadata
+            FROM auction_house ah
+            JOIN auction_items ai ON ah.id = ai.auction_id
+            WHERE ah.seller_id = ? AND ah.ended = 0
         ''', (user_id,))
         return await cursor.fetchall()
 
     async def get_user_bazaar_orders(self, user_id: int):
         if not self.conn:
             return []
-        cursor = await self.conn.execute('''
-            SELECT * FROM bazaar_orders WHERE user_id = ?
+        buy_orders = await self.conn.execute('''
+            SELECT *, 'buy' as order_type FROM bazaar_buy_orders WHERE user_id = ? AND active = 1
         ''', (user_id,))
-        return await cursor.fetchall()
+        sell_orders = await self.conn.execute('''
+            SELECT *, 'sell' as order_type FROM bazaar_sell_orders WHERE user_id = ? AND active = 1
+        ''', (user_id,))
+        return await buy_orders.fetchall() + await sell_orders.fetchall()
 
     async def get_user_minions(self, user_id: int):
         if not self.conn:

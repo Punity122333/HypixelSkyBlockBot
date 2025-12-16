@@ -92,27 +92,44 @@ class ProfileMenuView(discord.ui.View):
         stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
 
         embed = discord.Embed(
-            title=f"📈 {self.username}'s Stats",
+            title=f"📈 {self.username}'s Complete Stats",
+            description="All your character statistics",
             color=discord.Color.blue()
         )
         
-        embed.add_field(name="❤️ Health", value=f"{int(stats['max_health'])}", inline=True)
-        embed.add_field(name="🛡️ Defense", value=str(int(stats['defense'])), inline=True)
-        embed.add_field(name="⚔️ Strength", value=str(int(stats['strength'])), inline=True)
-        
-        embed.add_field(name="☠️ Crit Chance", value=f"{stats.get('crit_chance', 0)}%", inline=True)
-        embed.add_field(name="💥 Crit Damage", value=f"{stats.get('crit_damage', 0)}%", inline=True)
-        embed.add_field(name="✨ Intelligence", value=str(int(stats.get('intelligence', 0))), inline=True)
-        
-        embed.add_field(name="⚡ Speed", value=str(int(stats.get('speed', 0))), inline=True)
-        embed.add_field(name="🐟 Sea Creature Chance", value=f"{stats.get('sea_creature_chance', 0)}%", inline=True)
-        embed.add_field(name="🔮 Magic Find", value=str(int(stats.get('magic_find', 0))), inline=True)
-        
-        embed.add_field(name="🍀 Pet Luck", value=str(int(stats.get('pet_luck', 0))), inline=True)
+
+        embed.add_field(name="❤️ Health", value=f"{int(stats.get('health', 0))}/{int(stats.get('max_health', 0))}", inline=True)
+        embed.add_field(name="🛡️ Defense", value=str(int(stats.get('defense', 0))), inline=True)
+        embed.add_field(name="⚔️ Strength", value=str(int(stats.get('strength', 0))), inline=True)
+
+        embed.add_field(name="☠️ Crit Chance", value=f"{stats.get('crit_chance', 0):.1f}%", inline=True)
+        embed.add_field(name="💥 Crit Damage", value=f"{stats.get('crit_damage', 0):.1f}%", inline=True)
         embed.add_field(name="💢 Ferocity", value=str(int(stats.get('ferocity', 0))), inline=True)
-        embed.add_field(name="⚡ Ability Damage", value=str(int(stats.get('ability_damage', 0))), inline=True)
+
+        embed.add_field(name="💙 Max Mana", value=str(int(stats.get('max_mana', 0))), inline=True)
+        embed.add_field(name="✨ Intelligence", value=str(int(stats.get('intelligence', 0))), inline=True)
+        embed.add_field(name="⚡ Ability Damage", value=f"{stats.get('ability_damage', 0):.1f}%", inline=True)
         
-        embed.set_footer(text="Use buttons to view profile overview")
+        embed.add_field(name="🏃 Speed", value=str(int(stats.get('speed', 0))), inline=True)
+        embed.add_field(name="⚔️ Attack Speed", value=f"{stats.get('attack_speed', 0):.1f}%", inline=True)
+        embed.add_field(name="💚 Health Regen", value=f"{stats.get('health_regen', 0):.1f}%", inline=True)
+
+        embed.add_field(name="🛡️ True Defense", value=str(int(stats.get('true_defense', 0))), inline=True)
+
+        embed.add_field(name="🔮 Magic Find", value=str(int(stats.get('magic_find', 0))), inline=True)
+        embed.add_field(name="🍀 Pet Luck", value=str(int(stats.get('pet_luck', 0))), inline=True)
+
+        embed.add_field(name="⛏️ Mining Speed", value=str(int(stats.get('mining_speed', 0))), inline=True)
+        embed.add_field(name="⛏️ Mining Fortune", value=str(int(stats.get('mining_fortune', 0))), inline=True)
+
+        embed.add_field(name="🌾 Farming Fortune", value=str(int(stats.get('farming_fortune', 0))), inline=True)
+
+        embed.add_field(name="🪓 Foraging Fortune", value=str(int(stats.get('foraging_fortune', 0))), inline=True)
+
+        embed.add_field(name="🎣 Fishing Speed", value=str(int(stats.get('fishing_speed', 0))), inline=True)
+        embed.add_field(name="🐟 Sea Creature Chance", value=f"{stats.get('sea_creature_chance', 0):.1f}%", inline=True)
+        
+        embed.set_footer(text="Use buttons to view profile overview • All stats displayed")
         return embed
     
     async def get_wardrobe_embed(self):
@@ -124,8 +141,7 @@ class ProfileMenuView(discord.ui.View):
             description="Equip armor, weapons, and tools to enhance your stats!",
             color=discord.Color.purple()
         )
-        
-        # All equipment slots in one view
+
         equipment_emojis = {
             'helmet': '🪖',
             'chestplate': '🦺',

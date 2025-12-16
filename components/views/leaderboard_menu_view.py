@@ -30,14 +30,20 @@ class LeaderboardMenuView(discord.ui.View):
         if self.current_category == 'coins':
             if self.bot.db.conn:
                 async with self.bot.db.conn.execute('''
-                    SELECT user_id, username, coins FROM players ORDER BY coins DESC LIMIT 100
+                    SELECT p.user_id, p.username, e.coins 
+                    FROM players p
+                    JOIN player_economy e ON p.user_id = e.user_id
+                    ORDER BY e.coins DESC LIMIT 100
                 ''') as cursor:
                     rows = await cursor.fetchall()
                     self.data = [{'user_id': r[0], 'username': r[1], 'coins': r[2]} for r in rows]
         elif self.current_category == 'networth':
             if self.bot.db.conn:
                 async with self.bot.db.conn.execute('''
-                    SELECT user_id, username, (coins + bank) as networth FROM players ORDER BY networth DESC LIMIT 100
+                    SELECT p.user_id, p.username, (e.coins + e.bank) as networth 
+                    FROM players p
+                    JOIN player_economy e ON p.user_id = e.user_id
+                    ORDER BY networth DESC LIMIT 100
                 ''') as cursor:
                     rows = await cursor.fetchall()
                     self.data = [{'user_id': r[0], 'username': r[1], 'networth': r[2]} for r in rows]
@@ -45,7 +51,7 @@ class LeaderboardMenuView(discord.ui.View):
             if self.bot.db.conn:
                 async with self.bot.db.conn.execute('''
                     SELECT s.user_id, p.username, AVG(s.level) as skill_avg
-                    FROM player_skills s
+                    FROM skills s
                     JOIN players p ON s.user_id = p.user_id
                     GROUP BY s.user_id
                     ORDER BY skill_avg DESC

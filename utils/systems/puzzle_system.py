@@ -64,7 +64,7 @@ class Puzzle:
                 'question': 'Five levers control a door. Red and blue must both be up or both down. Green must be opposite of red. Yellow must match blue. Orange is independent. What combination opens the door?',
                 'options': [
                     'All up',
-                    'Red up, Blue up, Green down, Yellow up, Orange up',
+                    'Red up, Blue up, Green down, Yellow down, Orange up',
                     'Red down, Blue down, Green up, Yellow down, Orange up',
                     'All down'
                 ],

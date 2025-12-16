@@ -194,11 +194,10 @@ class EconomySystem:
         if item_count < amount:
             return {'success': False, 'error': 'Insufficient items'}
         
-        await db.remove_item_from_inventory(user_id, item_id, amount)
-        
         duration_seconds = duration_hours * 3600
+        is_bin = bin_price is not None and bin_price > 0
         auction_id = await db.create_auction(
-            user_id, item_id, amount, starting_bid, bin_price or 0, duration_seconds
+            user_id, item_id, amount, starting_bid, bin_price, duration_seconds, is_bin
         )
         
         return {
@@ -236,14 +235,20 @@ class EconomySystem:
             return {'success': False, 'error': 'Database not connected'}
         
         cursor = await db.conn.execute('''
-            SELECT * FROM auctions WHERE id = ? AND bin = 1 AND ended = 0
+            SELECT ah.*, ai.item_id, ai.amount
+            FROM auction_house ah
+            JOIN auction_items ai ON ah.id = ai.auction_id
+            WHERE ah.id = ? AND ah.bin = 1 AND ah.ended = 0
         ''', (auction_id,))
         auction = await cursor.fetchone()
         
         if not auction:
             return {'success': False, 'error': 'Auction not found'}
         
-        bin_price = auction['bin_price']
+        bin_price = auction['buy_now_price']
+        if not bin_price or bin_price <= 0:
+            return {'success': False, 'error': 'Invalid BIN price'}
+        
         player = await db.get_player(user_id)
         
         if not player or player['coins'] < bin_price:

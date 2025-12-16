@@ -79,7 +79,7 @@ class AuctionMenuView(discord.ui.View):
     async def get_my_auctions_embed(self):
         if self.bot.db.conn:
             async with self.bot.db.conn.execute('''
-                SELECT ah.*, ai.item_id, ai.amount
+                SELECT ah.*, ai.item_id, ai.amount, ai.metadata
                 FROM auction_house ah
                 JOIN auction_items ai ON ah.id = ai.auction_id
                 WHERE ah.seller_id = ? AND ah.ended = 0

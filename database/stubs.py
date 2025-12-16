@@ -187,6 +187,12 @@ class GameDatabase(GameDatabaseMethods):
     async def update_player(self, user_id: int, **kwargs):
         return await self.players.update_player(user_id, **kwargs)
 
+    async def get_player_stats(self, user_id: int):
+        return await self.players.get_player_stats(user_id)
+
+    async def update_player_stats(self, user_id: int, **kwargs):
+        return await self.players.update_player_stats(user_id, **kwargs)
+
     async def get_skills(self, user_id: int):
         return await self.skills.get_skills(user_id)
 
@@ -302,9 +308,9 @@ class GameDatabase(GameDatabaseMethods):
     async def place_bid(self, user_id: int, auction_id: int, bid_amount: int) -> bool:
         return await self.market.place_bid(user_id, auction_id, bid_amount)
 
-    async def create_auction(self, seller_id: int, item_id: str, starting_bid: int,
+    async def create_auction(self, seller_id: int, item_id: str, amount: int, starting_bid: int,
                            buy_now_price: Optional[int], duration: int, bin: bool = False):
-        return await self.market.create_auction(seller_id, item_id, starting_bid,
+        return await self.market.create_auction(seller_id, item_id, amount, starting_bid,
                                                 buy_now_price, duration, bin)
 
     async def get_game_pet(self, pet_id: str):
