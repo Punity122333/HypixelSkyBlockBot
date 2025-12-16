@@ -71,15 +71,13 @@ class BackupManager:
             if not os.path.exists(backup_path):
                 print(f"❌ Backup file not found: {backup_path}")
                 return False
-            
-            # Backup the current (corrupted) database
+
             if os.path.exists(self.db_path):
                 corrupted_backup = f"{self.db_path}.corrupted.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 await asyncio.to_thread(shutil.copy2, self.db_path, corrupted_backup)
                 print(f"💾 Current database backed up to: {corrupted_backup}")
                 await asyncio.to_thread(os.remove, self.db_path)
-            
-            # Extract and restore from zip
+ 
             await asyncio.to_thread(self._extract_backup, backup_path, self.db_path)
             print(f"✅ Database restored from: {backup_filename}")
             return True
