@@ -5,12 +5,11 @@ from ..stat_calculator import StatCalculator
 
 class GatheringSystem:
     
-    GATHERING_CATEGORIES = {
-        'mining': ['pickaxe'],
-        'farming': ['hoe'],
-        'foraging': ['axe'],
-        'fishing': ['fishing_rod']
-    }
+    GATHERING_CATEGORIES = {}
+    
+    @classmethod
+    async def _load_constants(cls, db):
+        cls.GATHERING_CATEGORIES = await db.game_constants.get_gathering_categories()
     
     @classmethod
     async def _get_equipped_tool_stats(cls, db, user_id: int, tool_type: str) -> Dict[str, float]:

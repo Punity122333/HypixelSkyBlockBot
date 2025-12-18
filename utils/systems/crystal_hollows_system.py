@@ -4,42 +4,15 @@ import random
 
 class CrystalHollowsSystem:
     
-    ZONES = {
-        'magma_fields': {
-            'name': 'Magma Fields',
-            'unlock_reputation': 0,
-            'resources': ['magma_cream', 'blaze_rod', 'netherrack'],
-            'mobs': ['magma_cube', 'blaze']
-        },
-        'jungle': {
-            'name': 'Jungle',
-            'unlock_reputation': 50,
-            'resources': ['jungle_wood', 'cocoa_beans', 'vines'],
-            'mobs': ['ocelot', 'parrot']
-        },
-        'mithril_deposits': {
-            'name': 'Mithril Deposits',
-            'unlock_reputation': 100,
-            'resources': ['mithril', 'titanium'],
-            'mobs': ['yog', 'goblin']
-        },
-        'precursor_remnants': {
-            'name': 'Precursor Remnants',
-            'unlock_reputation': 200,
-            'resources': ['precursor_gear', 'ancient_parts'],
-            'mobs': ['automaton', 'sludge']
-        },
-        'goblin_holdout': {
-            'name': 'Goblin Holdout',
-            'unlock_reputation': 150,
-            'resources': ['goblin_egg', 'amber'],
-            'mobs': ['goblin_brute', 'goblin_mage']
-        }
-    }
+    ZONES = {}
     
     CRYSTALS = [
         'amber', 'amethyst', 'jade', 'sapphire', 'topaz'
     ]
+    
+    @classmethod
+    async def _load_zones(cls, db):
+        cls.ZONES = await db.game_constants.get_crystal_hollows_zones()
     
     @classmethod
     async def get_crystal_hollows_progress(cls, db, user_id: int) -> Dict[str, Any]:
@@ -73,6 +46,9 @@ class CrystalHollowsSystem:
     
     @classmethod
     async def unlock_zone(cls, db, user_id: int, zone: str) -> Dict[str, Any]:
+        if not cls.ZONES:
+            await cls._load_zones(db)
+        
         if zone not in cls.ZONES:
             return {'success': False, 'error': 'Invalid zone'}
         

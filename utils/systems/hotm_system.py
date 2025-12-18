@@ -3,18 +3,11 @@ import json
 
 class HeartOfTheMountainSystem:
     
-    HOTM_TIERS = {
-        1: {'xp_required': 0, 'token_reward': 2},
-        2: {'xp_required': 5000, 'token_reward': 2},
-        3: {'xp_required': 15000, 'token_reward': 2},
-        4: {'xp_required': 35000, 'token_reward': 2},
-        5: {'xp_required': 70000, 'token_reward': 2},
-        6: {'xp_required': 150000, 'token_reward': 2},
-        7: {'xp_required': 300000, 'token_reward': 2},
-        8: {'xp_required': 550000, 'token_reward': 2},
-        9: {'xp_required': 1000000, 'token_reward': 2},
-        10: {'xp_required': 1500000, 'token_reward': 2},
-    }
+    HOTM_TIERS = {}
+    
+    @classmethod
+    async def _load_hotm_tiers(cls, db):
+        cls.HOTM_TIERS = await db.game_constants.get_hotm_tiers()
     
     @classmethod
     async def get_hotm_data(cls, db, user_id: int) -> Dict[str, Any]:
@@ -62,6 +55,10 @@ class HeartOfTheMountainSystem:
             }
         
         hotm_data = await cls.get_hotm_data(db, user_id)
+        
+        if not cls.HOTM_TIERS:
+            await cls._load_hotm_tiers(db)
+        
         new_xp = hotm_data['hotm_xp'] + xp
         new_tier = cls._calculate_tier_from_xp(new_xp)
         
@@ -82,6 +79,8 @@ class HeartOfTheMountainSystem:
     
     @classmethod
     def _calculate_tier_from_xp(cls, xp: int) -> int:
+        if not cls.HOTM_TIERS:
+            return 1
         tier = 1
         for t, data in sorted(cls.HOTM_TIERS.items()):
             if xp >= data['xp_required']:

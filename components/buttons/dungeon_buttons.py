@@ -424,9 +424,10 @@ class DungeonExitButton(discord.ui.Button):
         
         dungeon_stats_row = await self.parent_view.bot.db.get_dungeon_stats(self.parent_view.user_id)
         if dungeon_stats_row:
+            from utils.data.skills import calculate_level_from_xp as skills_calculate_level
             current_cata_xp = dungeon_stats_row['catacombs_xp'] or 0
             current_cata_level = dungeon_stats_row['catacombs_level'] or 0
-            new_cata_level = await self.parent_view.bot.game_data.calculate_level_from_xp('dungeoneering', current_cata_xp)
+            new_cata_level = skills_calculate_level('dungeoneering', current_cata_xp)
             if new_cata_level != current_cata_level:
                 await self.parent_view.bot.db.update_dungeon_stats(self.parent_view.user_id, catacombs_level=new_cata_level)
         

@@ -43,6 +43,21 @@ class SkyblockBot(commands.Bot):
         self.db = GameDatabase("skyblock.db")
         await self.db.initialize()
         
+        print('📊 Loading game constants...')
+        from utils.data.skills import _load_xp_requirements, _load_skill_bonuses, _load_collection_tiers
+        from utils.systems.progression_system import ProgressionSystem
+        from utils.systems.party_system import PartySystem
+        from utils.systems.potion_system import PotionSystem
+        from utils.systems.gathering_system import GatheringSystem
+        
+        await _load_xp_requirements(self.db)
+        await _load_skill_bonuses(self.db)
+        await _load_collection_tiers(self.db)
+        await ProgressionSystem._load_constants(self.db)
+        await PartySystem._load_constants(self.db)
+        await PotionSystem._load_constants(self.db)
+        await GatheringSystem._load_constants(self.db)
+        
         self.player_manager = PlayerManager(self.db)
         self.market_system = MarketSystem(self.db)
         self.game_data = GameDataManager(self.db)

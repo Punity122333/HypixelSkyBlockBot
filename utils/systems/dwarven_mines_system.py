@@ -5,50 +5,11 @@ import time
 
 class DwarvenMinesSystem:
     
-    COMMISSION_TYPES = {
-        'mithril_mining': {
-            'name': 'Mithril Miner',
-            'description': 'Mine {amount} Mithril',
-            'rewards': {'mithril_powder': 500, 'coins': 2000},
-            'amount_range': (100, 250)
-        },
-        'titanium_mining': {
-            'name': 'Titanium Collector',
-            'description': 'Mine {amount} Titanium',
-            'rewards': {'mithril_powder': 800, 'coins': 3500},
-            'amount_range': (50, 100)
-        },
-        'goblin_slayer': {
-            'name': 'Goblin Slayer',
-            'description': 'Kill {amount} Goblins',
-            'rewards': {'mithril_powder': 400, 'coins': 1500},
-            'amount_range': (30, 60)
-        },
-        'hard_stone_mining': {
-            'name': 'Hard Stone Miner',
-            'description': 'Mine {amount} Hard Stone',
-            'rewards': {'mithril_powder': 300, 'coins': 1000},
-            'amount_range': (200, 400)
-        },
-        'treasure_hunter': {
-            'name': 'Treasure Hunter',
-            'description': 'Find {amount} Treasures',
-            'rewards': {'mithril_powder': 600, 'coins': 2500},
-            'amount_range': (5, 15)
-        },
-        'lapis_mining': {
-            'name': 'Lapis Collector',
-            'description': 'Mine {amount} Lapis',
-            'rewards': {'mithril_powder': 350, 'coins': 1200},
-            'amount_range': (150, 300)
-        },
-        'redstone_mining': {
-            'name': 'Redstone Collector',
-            'description': 'Mine {amount} Redstone',
-            'rewards': {'mithril_powder': 350, 'coins': 1200},
-            'amount_range': (150, 300)
-        }
-    }
+    COMMISSION_TYPES = {}
+    
+    @classmethod
+    async def _load_commission_types(cls, db):
+        cls.COMMISSION_TYPES = await db.game_constants.get_dwarven_commission_types()
     
     @classmethod
     async def get_dwarven_progress(cls, db, user_id: int) -> Dict[str, Any]:
@@ -82,6 +43,9 @@ class DwarvenMinesSystem:
     async def generate_daily_commissions(cls, db, user_id: int) -> List[Dict[str, Any]]:
         if not db.conn:
             return []
+        
+        if not cls.COMMISSION_TYPES:
+            await cls._load_commission_types(db)
         
         skills = await db.get_skills(user_id)
         mining_skill = next((s for s in skills if s['skill_name'] == 'mining'), None)

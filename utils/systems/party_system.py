@@ -9,17 +9,13 @@ class PartySystem:
     _invites: Dict[int, List[Dict[str, Any]]] = {}
     _party_by_member: Dict[int, int] = {}
     
-    DUNGEON_CLASSES = ['healer', 'mage', 'berserk', 'archer', 'tank']
+    DUNGEON_CLASSES = []
+    DUNGEON_FLOORS = {}
     
-    DUNGEON_FLOORS = {
-        1: {'name': 'Floor 1', 'min_level': 0, 'recommended_level': 5, 'gear_score': 50},
-        2: {'name': 'Floor 2', 'min_level': 3, 'recommended_level': 10, 'gear_score': 100},
-        3: {'name': 'Floor 3', 'min_level': 7, 'recommended_level': 15, 'gear_score': 150},
-        4: {'name': 'Floor 4', 'min_level': 10, 'recommended_level': 20, 'gear_score': 250},
-        5: {'name': 'Floor 5', 'min_level': 15, 'recommended_level': 25, 'gear_score': 400},
-        6: {'name': 'Floor 6', 'min_level': 20, 'recommended_level': 30, 'gear_score': 600},
-        7: {'name': 'Floor 7', 'min_level': 25, 'recommended_level': 35, 'gear_score': 900},
-    }
+    @classmethod
+    async def _load_constants(cls, db):
+        cls.DUNGEON_CLASSES = await db.game_constants.get_dungeon_classes()
+        cls.DUNGEON_FLOORS = await db.game_constants.get_party_dungeon_floors()
     
     @classmethod
     def create_party(cls, leader_id: int, leader_name: str, floor: Optional[int] = None, 

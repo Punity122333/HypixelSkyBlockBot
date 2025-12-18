@@ -1,4 +1,5 @@
 import discord
+from components.modals.slayer_fight_modal import SlayerFightModal
 
 class SlayerMainButton(discord.ui.Button):
     def __init__(self, view):
@@ -38,3 +39,16 @@ class SlayerInfoButton(discord.ui.Button):
         
         self.parent_view.current_view = 'info'
         await interaction.response.edit_message(embed=await self.parent_view.get_embed(), view=self.parent_view)
+
+class SlayerFightButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="⚔️ Fight", style=discord.ButtonStyle.red, custom_id="slayer_fight", row=1)
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.parent_view.user_id:
+            await interaction.response.send_message("This isn't your menu!", ephemeral=True)
+            return
+        
+        modal = SlayerFightModal(self.parent_view)
+        await interaction.response.send_modal(modal)

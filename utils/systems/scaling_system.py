@@ -40,26 +40,16 @@ class GradientScaling:
 
 class DungeonScaling:
     
-    FLOOR_DIFFICULTY = {
-        'entrance': 1,
-        'floor1': 2,
-        'floor2': 3,
-        'floor3': 5,
-        'floor4': 7,
-        'floor5': 10,
-        'floor6': 15,
-        'floor7': 20,
-        'm1': 25,
-        'm2': 30,
-        'm3': 40,
-        'm4': 50,
-        'm5': 65,
-        'm6': 80,
-        'm7': 100
-    }
+    FLOOR_DIFFICULTY = {}
+    
+    @classmethod
+    async def _load_floor_difficulty(cls, db):
+        cls.FLOOR_DIFFICULTY = await db.game_constants.get_all_dungeon_floor_difficulties()
     
     @classmethod
     def get_floor_difficulty(cls, floor_id: str) -> int:
+        if not cls.FLOOR_DIFFICULTY:
+            return 1
         return cls.FLOOR_DIFFICULTY.get(floor_id, 1)
     
     @classmethod

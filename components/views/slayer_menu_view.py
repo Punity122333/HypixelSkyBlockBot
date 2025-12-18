@@ -2,7 +2,8 @@ import discord
 from components.buttons.slayer_buttons import (
     SlayerMainButton,
     SlayerStatsButton,
-    SlayerInfoButton
+    SlayerInfoButton,
+    SlayerFightButton
 )
 
 class SlayerMenuView(discord.ui.View):
@@ -16,6 +17,7 @@ class SlayerMenuView(discord.ui.View):
         self.add_item(SlayerMainButton(self))
         self.add_item(SlayerStatsButton(self))
         self.add_item(SlayerInfoButton(self))
+        self.add_item(SlayerFightButton(self))
     
     async def get_embed(self):
         if self.current_view == 'main':
@@ -87,7 +89,7 @@ class SlayerMenuView(discord.ui.View):
     async def get_info_embed(self):
         embed = discord.Embed(
             title="Slayer Boss Information",
-            description="Slayer bosses are tough enemies that must be defeated using the `/slayer` command. Higher tiers mean tougher fights but better rewards and XP!",
+            description="Slayer bosses are tough enemies that must be defeated to earn Slayer XP and rare loot! Use the Fight button below to start a battle. Higher tiers mean tougher fights but better rewards and XP!",
             color=discord.Color.dark_red()
         )
         

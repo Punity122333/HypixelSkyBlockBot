@@ -9,26 +9,17 @@ class DungeonSystem:
     
     DUNGEON_CLASSES = ['healer', 'mage', 'berserk', 'archer', 'tank']
     
-    FLOOR_REQUIREMENTS = {
-        'entrance': {'catacombs_level': 0, 'gear_score': 0},
-        'floor1': {'catacombs_level': 5, 'gear_score': 50},
-        'floor2': {'catacombs_level': 8, 'gear_score': 100},
-        'floor3': {'catacombs_level': 10, 'gear_score': 150},
-        'floor4': {'catacombs_level': 13, 'gear_score': 250},
-        'floor5': {'catacombs_level': 16, 'gear_score': 400},
-        'floor6': {'catacombs_level': 19, 'gear_score': 600},
-        'floor7': {'catacombs_level': 22, 'gear_score': 900},
-        'm1': {'catacombs_level': 25, 'gear_score': 1200},
-        'm2': {'catacombs_level': 28, 'gear_score': 1500},
-        'm3': {'catacombs_level': 30, 'gear_score': 2000},
-        'm4': {'catacombs_level': 33, 'gear_score': 2500},
-        'm5': {'catacombs_level': 36, 'gear_score': 3000},
-        'm6': {'catacombs_level': 39, 'gear_score': 4000},
-        'm7': {'catacombs_level': 42, 'gear_score': 5000},
-    }
+    FLOOR_REQUIREMENTS = {}
+    
+    @classmethod
+    async def _load_floor_requirements(cls, db):
+        cls.FLOOR_REQUIREMENTS = await db.game_constants.get_all_dungeon_floor_requirements()
     
     @classmethod
     async def can_enter_floor(cls, db, user_id: int, floor_id: str) -> Tuple[bool, str]:
+        if not cls.FLOOR_REQUIREMENTS:
+            await cls._load_floor_requirements(db)
+        
         if floor_id not in cls.FLOOR_REQUIREMENTS:
             return False, 'Invalid floor'
         
