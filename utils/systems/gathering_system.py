@@ -269,6 +269,11 @@ class GatheringSystem:
         sea_creature_chance = StatCalculator.calculate_sea_creature_chance(stats)
         sea_creature_chance += skill_luck_bonus
         
+        tool_bonuses = {
+            'speed': stats.get('fishing_speed', 0),
+            'fortune': stats.get('sea_creature_chance', 0)
+        }
+        
         is_sea_creature = random.random() * 100 < sea_creature_chance
         
         if is_sea_creature:
@@ -287,7 +292,8 @@ class GatheringSystem:
             'is_sea_creature': is_sea_creature,
             'skill': 'fishing',
             'skill_level': fishing_level,
-            'skill_speed_multiplier': skill_speed_multiplier
+            'skill_speed_multiplier': skill_speed_multiplier,
+            'tool_bonuses': tool_bonuses
         }
     
     @classmethod

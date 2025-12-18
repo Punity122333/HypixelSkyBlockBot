@@ -193,15 +193,35 @@ class GatheringCommands(commands.Cog):
         tool_bonuses = result.get('tool_bonuses', {})
         
         if is_sea_creature:
+            from components.views.sea_creature_combat_view import SeaCreatureCombatView
+            
+            creature_name = catch['creature_id'].replace('_', ' ').title()
+            creature_health = catch['health']
+            creature_damage = int(creature_health * 0.1)
+            
+            view = SeaCreatureCombatView(
+                self.bot, 
+                interaction.user.id, 
+                creature_name, 
+                creature_health, 
+                creature_damage, 
+                catch['coins'], 
+                catch['xp']
+            )
+            
             embed = discord.Embed(
-                title="🐟 Sea Creature Caught!",
-                description=f"A **{catch['creature_id'].replace('_', ' ').title()}** appeared!",
+                title=f"🐟 A wild {creature_name} appeared!",
+                description="A sea creature has been hooked! Prepare for battle!",
                 color=discord.Color.dark_blue()
             )
-            embed.add_field(name="Health", value=f"{catch['health']} HP", inline=True)
-            embed.add_field(name="Reward", value=f"{catch['coins']} coins", inline=True)
-            total_coins += catch['coins']
-            total_xp += catch['xp']
+            embed.add_field(name="Enemy Health", value=f"❤️ {creature_health} HP", inline=True)
+            embed.add_field(name="Enemy Damage", value=f"⚔️ ~{creature_damage} damage", inline=True)
+            embed.add_field(name="Potential Reward", value=f"💰 {catch['coins']} coins\n⭐ {catch['xp']} XP", inline=False)
+            embed.set_footer(text="Use the buttons below to fight!")
+            
+            await interaction.followup.send(embed=embed, view=view)
+            view.message = await interaction.original_response()
+            return
         else:
             await self.bot.db.add_item_to_inventory(interaction.user.id, catch['item_id'], catch['amount'])
             await self.bot.db.update_collection(interaction.user.id, catch['item_id'], catch['amount'])

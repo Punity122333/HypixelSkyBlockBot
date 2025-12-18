@@ -52,11 +52,11 @@ class SlayerFightModal(Modal):
         user_id = self.parent_view.user_id
         
         base_stats = {
-            'revenant': {'health': 50000, 'damage': 500, 'coins': 5000, 'xp': 500},
-            'tarantula': {'health': 75000, 'damage': 750, 'coins': 7500, 'xp': 750},
-            'sven': {'health': 100000, 'damage': 1000, 'coins': 10000, 'xp': 1000},
-            'voidgloom': {'health': 150000, 'damage': 1500, 'coins': 15000, 'xp': 1500},
-            'inferno': {'health': 250000, 'damage': 2500, 'coins': 25000, 'xp': 2500},
+            'revenant': {'health': 12500, 'damage': 500, 'coins': 5000, 'xp': 500},
+            'tarantula': {'health': 18750, 'damage': 750, 'coins': 7500, 'xp': 750},
+            'sven': {'health': 2500, 'damage': 1000, 'coins': 10000, 'xp': 1000},
+            'voidgloom': {'health': 37500, 'damage': 1500, 'coins': 15000, 'xp': 1500},
+            'inferno': {'health': 62500, 'damage': 2500, 'coins': 25000, 'xp': 2500},
         }
         
         base = base_stats[boss]
