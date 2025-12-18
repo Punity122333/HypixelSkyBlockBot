@@ -6,8 +6,9 @@ class TalismanPouchSystem:
     @staticmethod
     async def add_talisman_to_pouch(db, user_id: int, talisman_id: str) -> Dict:
         current_count = await db.talismans.get_talisman_count(user_id)
+        max_capacity = await db.get_talisman_pouch_capacity(user_id)
         
-        if current_count >= TalismanPouchSystem.MAX_TALISMANS:
+        if current_count >= max_capacity:
             return {'success': False, 'message': 'Talisman pouch is full!'}
         
         item_count = await db.get_item_count(user_id, talisman_id)
@@ -90,4 +91,30 @@ class TalismanPouchSystem:
                         bonuses[stat] = bonuses.get(stat, 0) + value
         
         return bonuses
+
+    @staticmethod
+    async def get_upgrade_cost(current_capacity: int) -> int:
+        base_cost = 50000
+        upgrades = (current_capacity - 24) // 6
+        return int(base_cost * (1.5 ** upgrades))
+
+    @staticmethod
+    async def upgrade_pouch(db, user_id: int) -> Dict:
+        current_capacity = await db.get_talisman_pouch_capacity(user_id)
+        
+        if current_capacity >= 48:
+            return {'success': False, 'message': 'Talisman pouch is already at maximum capacity!'}
+        
+        cost = await TalismanPouchSystem.get_upgrade_cost(current_capacity)
+        player = await db.get_player(user_id)
+        
+        if player['coins'] < cost:
+            return {'success': False, 'message': f'Not enough coins! Need {cost:,} coins.'}
+        
+        new_capacity = current_capacity + 6
+        
+        await db.update_player(user_id, coins=player['coins'] - cost)
+        await db.upgrade_talisman_pouch_capacity(user_id, new_capacity)
+        
+        return {'success': True, 'new_capacity': new_capacity, 'cost': cost}
 

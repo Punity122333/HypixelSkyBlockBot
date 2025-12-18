@@ -6,6 +6,7 @@ from components.buttons.talisman_pouch_menu_buttons import (
     TalismanPreviousButton,
     TalismanNextButton
 )
+from components.buttons.upgrade_talisman_pouch_button import UpgradeTalismanPouchButton
 
 class TalismanPouchMenuView(discord.ui.View):
     def __init__(self, bot, user_id):
@@ -22,6 +23,7 @@ class TalismanPouchMenuView(discord.ui.View):
         self.remove_button = TalismanRemoveButton(self)
         self.prev_button = TalismanPreviousButton(self)
         self.next_button = TalismanNextButton(self)
+        self.upgrade_button = UpgradeTalismanPouchButton(self)
         
         self._update_buttons()
     
@@ -42,10 +44,11 @@ class TalismanPouchMenuView(discord.ui.View):
         
         talismans = await TalismanPouchSystem.get_talisman_pouch(self.bot.db, self.user_id)
         bonuses = await TalismanPouchSystem.get_talisman_bonuses(self.bot.db, self.user_id)
+        current_capacity = await self.bot.db.get_talisman_pouch_capacity(self.user_id)
         
         embed = discord.Embed(
             title=f"📿 Talisman Pouch",
-            description=f"Talismans provide passive stat bonuses\n{len(talismans)}/{TalismanPouchSystem.MAX_TALISMANS} slots used",
+            description=f"Talismans provide passive stat bonuses\n{len(talismans)}/{current_capacity} slots used",
             color=discord.Color.purple()
         )
         
@@ -82,9 +85,11 @@ class TalismanPouchMenuView(discord.ui.View):
         if not self.talisman_list:
             await self.load_talismans()
         
+        current_capacity = await self.bot.db.get_talisman_pouch_capacity(self.user_id)
+        
         embed = discord.Embed(
             title=f"📿 Manage Talisman Pouch",
-            description=f"{len(self.talisman_list)}/{TalismanPouchSystem.MAX_TALISMANS} slots used",
+            description=f"{len(self.talisman_list)}/{current_capacity} slots used",
             color=discord.Color.purple()
         )
         
@@ -117,6 +122,7 @@ class TalismanPouchMenuView(discord.ui.View):
         self.add_item(self.main_button)
         self.add_item(self.add_button)
         self.add_item(self.remove_button)
+        self.add_item(self.upgrade_button)
         
         if self.current_view == 'manage' and self.talisman_list:
             total_pages = (len(self.talisman_list) + self.items_per_page - 1) // self.items_per_page

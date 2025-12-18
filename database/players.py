@@ -226,3 +226,13 @@ class PlayersDB(DatabaseCore):
             (user_id, item_id, rarity, source, int(time.time()))
         )
         await self.commit()
+
+    async def get_talisman_pouch_capacity(self, user_id: int) -> int:
+        progression = await self.get_player_progression(user_id)
+        if progression and 'talisman_pouch_capacity' in progression:
+            return progression['talisman_pouch_capacity']
+        return 24
+
+    async def upgrade_talisman_pouch_capacity(self, user_id: int, new_capacity: int) -> bool:
+        await self.update_progression(user_id, talisman_pouch_capacity=new_capacity)
+        return True

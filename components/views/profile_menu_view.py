@@ -9,6 +9,7 @@ from components.buttons.profile_buttons import (
     ProfileWardrobeButton,
     ProfileTalismanPouchButton
 )
+from components.buttons.upgrade_talisman_pouch_button import UpgradeTalismanPouchButton
 
 class ProfileMenuView(discord.ui.View):
     def __init__(self, bot, user_id, username):
@@ -23,6 +24,7 @@ class ProfileMenuView(discord.ui.View):
         self.add_item(DetailedStatsButton(self))
         self.add_item(ProfileWardrobeButton(self))
         self.add_item(ProfileTalismanPouchButton(self))
+        self.add_item(UpgradeTalismanPouchButton(self))
     
     async def get_embed(self):
         if self.current_view == 'profile':
@@ -229,12 +231,21 @@ class ProfileMenuView(discord.ui.View):
         
         talismans = await TalismanPouchSystem.get_talisman_pouch(self.bot.db, self.user_id)
         bonuses = await TalismanPouchSystem.get_talisman_bonuses(self.bot.db, self.user_id)
+        current_capacity = await self.bot.db.get_talisman_pouch_capacity(self.user_id)
         
         embed = discord.Embed(
             title=f"📿 {self.username}'s Talisman Pouch",
-            description=f"Talismans provide passive stat bonuses\n{len(talismans)}/{TalismanPouchSystem.MAX_TALISMANS} slots used",
+            description=f"Talismans provide passive stat bonuses\n{len(talismans)}/{current_capacity} slots used",
             color=discord.Color.purple()
         )
+        
+        if current_capacity < 48:
+            upgrade_cost = await TalismanPouchSystem.get_upgrade_cost(current_capacity)
+            embed.add_field(
+                name="📦 Upgrade Available",
+                value=f"Increase capacity to {current_capacity + 6} slots for {upgrade_cost:,} coins",
+                inline=False
+            )
         
         if talismans:
             talisman_list = []
