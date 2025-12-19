@@ -554,39 +554,43 @@ async def generate_merchant_deals(db: 'GameDatabase', game_data: Any):
         if current_time - created_at < duration and deal_dict.get('stock', 0) > 0:
             active_deals.append(deal_dict)
     
-    if len(active_deals) < 5:
-        merchants = ['Adventurer_Sam', 'Trader_Rick', 'Merchant_Luna', 'Dealer_Alex']
-        merchant = random.choice(merchants)
-        
+    deals_to_create = max(0, 5 - len(active_deals))
+    
+    if deals_to_create > 0:
+        merchants = ['Adventurer Sam', 'Trader Rick', 'Merchant Luna', 'Dealer Alex']
         all_items = await game_data.get_all_items()
-        if isinstance(all_items, dict):
-            tradeable_items = list(all_items.keys())[:100]
-            item_id = random.choice(tradeable_items) if tradeable_items else None
-            item = all_items.get(item_id) if item_id else None
-        elif isinstance(all_items, list) and all_items:
-            tradeable_items = all_items[:100]
-            item = random.choice(tradeable_items) if tradeable_items else None
-            item_id = item.get('item_id') if isinstance(item, dict) else getattr(item, 'id', None)
-        else:
-            return
         
-        if item and item_id:
-            if isinstance(item, dict):
-                base_price = item.get('default_bazaar_price', 100)
+        for _ in range(deals_to_create):
+            merchant = random.choice(merchants)
+            
+            if isinstance(all_items, dict):
+                tradeable_items = list(all_items.keys())[:100]
+                item_id = random.choice(tradeable_items) if tradeable_items else None
+                item = all_items.get(item_id) if item_id else None
+            elif isinstance(all_items, list) and all_items:
+                tradeable_items = all_items[:100]
+                item = random.choice(tradeable_items) if tradeable_items else None
+                item_id = item.get('item_id') if isinstance(item, dict) else getattr(item, 'id', None)
             else:
-                base_price = getattr(item, 'default_bazaar_price', 100)
+                continue
             
-            deal_type = random.choice(['buy', 'sell'])
-            quantity = random.randint(1, 10)
-            
-            if deal_type == 'buy':
-                price = int(base_price * random.uniform(0.7, 0.9) * quantity)
-            else:
-                price = int(base_price * random.uniform(1.1, 1.3) * quantity)
-            
-            duration = random.randint(1800, 7200)
-            
-            await db.create_merchant_deal(str(item_id), price, quantity, duration)
+            if item and item_id:
+                if isinstance(item, dict):
+                    base_price = item.get('default_bazaar_price', 100)
+                else:
+                    base_price = getattr(item, 'default_bazaar_price', 100)
+                
+                deal_type = random.choice(['buy', 'sell'])
+                quantity = random.randint(1, 10)
+                
+                if deal_type == 'buy':
+                    price = int(base_price * random.uniform(0.7, 0.9) * quantity)
+                else:
+                    price = int(base_price * random.uniform(1.1, 1.3) * quantity)
+                
+                duration = random.randint(1800, 7200)
+                
+                await db.create_merchant_deal(str(item_id), price, quantity, duration, merchant, deal_type)
 
 async def run_market_simulation(db: 'GameDatabase', market: MarketSystem):
     from utils.systems.market_graphing_system import MarketGraphingSystem

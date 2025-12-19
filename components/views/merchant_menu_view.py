@@ -33,26 +33,43 @@ class MerchantMenuView(discord.ui.View):
         
         if not self.deals:
             embed.description = "No merchants are available right now. Check back later!"
+            embed.set_footer(text="Merchants rotate regularly with new deals")
             return embed
         
         per_page = 3
+        current_time = int(time.time())
+        
+        valid_deals = []
+        for deal_row in self.deals:
+            deal = dict(deal_row)
+            created_at = deal.get('created_at', current_time)
+            duration = deal.get('duration', 3600)
+            expires_at = created_at + duration
+            time_left = expires_at - current_time
+            
+            if time_left > 0 and deal.get('stock', 0) > 0:
+                valid_deals.append(deal)
+        
+        if not valid_deals:
+            embed.description = "No merchants are available right now. Check back later!"
+            embed.set_footer(text="Merchants rotate regularly with new deals")
+            return embed
+        
+        total_pages = (len(valid_deals) + per_page - 1) // per_page
         start = self.page * per_page
         end = start + per_page
-        page_deals = self.deals[start:end]
+        page_deals = valid_deals[start:end]
         
-        for deal_row in page_deals:
-            deal = dict(deal_row)
+        valid_deals_shown = 0
+        for deal in page_deals:
             item = await self.bot.game_data.get_item(deal['item_id'])
             if not item:
                 continue
             
-            created_at = deal.get('created_at', int(time.time()))
+            created_at = deal.get('created_at', current_time)
             duration = deal.get('duration', 3600)
             expires_at = created_at + duration
-            time_left = expires_at - int(time.time())
-            
-            if time_left <= 0:
-                continue
+            time_left = expires_at - current_time
             
             hours = time_left // 3600
             minutes = (time_left % 3600) // 60
@@ -80,8 +97,8 @@ class MerchantMenuView(discord.ui.View):
                 value=value,
                 inline=False
             )
+            valid_deals_shown += 1
         
-        total_pages = (len(self.deals) + per_page - 1) // per_page if self.deals else 1
         embed.set_footer(text=f"Page {self.page + 1}/{total_pages} • Use commands to accept deals")
         return embed
 

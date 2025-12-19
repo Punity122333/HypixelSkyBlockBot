@@ -90,18 +90,32 @@ class GameDatabaseMethods:
     async def get_active_merchant_deals(self):
         if not self.conn:
             return []
+        
+        current_time = int(time.time())
+        
+        await self.conn.execute('''
+            UPDATE merchant_deals 
+            SET active = 0 
+            WHERE active = 1 AND (created_at + duration) < ?
+        ''', (current_time,))
+        await self.conn.commit()
+        
         cursor = await self.conn.execute('''
-            SELECT * FROM merchant_deals WHERE active = 1
-        ''')
+            SELECT * FROM merchant_deals 
+            WHERE active = 1 
+            AND stock > 0 
+            AND (created_at + duration) > ?
+            ORDER BY created_at DESC
+        ''', (current_time,))
         return await cursor.fetchall()
 
-    async def create_merchant_deal(self, item_id: str, price: int, stock: int, duration: int):
+    async def create_merchant_deal(self, item_id: str, price: int, stock: int, duration: int, npc_name: str = 'Merchant', deal_type: str = 'sell'):
         if not self.conn:
             return
         await self.conn.execute('''
-            INSERT INTO merchant_deals (item_id, price, stock, duration, created_at, active)
-            VALUES (?, ?, ?, ?, ?, 1)
-        ''', (item_id, price, stock, duration, int(time.time())))
+            INSERT INTO merchant_deals (item_id, price, stock, duration, created_at, active, npc_name, deal_type)
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+        ''', (item_id, price, stock, duration, int(time.time()), npc_name, deal_type))
         await self.conn.commit()
 
     async def get_active_bot_traders(self):

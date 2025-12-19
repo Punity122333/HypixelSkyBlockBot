@@ -8,7 +8,7 @@ class MinionCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="minions", description="View and manage your minions with all features")
+    @app_commands.command(name="minions", description="View and manage your minions")
     async def minions(self, interaction: discord.Interaction):
         await interaction.response.defer()
         
