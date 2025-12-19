@@ -267,3 +267,31 @@ class InventoryDB(DatabaseCore):
                 equipment[slot] = None
         
         return equipment
+
+    async def add_enchantment_to_item(self, inventory_item_id: int, enchantment_id: str, level: int):
+        await self.execute(
+            'INSERT OR REPLACE INTO inventory_item_enchantments (inventory_item_id, enchantment_id, level) VALUES (?, ?, ?)',
+            (inventory_item_id, enchantment_id, level)
+        )
+        await self.commit()
+
+    async def get_item_enchantments(self, inventory_item_id: int) -> List[Dict]:
+        rows = await self.fetchall(
+            'SELECT enchantment_id, level FROM inventory_item_enchantments WHERE inventory_item_id = ?',
+            (inventory_item_id,)
+        )
+        return [dict(row) for row in rows]
+
+    async def remove_enchantment_from_item(self, inventory_item_id: int, enchantment_id: str):
+        await self.execute(
+            'DELETE FROM inventory_item_enchantments WHERE inventory_item_id = ? AND enchantment_id = ?',
+            (inventory_item_id, enchantment_id)
+        )
+        await self.commit()
+
+    async def get_inventory_item_by_slot(self, user_id: int, slot: int) -> Optional[Dict]:
+        row = await self.fetchone(
+            'SELECT * FROM inventory_items WHERE user_id = ? AND slot = ?',
+            (user_id, slot)
+        )
+        return dict(row) if row else None

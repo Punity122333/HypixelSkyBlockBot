@@ -13,10 +13,11 @@ class EnchantingAdvanced(commands.Cog):
     @app_commands.command(name="enchant", description="Enchant an item")
     @app_commands.describe(
         item="Item to enchant",
+        slot="Inventory slot of the item to enchant",
         enchantment="Enchantment to apply",
         level="Enchantment level"
     )
-    async def enchant(self, interaction: discord.Interaction, item: str, enchantment: str, level: int):
+    async def enchant(self, interaction: discord.Interaction, item: str, slot: int, enchantment: str, level: int):
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
@@ -34,6 +35,35 @@ class EnchantingAdvanced(commands.Cog):
             )
             return
         
+        if level < 1:
+            await interaction.response.send_message(
+                "❌ Level must be at least 1!",
+                ephemeral=True
+            )
+            return
+        
+        inventory_item = await self.bot.db.get_inventory_item_by_slot(interaction.user.id, slot)
+        if not inventory_item:
+            await interaction.response.send_message(
+                f"❌ No item found in slot {slot}!",
+                ephemeral=True
+            )
+            return
+        
+        item_data = await self.bot.game_data.get_item(inventory_item['item_id'])
+        if not item_data:
+            await interaction.response.send_message("❌ Item not found!", ephemeral=True)
+            return
+        
+        valid_types = enchant_data.get('applies_to', [])
+        item_type_lower = item_data.get('item_type', '').lower()
+        if item_type_lower not in valid_types:
+            await interaction.response.send_message(
+                f"❌ This enchantment cannot be applied to {item_data['name']}!",
+                ephemeral=True
+            )
+            return
+        
         cost = level * 1000
         player = await self.bot.db.get_player(interaction.user.id)
         
@@ -45,6 +75,8 @@ class EnchantingAdvanced(commands.Cog):
             return
         
         await self.bot.player_manager.remove_coins(interaction.user.id, cost)
+        
+        await self.bot.db.add_enchantment_to_item(inventory_item['id'], enchantment.lower(), level)
         
         xp_gained = level * 20
         
@@ -100,7 +132,7 @@ class EnchantingAdvanced(commands.Cog):
         
         embed = discord.Embed(
             title="✨ Enchanted!",
-            description=f"Applied {enchant_data['name']} {level} to {item}!",
+            description=f"Applied {enchant_data['name']} {level} to {item_data['name']}!",
             color=discord.Color.purple()
         )
         embed.add_field(name="Cost", value=f"{cost:,} coins", inline=True)
@@ -187,6 +219,56 @@ class EnchantingAdvanced(commands.Cog):
     @anvil.autocomplete('item2')
     async def anvil_item2_autocomplete(self, interaction: discord.Interaction, current: str):
         return await item_autocomplete(interaction, current)
+
+    @app_commands.command(name="enchantments", description="View available enchantments for an item type")
+    @app_commands.describe(item_type="Type of item to view enchantments for")
+    @app_commands.choices(item_type=[
+        app_commands.Choice(name="Sword", value="sword"),
+        app_commands.Choice(name="Bow", value="bow"),
+        app_commands.Choice(name="Axe", value="axe"),
+        app_commands.Choice(name="Pickaxe", value="pickaxe"),
+        app_commands.Choice(name="Shovel", value="shovel"),
+        app_commands.Choice(name="Helmet", value="helmet"),
+        app_commands.Choice(name="Chestplate", value="chestplate"),
+        app_commands.Choice(name="Leggings", value="leggings"),
+        app_commands.Choice(name="Boots", value="boots"),
+    ])
+    async def enchantments(self, interaction: discord.Interaction, item_type: str):
+        await interaction.response.defer()
+        
+        all_enchants = await self.bot.game_data.get_all_enchantments()
+        
+        applicable_enchants = []
+        for enchant in all_enchants:
+            applies_to = enchant.get('applies_to', [])
+            if item_type.lower() in applies_to:
+                applicable_enchants.append(enchant)
+        
+        if not applicable_enchants:
+            await interaction.followup.send(
+                f"❌ No enchantments found for {item_type}!",
+                ephemeral=True
+            )
+            return
+        
+        embed = discord.Embed(
+            title=f"✨ {item_type.title()} Enchantments",
+            description=f"Available enchantments for {item_type}s",
+            color=discord.Color.purple()
+        )
+        
+        for enchant in sorted(applicable_enchants, key=lambda x: x['name'])[:25]:
+            value = f"{enchant.get('description', 'No description')}\nMax Level: {enchant['max_level']}"
+            embed.add_field(
+                name=enchant['name'],
+                value=value,
+                inline=True
+            )
+        
+        if len(applicable_enchants) > 25:
+            embed.set_footer(text=f"Showing 25 of {len(applicable_enchants)} enchantments")
+        
+        await interaction.followup.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(EnchantingAdvanced(bot))

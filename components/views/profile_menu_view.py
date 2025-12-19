@@ -160,6 +160,7 @@ class ProfileMenuView(discord.ui.View):
             if item and 'name' in item:
                 item_id = item.get('item_id')
                 item_type = item.get('item_type')
+                inventory_item_id = item.get('id')
                 
                 stat_display = ""
                 if item_type in ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS']:
@@ -184,6 +185,16 @@ class ProfileMenuView(discord.ui.View):
                 if not stat_display:
                     stats = json.loads(item.get('stats', '{}'))
                     stat_display = '\n'.join([f"{k}: {v}" for k, v in list(stats.items())[:3]])
+                
+                enchant_display = ""
+                if inventory_item_id:
+                    from utils.enchantment_display import format_enchantments_display, format_enchantment_stats_display
+                    enchant_display = await format_enchantments_display(self.bot.db, inventory_item_id)
+                    if enchant_display:
+                        enchant_stats = await format_enchantment_stats_display(self.bot.db, inventory_item_id)
+                        if enchant_stats:
+                            stat_display = f"{stat_display}\n{enchant_stats}" if stat_display else enchant_stats
+                        stat_display = f"{stat_display}\n{enchant_display}" if stat_display else enchant_display
                 
                 embed.add_field(
                     name=f"{emoji} {slot.title()}",

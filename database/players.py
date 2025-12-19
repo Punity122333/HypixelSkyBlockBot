@@ -183,13 +183,27 @@ class PlayersDB(DatabaseCore):
             )
             await self.commit()
         
+        if not kwargs:
+            return
+        
         set_clause = ', '.join([f'{k} = ?' for k in kwargs.keys()])
         values = list(kwargs.values()) + [user_id]
-        await self.execute(
-            f'UPDATE player_progression SET {set_clause} WHERE user_id = ?',
-            tuple(values)
-        )
-        await self.commit()
+        
+        try:
+            await self.execute(
+                f'UPDATE player_progression SET {set_clause} WHERE user_id = ?',
+                tuple(values)
+            )
+            await self.commit()
+        except Exception as e:
+            print(f"Error updating progression for user {user_id}: {e}")
+            print(f"Attempted to update columns: {list(kwargs.keys())}")
+            if self.conn:
+                cursor = await self.conn.execute("PRAGMA table_info(player_progression)")
+                columns = await cursor.fetchall()
+                existing_cols = [col['name'] for col in columns]
+                print(f"Existing columns in player_progression: {existing_cols}")
+            raise
 
     async def unlock_achievement(self, user_id: int, achievement_id: str):
         await self.execute(

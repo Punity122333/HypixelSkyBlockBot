@@ -237,6 +237,18 @@ class GameDatabase(GameDatabaseMethods):
     async def get_tool_multiplier(self, user_id: int, tool_type: str):
         return await self.inventory.get_tool_multiplier(user_id, tool_type)
 
+    async def add_enchantment_to_item(self, inventory_item_id: int, enchantment_id: str, level: int):
+        return await self.inventory.add_enchantment_to_item(inventory_item_id, enchantment_id, level)
+
+    async def get_item_enchantments(self, inventory_item_id: int):
+        return await self.inventory.get_item_enchantments(inventory_item_id)
+
+    async def remove_enchantment_from_item(self, inventory_item_id: int, enchantment_id: str):
+        return await self.inventory.remove_enchantment_from_item(inventory_item_id, enchantment_id)
+
+    async def get_inventory_item_by_slot(self, user_id: int, slot: int):
+        return await self.inventory.get_inventory_item_by_slot(user_id, slot)
+
     async def get_fairy_souls(self, user_id: int):
         return await self.skills.get_fairy_souls(user_id)
 
