@@ -3,11 +3,11 @@ from utils.normalize import normalize_item_id
 
 
 class MuseumDonateModal(discord.ui.Modal, title="Donate to Museum"):
-    slot = discord.ui.TextInput(
-        label="Inventory Slot Number",
-        placeholder="Enter the slot number of the item to donate",
+    item_id_input = discord.ui.TextInput(
+        label="Item ID",
+        placeholder="Enter the item ID to donate (e.g., wooden_sword)",
         required=True,
-        max_length=5
+        max_length=100
     )
     
     def __init__(self, bot, parent_view):
@@ -16,31 +16,30 @@ class MuseumDonateModal(discord.ui.Modal, title="Donate to Museum"):
         self.parent_view = parent_view
     
     async def on_submit(self, interaction: discord.Interaction):
-        try:
-            slot_num = int(self.slot.value)
-        except ValueError:
-            await interaction.response.send_message("❌ Invalid slot number!", ephemeral=True)
-            return
+        item_id = normalize_item_id(self.item_id_input.value)
         
         inventory = await self.bot.db.inventory.get_inventory(interaction.user.id)
         
-        if slot_num < 0 or slot_num >= len(inventory):
+        has_item = False
+        for inv_item in inventory:
+            if inv_item['item_id'] == item_id:
+                has_item = True
+                break
+        
+        if not has_item:
             await interaction.response.send_message(
-                f"❌ Invalid slot! You have {len(inventory)} items (slots 0-{len(inventory)-1}).",
+                f"❌ You don't have any **{item_id}** in your inventory!",
                 ephemeral=True
             )
             return
-        
-        item_data = inventory[slot_num]
-        item_id = item_data['item_id']
         
         game_item = await self.bot.game_data.get_item(item_id)
         if not game_item:
             await interaction.response.send_message("❌ Item not found in game data!", ephemeral=True)
             return
         
-        rarity = game_item.get('rarity', 'COMMON')
-        item_name = game_item.get('name', item_id.replace('_', ' ').title())
+        rarity = game_item.rarity
+        item_name = game_item.name
         
         result = await self.bot.db.museum.donate_item(interaction.user.id, item_id, rarity)
         

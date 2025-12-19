@@ -482,7 +482,9 @@ class DungeonCombatView(View):
                 await BadgeSystem.unlock_badge(self.bot.db, self.user_id, 'dungeon_master')
         
         if self.party_id:
-            await PartySystem.end_dungeon(self.bot.db, self.party_id)
+            party = PartySystem.get_party_by_id(self.party_id)
+            if party:
+                await PartySystem.end_dungeon(self.bot.db, self.party_id)
     
     async def handle_continue(self, interaction: discord.Interaction):
         from components.views.dungeon_view import DungeonView

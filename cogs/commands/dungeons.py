@@ -54,7 +54,7 @@ class DungeonCommands(commands.Cog):
                 await interaction.followup.send("❌ Your party is already in a dungeon!", ephemeral=True)
                 return
             
-            result = PartySystem.start_dungeon(interaction.user.id, floor)
+            result = await PartySystem.start_dungeon(self.bot.db, interaction.user.id, floor)
             if not result['success']:
                 await interaction.followup.send(f"❌ {result['error']}", ephemeral=True)
                 return

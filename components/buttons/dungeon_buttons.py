@@ -407,7 +407,9 @@ class DungeonExitButton(discord.ui.Button):
                 await AchievementSystem.unlock_action_achievement(self.parent_view.bot.db, interaction, interaction.user.id, 'dungeon_no_death')
         
         if self.parent_view.party_id:
-            await PartySystem.end_dungeon(self.parent_view.bot.db, self.parent_view.party_id)
+            party = PartySystem.get_party_by_id(self.parent_view.party_id)
+            if party:
+                await PartySystem.end_dungeon(self.parent_view.bot.db, self.parent_view.party_id)
             embed.set_footer(text=f"Party rewards distributed to {self.parent_view.party_size} members")
         
         stats = await self.parent_view.bot.db.get_dungeon_stats(self.parent_view.user_id)

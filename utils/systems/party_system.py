@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Any
 import time
 import random
+from .dungeon_system import DungeonSystem
 from ..stat_calculator import StatCalculator
 
 class PartySystem:
@@ -9,9 +10,9 @@ class PartySystem:
     _invites: Dict[int, List[Dict[str, Any]]] = {}
     _party_by_member: Dict[int, int] = {}
     
-    DUNGEON_CLASSES = []
+    DUNGEON_CLASSES = {}
     DUNGEON_FLOORS = {}
-    
+
     @classmethod
     async def _load_constants(cls, db):
         cls.DUNGEON_CLASSES = await db.game_constants.get_dungeon_classes()
@@ -58,7 +59,7 @@ class PartySystem:
     
     @classmethod
     def get_open_parties(cls, floor: Optional[int] = None) -> List[Dict[str, Any]]:
-        open_parties = [p for p in cls._parties.values() if p['status'] == 'open' and not p['in_dungeon']]
+        open_parties = [p for p in cls._parties.values() if not p['in_dungeon']]
         
         if floor is not None:
             open_parties = [p for p in open_parties if p['dungeon_floor'] == floor]
@@ -121,7 +122,7 @@ class PartySystem:
         if len(party['members']) >= party['max_members']:
             return {'success': False, 'error': 'Party is full'}
         
-        if dungeon_class and dungeon_class not in cls.DUNGEON_CLASSES:
+        if dungeon_class and dungeon_class not in DungeonSystem.DUNGEON_CLASSES:
             return {'success': False, 'error': 'Invalid dungeon class'}
         
         party['members'].append({
@@ -132,6 +133,9 @@ class PartySystem:
         })
         
         cls._party_by_member[user_id] = party_id
+        
+        if len(party['members']) >= party['max_members']:
+            party['status'] = 'full'
         
         return {'success': True, 'party': party}
     
@@ -170,6 +174,9 @@ class PartySystem:
         
         cls._party_by_member[user_id] = party_id
         cls._invites[user_id].remove(invite)
+        
+        if len(party['members']) >= party['max_members']:
+            party['status'] = 'full'
         
         return {'success': True, 'party': party}
     
@@ -220,6 +227,9 @@ class PartySystem:
             del cls._parties[party_id]
             return {'success': True, 'disbanded': True}
         
+        if len(party['members']) < party['max_members'] and party['status'] == 'full':
+            party['status'] = 'open'
+        
         if party['leader_id'] == user_id:
             new_leader = party['members'][0]
             party['leader_id'] = new_leader['user_id']
@@ -252,6 +262,9 @@ class PartySystem:
         if member_id in cls._party_by_member:
             del cls._party_by_member[member_id]
         
+        if len(party['members']) < party['max_members'] and party['status'] == 'full':
+            party['status'] = 'open'
+        
         return {'success': True}
     
     @classmethod
@@ -278,7 +291,7 @@ class PartySystem:
         return {'success': True}
     
     @classmethod
-    async def start_dungeon(cls, db, leader_id: int, floor: Optional[int] = None) -> Dict[str, Any]:
+    async def start_dungeon(cls, db, leader_id: int, floor_id: str) -> Dict[str, Any]:
         party = cls.get_party(leader_id)
         
         if not party:
@@ -290,25 +303,15 @@ class PartySystem:
         if party['in_dungeon']:
             return {'success': False, 'error': 'Party is already in a dungeon'}
         
-        target_floor = floor or party['dungeon_floor']
-        if not target_floor or target_floor not in cls.DUNGEON_FLOORS:
-            return {'success': False, 'error': 'Invalid dungeon floor'}
-        
-        floor_info = cls.DUNGEON_FLOORS[target_floor]
-        
         for member in party['members']:
-            player = await db.get_player(member['user_id'])
-            if not player:
-                return {'success': False, 'error': f"Player {member['username']} not found"}
-            
-            player_level = player.get('level', 1)
-            if player_level < floor_info['min_level']:
-                return {'success': False, 'error': f"{member['username']} needs level {floor_info['min_level']}"}
+            can_enter, reason = await DungeonSystem.can_enter_floor(db, member['user_id'], floor_id)
+            if not can_enter:
+                return {'success': False, 'error': f"{member['username']}: {reason}"}
         
-        rooms = await cls._generate_dungeon_rooms(db, target_floor, party['members'])
+        rooms = DungeonSystem._generate_dungeon_rooms(floor_id)
         
         party['in_dungeon'] = True
-        party['dungeon_floor'] = target_floor
+        party['dungeon_floor'] = floor_id
         party['dungeon_started_at'] = time.time()
         party['status'] = 'in_progress'
         party['dungeon_data'] = {
@@ -317,82 +320,69 @@ class PartySystem:
             'rooms_cleared': 0,
             'secrets_found': 0,
             'deaths': 0,
-            'score': 0
+            'score': 0,
+            'damage_taken': 0
         }
         
         return {'success': True, 'party': party, 'dungeon_data': party['dungeon_data']}
     
     @classmethod
-    async def _generate_dungeon_rooms(cls, db, floor: int, party_members: List[Dict]) -> List[Dict[str, Any]]:
-        difficulty = floor
-        num_rooms = 5 + (difficulty * 2)
+    async def end_dungeon(cls, db, party_id: int, completed: bool = True) -> Dict[str, Any]:
+        party = cls._parties.get(party_id)
         
-        rooms = []
+        if not party:
+            return {'success': False, 'error': 'Party not found'}
         
-        for i in range(num_rooms):
-            room_type = random.choice(['mob', 'puzzle', 'trap', 'miniboss'])
-            
-            if i == num_rooms - 1:
-                room_type = 'boss'
-            
-            room = {
-                'room_id': i,
-                'type': room_type,
-                'difficulty': difficulty,
-                'cleared': False
-            }
-            
-            if room_type in ['mob', 'miniboss', 'boss']:
-                room['mobs'] = cls._generate_room_mobs(room_type, difficulty)
-            elif room_type == 'puzzle':
-                room['puzzle_type'] = random.choice(['lever', 'quiz', 'parkour'])
-            
-            rooms.append(room)
+        if not party['in_dungeon']:
+            return {'success': False, 'error': 'Party is not in a dungeon'}
         
-        return rooms
+        dungeon_data = party.get('dungeon_data', {})
+        rewards = {}
+        
+        if completed:
+            floor_id = party['dungeon_floor']
+            score = dungeon_data.get('score', 0)
+            time_taken = int(time.time() - party['dungeon_started_at'])
+            
+            if not db.conn:
+                return {'success': False, 'error': 'Database not connected'}
+            
+            cursor = await db.conn.execute('''
+                SELECT * FROM dungeon_floors WHERE floor_id = ?
+            ''', (floor_id,))
+            floor_data = await cursor.fetchone()
+            
+            if floor_data:
+                base_rewards = floor_data['rewards']
+                score_multiplier = 1.0 + (score / 1000)
+                time_multiplier = 1.0 if time_taken < floor_data['time'] else 0.8
+                
+                total_coins = int(base_rewards * score_multiplier * time_multiplier)
+                coins_per_member = total_coins // len(party['members'])
+                
+                for member in party['members']:
+                    await db.conn.execute(
+                        'UPDATE players SET coins = coins + ? WHERE user_id = ?',
+                        (coins_per_member, member['user_id'])
+                    )
+                    rewards[member['user_id']] = coins_per_member
+                
+                await db.conn.commit()
+        
+        party['in_dungeon'] = False
+        party['dungeon_floor'] = None
+        party['dungeon_started_at'] = None
+        party['status'] = 'open'
+        party['dungeon_data'] = None
+        
+        return {'success': True, 'completed': completed, 'rewards': rewards, 'score': dungeon_data.get('score', 0)}
     
     @classmethod
-    def _generate_room_mobs(cls, room_type: str, difficulty: int) -> List[Dict[str, Any]]:
-        mob_count = {
-            'mob': random.randint(3, 6),
-            'miniboss': 1,
-            'boss': 1
-        }
-        
-        count = mob_count.get(room_type, 3)
-        mobs = []
-        
-        for i in range(count):
-            health_multiplier = {
-                'mob': 1.0,
-                'miniboss': 5.0,
-                'boss': 20.0
-            }
-            
-            base_health = 100 * difficulty
-            mob_health = int(base_health * health_multiplier.get(room_type, 1.0))
-            
-            mob = {
-                'mob_id': f'{room_type}_{i}',
-                'health': mob_health,
-                'max_health': mob_health,
-                'damage': 10 * difficulty,
-                'alive': True
-            }
-            
-            mobs.append(mob)
-        
-        return mobs
-    
-    @classmethod
-    async def clear_room(cls, db, party_id: int, room_index: int, user_id: int) -> Dict[str, Any]:
+    async def clear_room(cls, db, party_id: int, room_index: int) -> Dict[str, Any]:
         party = cls._parties.get(party_id)
         
         if not party or not party['in_dungeon']:
             return {'success': False, 'error': 'Party not in dungeon'}
-        
-        if user_id not in [m['user_id'] for m in party['members']]:
-            return {'success': False, 'error': 'You are not in this party'}
         
         dungeon_data = party['dungeon_data']
         
@@ -423,11 +413,11 @@ class PartySystem:
             await db.conn.commit()
         
         if room_type in ['mob', 'miniboss', 'boss']:
-            result = await cls._clear_combat_room(db, party, room)
+            result = await cls._clear_combat_room_party(db, party, room)
         elif room_type == 'puzzle':
-            result = {'success': True, 'reward': 'Puzzle completed!'}
+            result = await DungeonSystem._clear_puzzle_room(db, party['leader_id'], room)
         elif room_type == 'trap':
-            result = await cls._clear_trap_room(db, party, room)
+            result = await cls._clear_trap_room_party(db, party, room)
         else:
             result = {'success': True}
         
@@ -440,7 +430,7 @@ class PartySystem:
         return result
     
     @classmethod
-    async def _clear_combat_room(cls, db, party: Dict, room: Dict) -> Dict[str, Any]:
+    async def _clear_combat_room_party(cls, db, party: Dict, room: Dict) -> Dict[str, Any]:
         total_party_damage = 0
         
         for member in party['members']:
@@ -454,6 +444,10 @@ class PartySystem:
                 member_damage *= 1.3
             elif dungeon_class == 'archer':
                 member_damage *= 1.2
+            elif dungeon_class == 'healer':
+                member_damage *= 0.8
+            elif dungeon_class == 'tank':
+                member_damage *= 1.0
             
             total_party_damage += member_damage
         
@@ -468,7 +462,7 @@ class PartySystem:
             return {'success': False, 'error': 'Party wiped!'}
     
     @classmethod
-    async def _clear_trap_room(cls, db, party: Dict, room: Dict) -> Dict[str, Any]:
+    async def _clear_trap_room_party(cls, db, party: Dict, room: Dict) -> Dict[str, Any]:
         damage_taken = room['difficulty'] * 20
         
         for member in party['members']:
@@ -483,43 +477,6 @@ class PartySystem:
             await db.conn.commit()
         
         return {'success': True, 'reward': f'Survived the trap! Took {damage_taken} damage'}
-    
-    @classmethod
-    async def end_dungeon(cls, db, party_id: int, completed: bool = True) -> Dict[str, Any]:
-        party = cls._parties.get(party_id)
-        
-        if not party:
-            return {'success': False, 'error': 'Party not found'}
-        
-        if not party['in_dungeon']:
-            return {'success': False, 'error': 'Party is not in a dungeon'}
-        
-        dungeon_data = party['dungeon_data']
-        rewards = {}
-        
-        if completed:
-            floor_info = cls.DUNGEON_FLOORS[party['dungeon_floor']]
-            base_reward = 1000 * party['dungeon_floor']
-            score_multiplier = 1 + (dungeon_data['score'] / 10000)
-            
-            reward_per_member = int(base_reward * score_multiplier / len(party['members']))
-            
-            for member in party['members']:
-                await db.conn.execute(
-                    'UPDATE players SET coins = coins + ? WHERE user_id = ?',
-                    (reward_per_member, member['user_id'])
-                )
-                rewards[member['user_id']] = reward_per_member
-            
-            await db.conn.commit()
-        
-        party['in_dungeon'] = False
-        party['dungeon_floor'] = None
-        party['dungeon_started_at'] = None
-        party['status'] = 'open'
-        party['dungeon_data'] = None
-        
-        return {'success': True, 'completed': completed, 'rewards': rewards, 'score': dungeon_data['score'] if dungeon_data else 0}
     
     @classmethod
     def get_party_member_ids(cls, user_id: int) -> List[int]:

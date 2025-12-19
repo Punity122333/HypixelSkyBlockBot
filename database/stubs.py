@@ -602,7 +602,8 @@ class GameDatabase(GameDatabaseMethods):
         cursor = await self.conn.execute('''
             SELECT * FROM player_dungeon_stats WHERE user_id = ?
         ''', (user_id,))
-        return await cursor.fetchone()
+        row = await cursor.fetchone()
+        return dict(row) if row else None
 
     async def update_dungeon_stats(self, user_id: int, **kwargs):
         if not self.conn:
@@ -611,7 +612,7 @@ class GameDatabase(GameDatabaseMethods):
             INSERT OR IGNORE INTO player_dungeon_stats (user_id) VALUES (?)
         ''', (user_id,))
         
-        valid_fields = ['catacombs_level', 'catacombs_xp', 'total_runs', 'secrets_found', 'best_score', 'fastest_run', 'total_deaths']
+        valid_fields = ['catacombs_level', 'catacombs_xp', 'total_runs', 'secrets_found', 'best_score', 'fastest_run', 'total_deaths', 'parties_joined', 'parties_hosted']
         updates = {k: v for k, v in kwargs.items() if k in valid_fields}
         
         if not updates:

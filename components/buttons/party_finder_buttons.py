@@ -55,29 +55,6 @@ class PartyFinderLeaveButton(discord.ui.Button):
             await interaction.response.edit_message(embed=embed, view=self.parent_view)
         else:
             await interaction.response.send_message(f"❌ {result['error']}", ephemeral=True)
-
-class PartyFinderStartButton(discord.ui.Button):
-    def __init__(self, view):
-        super().__init__(label="Start Dungeon", style=discord.ButtonStyle.success, emoji="🏃")
-        self.parent_view = view
-    
-    async def callback(self, interaction: discord.Interaction):
-        from utils.systems.party_system import PartySystem
-        
-        if not self.parent_view.current_party_id:
-            await interaction.response.send_message("❌ You're not in a party", ephemeral=True)
-            return
-        
-        result = await PartySystem.start_dungeon(
-            self.parent_view.bot.db,
-            self.parent_view.user_id
-        )
-        
-        if result['success']:
-            await interaction.response.send_message("✅ Dungeon started! Good luck!", ephemeral=False)
-        else:
-            await interaction.response.send_message(f"❌ {result['error']}", ephemeral=True)
-
 class PartyFinderRefreshButton(discord.ui.Button):
     def __init__(self, view):
         super().__init__(label="Refresh", style=discord.ButtonStyle.secondary, emoji="🔄")
@@ -115,3 +92,52 @@ class PartyFinderNextButton(discord.ui.Button):
             await interaction.response.edit_message(embed=embed, view=self.parent_view)
         else:
             await interaction.response.defer()
+
+class PartyFinderMyPartyButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="My Party", style=discord.ButtonStyle.primary, emoji="👥")
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        self.parent_view.current_view = 'my_party'
+        self.parent_view._update_buttons()
+        embed = await self.parent_view.get_embed()
+        await interaction.response.edit_message(embed=embed, view=self.parent_view)
+
+class PartyFinderInviteButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="Invite", style=discord.ButtonStyle.success, emoji="📧", row=1)
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        from components.modals.party_invite_modal import PartyInviteModal
+        await interaction.response.send_modal(PartyInviteModal(self.parent_view.bot))
+
+class PartyFinderKickButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="Kick", style=discord.ButtonStyle.danger, emoji="🚫", row=1)
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        from components.modals.party_kick_modal import PartyKickModal
+        await interaction.response.send_modal(PartyKickModal(self.parent_view.bot))
+
+class PartyFinderDisbandButton(discord.ui.Button):
+    def __init__(self, view):
+        super().__init__(label="Disband", style=discord.ButtonStyle.danger, emoji="💥", row=1)
+        self.parent_view = view
+    
+    async def callback(self, interaction: discord.Interaction):
+        from utils.systems.party_system import PartySystem
+        
+        result = PartySystem.disband_party(self.parent_view.user_id)
+        
+        if result['success']:
+            self.parent_view.current_party_id = None
+            self.parent_view.current_view = 'list'
+            await self.parent_view.load_parties()
+            self.parent_view._update_buttons()
+            embed = await self.parent_view.get_embed()
+            await interaction.response.edit_message(embed=embed, view=self.parent_view)
+        else:
+            await interaction.response.send_message(f"❌ {result['error']}", ephemeral=True)

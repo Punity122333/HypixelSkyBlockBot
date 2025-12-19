@@ -115,7 +115,7 @@ class MuseumView(View):
                 points = item['points']
                 
                 game_item = await self.bot.game_data.get_item(item_id)
-                item_name = game_item.get('name', item_id.replace('_', ' ').title()) if game_item else item_id.replace('_', ' ').title()
+                item_name = game_item.name if game_item else item_id.replace('_', ' ').title()
                 
                 rarity_emoji = {
                     'COMMON': '⬜', 'UNCOMMON': '🟩', 'RARE': '🟦',
@@ -138,7 +138,7 @@ class MuseumView(View):
             color=discord.Color.gold()
         )
         
-        milestones = self.bot.db.museum.MILESTONE_REWARDS
+        milestones = await self.bot.db.museum.get_milestone_rewards()
         milestones_text = ""
         
         for milestone, reward in sorted(milestones.items()):

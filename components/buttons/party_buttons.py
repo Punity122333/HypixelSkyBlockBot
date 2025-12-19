@@ -16,16 +16,16 @@ class PartyCreateButton(discord.ui.Button):
         result = PartySystem.create_party(self.parent_view.user_id, self.parent_view.username)
         
         if result['success']:
-            stats = await self.parent_view.bot.db.get_player_stats(interaction.user.id)
+            await interaction.response.send_message("✅ Party created!", ephemeral=True)
+            
+            stats = await self.parent_view.bot.db.get_dungeon_stats(interaction.user.id)
             if stats:
-                total_parties_hosted = stats.get('total_parties_hosted', 0) + 1
-                await self.parent_view.bot.db.update_player_stats(interaction.user.id, total_parties_hosted=total_parties_hosted)
+                total_parties_hosted = stats.get('parties_hosted', 0) + 1
+                await self.parent_view.bot.db.update_dungeon_stats(interaction.user.id, parties_hosted=total_parties_hosted)
                 
                 from utils.systems.achievement_system import AchievementSystem
                 await AchievementSystem.check_parties_hosted_achievements(self.parent_view.bot.db, interaction, interaction.user.id, total_parties_hosted)
                 await AchievementSystem.unlock_action_achievement(self.parent_view.bot.db, interaction, interaction.user.id, 'coop_member')
-            
-            await interaction.response.send_message("✅ Party created!", ephemeral=True)
         else:
             await interaction.response.send_message(f"❌ {result['error']}", ephemeral=True)
 
