@@ -13,8 +13,6 @@ from components.buttons.inventory_buttons import (
 )
 from components.buttons.talisman_pouch_buttons import (
     TalismanPouchButton,
-    AddTalismanButton,
-    RemoveTalismanButton
 )
 
 class InventoryMenuView(discord.ui.View):
@@ -156,8 +154,7 @@ class InventoryMenuView(discord.ui.View):
             description="Equip armor, weapons, and tools to enhance your stats!",
             color=discord.Color.green()
         )
-        
-        # All equipment slots in one view
+
         equipment_emojis = {
             'helmet': '🪖',
             'chestplate': '🦺',

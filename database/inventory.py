@@ -79,14 +79,12 @@ class InventoryDB(DatabaseCore):
         return row['total'] if row and row['total'] else 0
 
     async def add_item_to_inventory(self, user_id: int, item_id: str, amount: int = 1):
-        # Get the current max slot
+
         row = await self.fetchone(
             'SELECT MAX(slot) as max_slot FROM inventory_items WHERE user_id = ?',
             (user_id,)
         )
         next_slot = (row['max_slot'] + 1) if row and row['max_slot'] is not None else 0
-
-        # Prepare values for executemany
         values = [(user_id, item_id, 1, next_slot + i) for i in range(amount)]
         cursor = await self.executemany(
             'INSERT INTO inventory_items (user_id, item_id, amount, slot) VALUES (?, ?, ?, ?)',

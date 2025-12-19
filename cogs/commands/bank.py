@@ -44,11 +44,9 @@ class BankCommands(commands.Cog):
 
         recipient = await self.fetch_player(user.id, user.name)
 
-        # Update both users
         await self.bot.db.update_player(interaction.user.id, coins=payer['coins'] - amount)
         await self.bot.db.update_player(user.id, coins=recipient['coins'] + amount)
 
-        # Refetch payer to show updated coins
         payer = await self.fetch_player(interaction.user.id, interaction.user.name, fresh=True)
 
         embed = discord.Embed(

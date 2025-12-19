@@ -455,7 +455,6 @@ class GameData:
                 except Exception:
                     row_dict['ingredients'] = {}
             
-            # Ensure output_amount is present and defaults to 1
             if 'output_amount' not in row_dict or row_dict['output_amount'] is None:
                 row_dict['output_amount'] = 1
 

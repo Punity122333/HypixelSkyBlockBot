@@ -131,8 +131,7 @@ class MiningLocationView(View):
             description=f"Using **{tool_id.replace('_', ' ').title()}** ({multiplier * event_multiplier:.1f}x efficiency)\n**Mining Level {mining_level}** ({skill_yield_multiplier:.2f}x yield, {skill_drop_multiplier:.2f}x drops)\nYou went mining and found:",
             color=discord.Color.blue()
         )
-        
-        # Add tool bonuses display
+
         if tool_bonuses_display:
             tool_bonus_text = []
             if tool_bonuses_display.get('fortune', 0) > 0:
@@ -146,8 +145,7 @@ class MiningLocationView(View):
             if tool_bonus_text:
                 current_desc = embed.description or ""
                 embed.description = f"{current_desc}\n🔧 **Tool Bonuses:** {' • '.join(tool_bonus_text)}"
-        
-        # Get active events to check if we should display bonuses
+
         active_events = await event_effects.get_active_events()
         if active_events and (event_multiplier > 1.0 or xp_multiplier > 1.0 or coin_multiplier > 1.0 or fortune_bonus > 0):
             event_text = "🎪 **Active Event Bonuses:** "

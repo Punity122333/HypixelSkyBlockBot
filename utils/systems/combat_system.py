@@ -94,8 +94,7 @@ class CombatSystem:
                 else:
                     item_stats = json.loads(bow_item.get('stats', '{}')) if bow_item.get('stats') else {}
                     total_damage += item_stats.get('damage', 0)
-        
-        # Check if axe is equipped (can be used as weapon)
+
         if total_damage == 0:
             axe_item = equipped_items.get('axe')
             if axe_item and 'item_id' in axe_item:
@@ -159,8 +158,7 @@ class CombatSystem:
                 mob_defense = mob_stats.get('defense', 0)
         
         player_stats = await StatCalculator.calculate_full_stats(db, user_id)
-        
-        # Add armor defense bonus to player defense
+
         armor_defense = await cls._get_equipped_armor_defense(db, user_id)
         player_stats['defense'] = player_stats.get('defense', 0) + armor_defense
         

@@ -24,8 +24,7 @@ class UnequipItemModal(discord.ui.Modal, title="Unequip Item"):
                 ephemeral=True
             )
             return
-        
-        # Normalize slot names
+
         if slot_value == 'chest':
             slot_value = 'chestplate'
         elif slot_value == 'legs':

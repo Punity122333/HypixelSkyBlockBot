@@ -57,7 +57,7 @@ class MinionFuelSelectView(discord.ui.View):
             await interaction.response.send_message("This isn't your menu!", ephemeral=True)
             return
         
-        # Fix: Check if interaction.data and interaction.data['values'] exist
+
         values = interaction.data.get('values') if interaction.data else None
         if not values:
             await interaction.response.send_message(

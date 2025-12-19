@@ -111,7 +111,6 @@ class PuzzleView(View):
                 dungeon_embed.add_field(name="🗝️ Keys", value=str(self.dungeon_view.keys), inline=True)
                 dungeon_embed.add_field(name="✨ Secrets", value=f"{self.dungeon_view.secrets_found}/{self.dungeon_view.max_secrets}", inline=True)
 
-                # Fix: Use interaction.followup.edit_message if possible, otherwise do nothing
                 try:
                     if interaction.message is not None:
                         await interaction.followup.edit_message(message_id=interaction.message.id, embed=dungeon_embed, view=self.dungeon_view)
@@ -165,7 +164,7 @@ class PuzzleView(View):
                 return
             
             self.sequence_input.append(value)
-            # Fix: Use the embed you just sent, not interaction.message.embeds[0]
+
             embed = discord.Embed(
                 title="Sequence Input",
                 description=f"Current sequence: {' '.join(self.sequence_input)}",

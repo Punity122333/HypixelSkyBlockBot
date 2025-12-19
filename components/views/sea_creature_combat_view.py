@@ -71,8 +71,7 @@ class SeaCreatureCombatView(View):
     
     async def update_embed(self, interaction: discord.Interaction, action_text: str = ""):
         await self._initialize_player_health()
-        
-        # Ensure player_health and player_max_health are ints for health bar
+
         player_health = self.player_health if self.player_health is not None else 0
         player_max_health = self.player_max_health if self.player_max_health is not None else 1
 

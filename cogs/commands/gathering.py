@@ -45,7 +45,6 @@ class GatheringCommands(commands.Cog):
                 interaction.user.id,
                 first_farm_date=int(time.time())
             )
-            # Unlock first farm achievement
             await AchievementSystem.unlock_single_achievement(self.bot.db, interaction, interaction.user.id, 'first_farm')
         
         active_events = await self.event_effects.get_active_events()
