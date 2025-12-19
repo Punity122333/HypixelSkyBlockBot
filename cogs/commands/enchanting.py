@@ -53,20 +53,21 @@ class EnchantingAdvanced(commands.Cog):
         
         skills = await self.bot.db.get_skills(interaction.user.id)
         enchanting_skill = next((s for s in skills if s['skill_name'] == 'enchanting'), None)
+        new_level = enchanting_skill['level'] if enchanting_skill else 0
         
         if enchanting_skill:
             new_xp = enchanting_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('enchanting', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'enchanting', xp=new_xp, level=new_level)
 
-            await AchievementSystem.check_skill_achievements(
-                self.bot.db, interaction, interaction.user.id, 'enchanting', new_level
-            )
-            
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='enchanting', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        await AchievementSystem.check_skill_achievements(
+            self.bot.db, interaction, interaction.user.id, 'enchanting', new_level
+        )
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='enchanting', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
 
         progression = await self.bot.db.get_player_progression(interaction.user.id)
         if not progression or not progression.get('first_enchant_date'):

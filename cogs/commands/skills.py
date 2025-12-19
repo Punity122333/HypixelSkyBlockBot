@@ -89,10 +89,14 @@ class SkillCommands(commands.Cog):
             new_xp = alchemy_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('alchemy', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'alchemy', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='alchemy', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='alchemy', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'alchemy', new_level)
         embed = discord.Embed(
             title="🧪 Alchemy Session Complete!",
             description=f"You brewed some potions!",
@@ -132,13 +136,14 @@ class SkillCommands(commands.Cog):
             new_xp = carpentry_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('carpentry', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'carpentry', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='carpentry', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
-            
-            from utils.systems.achievement_system import AchievementSystem
-            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'carpentry', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='carpentry', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'carpentry', new_level)
         embed = discord.Embed(
             title="🪵 Carpentry Session Complete!",
             description=f"You crafted some furniture!",
@@ -214,13 +219,14 @@ class SkillCommands(commands.Cog):
             new_xp = runecrafting_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('runecrafting', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'runecrafting', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='runecrafting', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
-            
-            from utils.systems.achievement_system import AchievementSystem
-            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'runecrafting', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='runecrafting', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'runecrafting', new_level)
         embed = discord.Embed(
             title="🔮 Runecrafting Session Complete!",
             description=f"You combined some runes!",
@@ -260,13 +266,14 @@ class SkillCommands(commands.Cog):
             new_xp = social_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('social', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'social', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='social', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
-            
-            from utils.systems.achievement_system import AchievementSystem
-            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'social', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='social', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'social', new_level)
         embed = discord.Embed(
             title="👥 Social Session Complete!",
             description=f"You interacted with other players!",

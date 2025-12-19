@@ -104,13 +104,13 @@ class GatheringCommands(commands.Cog):
             new_xp = farming_skill['xp'] + total_xp
             new_level = await self.bot.game_data.calculate_level_from_xp('farming', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'farming', xp=new_xp, level=new_level)
-
-            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'farming', new_level)
-            
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='farming', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'farming', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='farming', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         await self.bot.player_manager.add_coins(interaction.user.id, total_coins)
         embed = discord.Embed(
             title="🚜 Farming Session Complete!",
@@ -167,6 +167,15 @@ class GatheringCommands(commands.Cog):
             return
         
         tool_id = fishing_rod['item_id']
+        
+        import time
+        progression = await self.bot.db.get_player_progression(interaction.user.id)
+        if not progression or not progression.get('first_fish_date'):
+            await self.bot.db.update_progression(
+                interaction.user.id,
+                first_fish_date=int(time.time())
+            )
+            await AchievementSystem.unlock_single_achievement(self.bot.db, interaction, interaction.user.id, 'first_fish')
         
         active_events = await self.event_effects.get_active_events()
         xp_multiplier = await self.event_effects.get_xp_multiplier('fishing') if active_events else 1.0
@@ -252,10 +261,13 @@ class GatheringCommands(commands.Cog):
             new_xp = fishing_skill['xp'] + total_xp
             new_level = await self.bot.game_data.calculate_level_from_xp('fishing', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'fishing', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='fishing', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'fishing', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='fishing', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         await self.bot.player_manager.add_coins(interaction.user.id, total_coins)
 
         active_events = await self.event_effects.get_active_events()
@@ -290,6 +302,15 @@ class GatheringCommands(commands.Cog):
             return
         
         tool_id = axe['item_id']
+        
+        import time
+        progression = await self.bot.db.get_player_progression(interaction.user.id)
+        if not progression or not progression.get('first_forage_date'):
+            await self.bot.db.update_progression(
+                interaction.user.id,
+                first_forage_date=int(time.time())
+            )
+            await AchievementSystem.unlock_single_achievement(self.bot.db, interaction, interaction.user.id, 'first_forage')
         
         active_events = await self.event_effects.get_active_events()
         event_multiplier = await self.event_effects.get_gathering_multiplier() if active_events else 1.0
@@ -348,10 +369,13 @@ class GatheringCommands(commands.Cog):
             new_xp = foraging_skill['xp'] + total_xp
             new_level = await self.bot.game_data.calculate_level_from_xp('foraging', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'foraging', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='foraging', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'foraging', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='foraging', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         await self.bot.player_manager.add_coins(interaction.user.id, total_coins)
         embed = discord.Embed(
             title="🪓 Foraging Session Complete!",
@@ -407,14 +431,18 @@ class GatheringCommands(commands.Cog):
         xp_gained = int(xp_gained * (1 + pet_luck / 100))
         skills = await self.bot.db.get_skills(interaction.user.id)
         taming_skill = next((s for s in skills if s['skill_name'] == 'taming'), None)
+        new_level = taming_skill['level'] if taming_skill else 0
         if taming_skill:
             new_xp = taming_skill['xp'] + xp_gained
             new_level = await self.bot.game_data.calculate_level_from_xp('taming', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'taming', xp=new_xp, level=new_level)
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='taming', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'taming', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='taming', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         embed = discord.Embed(
             title="🐾 Taming Training!",
             description=f"You spent time with your pets!",

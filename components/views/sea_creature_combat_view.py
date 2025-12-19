@@ -112,17 +112,23 @@ class SeaCreatureCombatView(View):
             combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
             fishing_skill = next((s for s in skills if s['skill_name'] == 'fishing'), None)
             
+            combat_level = combat_skill['level'] if combat_skill else 0
             if combat_skill:
                 combat_xp = int(self.xp_reward * 0.5)
                 new_combat_xp = combat_skill['xp'] + combat_xp
-                new_combat_level = await self.bot.game_data.calculate_level_from_xp('combat', new_combat_xp)
-                await self.bot.db.update_skill(self.user_id, 'combat', xp=new_combat_xp, level=new_combat_level)
+                combat_level = await self.bot.game_data.calculate_level_from_xp('combat', new_combat_xp)
+                await self.bot.db.update_skill(self.user_id, 'combat', xp=new_combat_xp, level=combat_level)
             
+            fishing_level = fishing_skill['level'] if fishing_skill else 0
             if fishing_skill:
                 fishing_xp = int(self.xp_reward * 0.5)
                 new_fishing_xp = fishing_skill['xp'] + fishing_xp
-                new_fishing_level = await self.bot.game_data.calculate_level_from_xp('fishing', new_fishing_xp)
-                await self.bot.db.update_skill(self.user_id, 'fishing', xp=new_fishing_xp, level=new_fishing_level)
+                fishing_level = await self.bot.game_data.calculate_level_from_xp('fishing', new_fishing_xp)
+                await self.bot.db.update_skill(self.user_id, 'fishing', xp=new_fishing_xp, level=fishing_level)
+            
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, self.user_id, 'combat', combat_level)
+            await AchievementSystem.check_skill_achievements(self.bot.db, interaction, self.user_id, 'fishing', fishing_level)
         
         elif player_health <= 0:
             for child in self.children:

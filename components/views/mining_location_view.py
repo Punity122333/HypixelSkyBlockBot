@@ -24,10 +24,20 @@ class MiningLocationView(View):
         await interaction.response.defer()
         
         from utils.systems.gathering_system import GatheringSystem
+        from utils.systems.achievement_system import AchievementSystem
         from utils.event_effects import EventEffects
         from utils.systems.hotm_system import HeartOfTheMountainSystem
         from utils.systems.dwarven_mines_system import DwarvenMinesSystem
         import random
+        import time
+        
+        progression = await self.bot.db.get_player_progression(interaction.user.id)
+        if not progression or not progression.get('first_mine_date'):
+            await self.bot.db.update_progression(
+                interaction.user.id,
+                first_mine_date=int(time.time())
+            )
+            await AchievementSystem.unlock_single_achievement(self.bot.db, interaction, interaction.user.id, 'first_mine')
         
         equipped_items = await self.bot.db.get_equipped_items(interaction.user.id)
         pickaxe = equipped_items.get('pickaxe')
@@ -102,11 +112,14 @@ class MiningLocationView(View):
             new_xp = mining_skill['xp'] + total_xp
             new_level = await self.bot.game_data.calculate_level_from_xp('mining', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'mining', xp=new_xp, level=new_level)
-            
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='mining', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'mining', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='mining', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         
         hotm_xp = int(total_xp * 0.5)
         hotm_result = await HeartOfTheMountainSystem.add_hotm_xp(self.bot.db, interaction.user.id, hotm_xp)
@@ -287,11 +300,14 @@ class MiningLocationView(View):
             new_xp = mining_skill['xp'] + total_xp
             new_level = await self.bot.game_data.calculate_level_from_xp('mining', new_xp)
             await self.bot.db.update_skill(interaction.user.id, 'mining', xp=new_xp, level=new_level)
-            
-            from utils.systems.badge_system import BadgeSystem
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='mining', level=new_level)
-            if new_level >= 50:
-                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+        
+        from utils.systems.achievement_system import AchievementSystem
+        await AchievementSystem.check_skill_achievements(self.bot.db, interaction, interaction.user.id, 'mining', new_level)
+        
+        from utils.systems.badge_system import BadgeSystem
+        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='mining', level=new_level)
+        if new_level >= 50:
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
         
         hotm_xp = int(total_xp * 0.8)
         hotm_result = await HeartOfTheMountainSystem.add_hotm_xp(self.bot.db, interaction.user.id, hotm_xp)

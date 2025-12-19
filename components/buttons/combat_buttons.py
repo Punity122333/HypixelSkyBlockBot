@@ -102,18 +102,19 @@ class CombatAttackButton(discord.ui.Button):
             
             skills = await self.parent_view.bot.db.get_skills(self.parent_view.user_id)
             combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
+            new_level = combat_skill['level'] if combat_skill else 0
             if combat_skill:
                 new_xp = combat_skill['xp'] + xp
                 new_level = await self.parent_view.bot.game_data.calculate_level_from_xp('combat', new_xp)
                 await self.parent_view.bot.db.update_skill(self.parent_view.user_id, 'combat', xp=new_xp, level=new_level)
-                
-                from utils.systems.badge_system import BadgeSystem
-                await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill', skill_name='combat', level=new_level)
-                if new_level >= 50:
-                    await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill_50')
-                
-                from utils.systems.achievement_system import AchievementSystem
-                await AchievementSystem.check_skill_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, 'combat', new_level)
+            
+            from utils.systems.badge_system import BadgeSystem
+            await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill', skill_name='combat', level=new_level)
+            if new_level >= 50:
+                await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill_50')
+            
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_skill_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, 'combat', new_level)
             
             stats = await self.parent_view.bot.db.get_player_stats(self.parent_view.user_id)
             if stats:
@@ -328,10 +329,19 @@ class CombatAbilityButton(discord.ui.Button):
                 
             skills = await self.parent_view.bot.db.get_skills(self.parent_view.user_id)
             combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
+            new_level = combat_skill['level'] if combat_skill else 0
             if combat_skill:
                 new_xp = combat_skill['xp'] + xp
                 new_level = await self.parent_view.bot.game_data.calculate_level_from_xp('combat', new_xp)
                 await self.parent_view.bot.db.update_skill(self.parent_view.user_id, 'combat', xp=new_xp, level=new_level)
+            
+            from utils.systems.achievement_system import AchievementSystem
+            await AchievementSystem.check_skill_achievements(self.parent_view.bot.db, interaction, self.parent_view.user_id, 'combat', new_level)
+            
+            from utils.systems.badge_system import BadgeSystem
+            await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill', skill_name='combat', level=new_level)
+            if new_level >= 50:
+                await BadgeSystem.check_and_unlock_badges(self.parent_view.bot.db, self.parent_view.user_id, 'skill_50')
             
             self.parent_view.stop()
             for child in self.parent_view.children:
