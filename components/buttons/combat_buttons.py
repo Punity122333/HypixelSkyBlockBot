@@ -266,15 +266,41 @@ class CombatAbilityButton(discord.ui.Button):
             self.parent_view.bot.db, self.parent_view.user_id, int(self.parent_view.player_health), int(self.parent_view.player_max_health)
         )
         
-        mana_cost = random.randint(40, 60)
+        weapon_info = await CombatSystem.get_equipped_weapon_info(self.parent_view.bot.db, self.parent_view.user_id)
+        
+        from utils.systems.weapon_abilities import WeaponAbilities
+        
+        ability_damage = 0
+        mana_cost = 50
+        ability_name = "Generic Ability"
+        
+        if weapon_info:
+            weapon_id = weapon_info['item_id']
+            has_weapon_ability = await WeaponAbilities.has_ability(self.parent_view.bot.db, weapon_id)
+            
+            if has_weapon_ability:
+                ability = await WeaponAbilities.get_ability(self.parent_view.bot.db, weapon_id)
+                if ability:
+                    ability_name = ability.get('ability_name', 'Weapon Ability')
+                    mana_cost = ability.get('mana_cost', 50)
+                    
+                    weapon_damage, _ = await CombatSystem._get_equipped_weapon_damage_and_tier(self.parent_view.bot.db, self.parent_view.user_id)
+                    full_stats = await StatCalculator.calculate_full_stats(self.parent_view.bot.db, self.parent_view.user_id)
+                    full_stats['user_id'] = self.parent_view.user_id
+                    ability_damage = int(await WeaponAbilities.calculate_ability_damage(
+                        self.parent_view.bot.db, weapon_id, full_stats, weapon_damage
+                    ))
+        
+        if ability_damage == 0:
+            combat_effects = StatCalculator.apply_combat_effects(self.parent_view.player_stats, None)
+            ability_multiplier = 3 + (self.parent_view.player_stats.get('ability_damage', 0) / 100)
+            ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
+        
         current_mana = self.parent_view.player_stats.get('mana', self.parent_view.player_stats['max_mana'])
         if current_mana < mana_cost:
             await interaction.followup.send("❌ Not enough mana!", ephemeral=True)
             return
         
-        combat_effects = StatCalculator.apply_combat_effects(self.parent_view.player_stats, None)
-        ability_multiplier = 3 + (self.parent_view.player_stats.get('ability_damage', 0) / 100)
-        ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
         self.parent_view.mob_health -= ability_damage
         
         await self.parent_view.bot.db.update_player(self.parent_view.user_id, mana=current_mana - mana_cost)
@@ -322,7 +348,7 @@ class CombatAbilityButton(discord.ui.Button):
             xp = int(xp * xp_multiplier)
             coins = int(coins * coin_multiplier)
             
-            embed.description = f"💀 You defeated the {self.parent_view.mob_name} with your ability!"
+            embed.description = f"💀 You defeated the {self.parent_view.mob_name} with **{ability_name}**!"
 
             if items_obtained:
                 items_text = "\n".join(items_obtained[:15])
@@ -395,7 +421,7 @@ class CombatAbilityButton(discord.ui.Button):
             await interaction.edit_original_response(embed=embed, view=self.parent_view)
             return
         
-        embed.description = f"✨ Your ability dealt {ability_damage} damage! (-{mana_cost} mana)\n🩸 The {self.parent_view.mob_name} dealt {mob_damage} damage to you!"
+        embed.description = f"✨ **{ability_name}** dealt {ability_damage} damage! (-{mana_cost} mana)\n🩸 The {self.parent_view.mob_name} dealt {mob_damage} damage to you!"
         
         mob_hp_bar = self.parent_view._create_health_bar(self.parent_view.mob_health, self.parent_view.mob_max_health)
         player_hp_bar = self.parent_view._create_health_bar(self.parent_view.player_health or 0, self.parent_view.player_max_health or 100)

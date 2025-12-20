@@ -635,5 +635,43 @@ class GameDatabaseMethods:
                 pet_stats_dict[pet_type] = {}
             pet_stats_dict[pet_type][rarity] = stats
         return pet_stats_dict
+    
+    async def get_weapon_ability(self, item_id: str):
+        if not self.conn:
+            return None
+        cursor = await self.conn.execute('SELECT * FROM weapon_abilities WHERE item_id = ?', (item_id,))
+        row = await cursor.fetchone()
+        return dict(row) if row else None
+    
+    async def get_all_weapon_abilities(self):
+        if not self.conn:
+            return []
+        cursor = await self.conn.execute('SELECT * FROM weapon_abilities')
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+    
+    async def add_weapon_ability(self, item_id: str, ability_data: dict):
+        if not self.conn:
+            return
+        fields = ['item_id'] + list(ability_data.keys())
+        values = [item_id] + list(ability_data.values())
+        placeholders = ', '.join(['?' for _ in values])
+        field_names = ', '.join(fields)
+        await self.conn.execute(
+            f'INSERT OR REPLACE INTO weapon_abilities ({field_names}) VALUES ({placeholders})',
+            tuple(values)
+        )
+        await self.conn.commit()
+    
+    async def update_weapon_ability(self, item_id: str, **kwargs):
+        if not self.conn or not kwargs:
+            return
+        set_clause = ', '.join([f'{key} = ?' for key in kwargs.keys()])
+        values = list(kwargs.values()) + [item_id]
+        await self.conn.execute(
+            f'UPDATE weapon_abilities SET {set_clause} WHERE item_id = ?',
+            tuple(values)
+        )
+        await self.conn.commit()
 
 

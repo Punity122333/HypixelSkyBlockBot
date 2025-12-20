@@ -381,9 +381,9 @@ class CombatSystem:
         weapon_damage = await cls._get_equipped_weapon_damage(db, user_id)
         
         weapon_info = await cls.get_equipped_weapon_info(db, user_id)
-        if weapon_info and WeaponAbilities.has_ability(weapon_info['item_id']):
+        if weapon_info and await WeaponAbilities.has_ability(db, weapon_info['item_id']):
             ability_damage = await WeaponAbilities.calculate_ability_damage(
-                weapon_info['item_id'], stats, weapon_damage
+                db, weapon_info['item_id'], stats, weapon_damage
             )
             return ability_damage
         

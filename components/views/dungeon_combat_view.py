@@ -36,6 +36,7 @@ class DungeonCombatView(View):
         
         self.add_item(Button(label="⚔️ Attack", style=discord.ButtonStyle.red, custom_id="dungeon_combat_attack", row=0))
         self.add_item(Button(label="🛡️ Defend", style=discord.ButtonStyle.blurple, custom_id="dungeon_combat_defend", row=0))
+        self.add_item(Button(label="✨ Ability", style=discord.ButtonStyle.green, custom_id="dungeon_combat_ability", row=0))
         self.add_item(Button(label="🏃 Continue", style=discord.ButtonStyle.gray, custom_id="dungeon_combat_run", row=0, disabled=True))
         
         for item in self.children:
@@ -63,6 +64,8 @@ class DungeonCombatView(View):
                 await self.handle_attack(interaction)
             elif button_id == "dungeon_combat_defend":
                 await self.handle_defend(interaction)
+            elif button_id == "dungeon_combat_ability":
+                await self.handle_ability(interaction)
             elif button_id == "dungeon_combat_run":
                 await self.handle_continue(interaction)
         
@@ -252,6 +255,89 @@ class DungeonCombatView(View):
         else:
             embed.add_field(name="Your Health", value=f"❤️ {self.player_health}/{self.player_max_health}", inline=True)
         
+        mob_health_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
+        embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}\n{mob_health_bar}", inline=True)
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+    
+    async def handle_ability(self, interaction: discord.Interaction):
+        if self.player_health is None:
+            player_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+            self.player_health = int(player_stats['health'])
+            self.player_max_health = int(player_stats['health'])
+        
+        weapon_info = await CombatSystem.get_equipped_weapon_info(self.bot.db, self.user_id)
+        
+        from utils.systems.weapon_abilities import WeaponAbilities
+        
+        ability_damage = 0
+        mana_cost = 50
+        ability_name = "Generic Ability"
+        
+        if weapon_info:
+            weapon_id = weapon_info['item_id']
+            has_weapon_ability = await WeaponAbilities.has_ability(self.bot.db, weapon_id)
+            
+            if has_weapon_ability:
+                ability = await WeaponAbilities.get_ability(self.bot.db, weapon_id)
+                if ability:
+                    ability_name = ability.get('ability_name', 'Weapon Ability')
+                    mana_cost = ability.get('mana_cost', 50)
+                    
+                    weapon_damage, _ = await CombatSystem._get_equipped_weapon_damage_and_tier(self.bot.db, self.user_id)
+                    full_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+                    full_stats['user_id'] = self.user_id
+                    ability_damage = int(await WeaponAbilities.calculate_ability_damage(
+                        self.bot.db, weapon_id, full_stats, weapon_damage
+                    ))
+        
+        if ability_damage == 0:
+            player_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+            combat_effects = StatCalculator.apply_combat_effects(player_stats, None)
+            ability_multiplier = 3 + (player_stats.get('ability_damage', 0) / 100)
+            ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
+        
+        player = await self.bot.db.get_player(self.user_id)
+        current_mana = player.get('mana', 0) if player else 0
+        
+        if current_mana < mana_cost:
+            await interaction.response.send_message("❌ Not enough mana!", ephemeral=True)
+            return
+        
+        self.mob_health -= ability_damage
+        
+        await self.bot.db.update_player(self.user_id, mana=current_mana - mana_cost)
+        
+        result = f"✨ **{ability_name}** dealt {ability_damage} damage! (-{mana_cost} mana)"
+        
+        if self.mob_health <= 0:
+            await self.handle_victory(interaction, result)
+            return
+        
+        defense_multiplier = 0.5 if self.is_defending else 1.0
+        self.is_defending = False
+        
+        player_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
+        player_defense = player_stats.get('defense', 0)
+        mob_damage_dealt = int(CombatSystem._calculate_mob_damage(self.mob_damage, player_defense) * defense_multiplier)
+        
+        self.player_health = (self.player_health or 0) - mob_damage_dealt
+        self.dungeon_view.current_health = self.player_health
+        self.dungeon_view.total_damage += mob_damage_dealt
+        
+        result += f"\n🩸 {self.mob_name} dealt {mob_damage_dealt} damage to you!"
+        
+        if self.player_health <= 0:
+            await self.handle_defeat(interaction, result)
+            return
+        
+        embed = discord.Embed(
+            title=f"⚔️ Fighting {self.mob_name}",
+            description=result,
+            color=discord.Color.purple()
+        )
+        
+        embed.add_field(name="Your Health", value=f"❤️ {self.player_health}/{self.player_max_health}", inline=True)
         mob_health_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
         embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}\n{mob_health_bar}", inline=True)
         

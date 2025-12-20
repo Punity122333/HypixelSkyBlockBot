@@ -27,6 +27,7 @@ from .museum import MuseumDB
 from .trading import TradingDB
 from .island import IslandDB
 from .game_constants import GameConstantsDB
+from .weapon_abilities import WeaponAbilitiesDB
 from .methods import GameDatabaseMethods
 import json
 
@@ -60,6 +61,7 @@ class GameDatabase(GameDatabaseMethods):
         self.trading = TradingDB(db_path)
         self.island = IslandDB(db_path)
         self.game_constants = GameConstantsDB(db_path)
+        self.weapon_abilities = WeaponAbilitiesDB(db_path)
         self.conn: Optional[aiosqlite.Connection] = None
 
     async def initialize(self):
@@ -143,6 +145,9 @@ class GameDatabase(GameDatabaseMethods):
         
         await self.game_constants.connect()
         self.game_constants.conn = self.conn
+        
+        await self.weapon_abilities.connect()
+        self.weapon_abilities.conn = self.conn
         
         await self._create_dungeon_loot_tables()
 

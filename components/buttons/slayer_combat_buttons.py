@@ -241,15 +241,40 @@ class SlayerCombatAbilityButton(Button):
             view.bot.db, view.user_id, int(view.player_health), int(view.player_max_health)
         )
         
+        weapon_info = await CombatSystem.get_equipped_weapon_info(view.bot.db, view.user_id)
+        
+        from utils.systems.weapon_abilities import WeaponAbilities
+        
+        ability_damage = 0
         mana_cost = 50
+        ability_name = "Generic Ability"
+        
+        if weapon_info:
+            weapon_id = weapon_info['item_id']
+            has_weapon_ability = await WeaponAbilities.has_ability(view.bot.db, weapon_id)
+            
+            if has_weapon_ability:
+                ability = await WeaponAbilities.get_ability(view.bot.db, weapon_id)
+                if ability:
+                    ability_name = ability.get('ability_name', 'Weapon Ability')
+                    mana_cost = ability.get('mana_cost', 50)
+                    
+                    weapon_damage, _ = await CombatSystem._get_equipped_weapon_damage_and_tier(view.bot.db, view.user_id)
+                    full_stats = await StatCalculator.calculate_full_stats(view.bot.db, view.user_id)
+                    ability_damage = int(await WeaponAbilities.calculate_ability_damage(
+                        view.bot.db, weapon_id, full_stats, weapon_damage
+                    ))
+        
+        if ability_damage == 0:
+            combat_effects = StatCalculator.apply_combat_effects(view.player_stats, None)
+            ability_multiplier = 3 + (view.player_stats.get('ability_damage', 0) / 100)
+            ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
+        
         current_mana = view.player_stats.get('mana', view.player_stats['max_mana'])
         if current_mana < mana_cost:
             await interaction.followup.send("❌ Not enough mana!", ephemeral=True)
             return
         
-        combat_effects = StatCalculator.apply_combat_effects(view.player_stats, None)
-        ability_multiplier = 3 + (view.player_stats.get('ability_damage', 0) / 100)
-        ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
         view.mob_health -= ability_damage
         
         await view.bot.db.update_player(view.user_id, mana=current_mana - mana_cost)
@@ -348,7 +373,7 @@ class SlayerCombatAbilityButton(Button):
             await interaction.edit_original_response(embed=embed, view=view)
             return
         
-        embed.description = f"✨ Your ability dealt {ability_damage} damage! (-{mana_cost} mana)\n🩸 The {view.mob_name} dealt {mob_damage} damage to you!"
+        embed.description = f"✨ **{ability_name}** dealt {ability_damage} damage! (-{mana_cost} mana)\n🩸 The {view.mob_name} dealt {mob_damage} damage to you!"
         
         mob_hp_bar = view._create_health_bar(view.mob_health, view.mob_max_health)
         player_hp_bar = view._create_health_bar(view.player_health or 0, view.player_max_health or 100)
