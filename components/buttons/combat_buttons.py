@@ -12,6 +12,9 @@ class CombatAttackButton(discord.ui.Button):
         self.parent_view = view
     
     async def callback(self, interaction: discord.Interaction):
+
+        await interaction.response.defer()
+        
         if self.parent_view.player_stats is None:
             self.parent_view.player_stats = await StatCalculator.calculate_player_stats(self.parent_view.bot.db, self.parent_view.bot.game_data, self.parent_view.user_id)
         
@@ -87,9 +90,15 @@ class CombatAttackButton(discord.ui.Button):
             if combat_level > 0:
                 combat_drop_multiplier = 1.0 + (combat_level * 0.05)
                 embed.description += f"\n⚔️ **Combat Level {combat_level}** - {skill_multiplier:.2f}x damage, {combat_drop_multiplier:.2f}x drops"
-            
+
             if items_obtained:
-                embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
+                items_text = "\n".join(items_obtained[:15])
+
+                if len(items_text) > 1000:
+                    items_text = "\n".join(items_obtained[:10])
+                if len(items_obtained) > 15:
+                    items_text += f"\n...and {len(items_obtained) - 15} more items"
+                embed.add_field(name="🎁 Items Dropped", value=items_text, inline=False)
             else:
                 embed.add_field(name="🎁 Items Dropped", value="No items dropped this time.", inline=False)
             
@@ -128,7 +137,7 @@ class CombatAttackButton(discord.ui.Button):
             for child in self.parent_view.children:
                 if isinstance(child, Button):
                     child.disabled = True   
-            await interaction.response.edit_message(embed=embed, view=self.parent_view)
+            await interaction.edit_original_response(embed=embed, view=self.parent_view)
             return
         
         mob_damage = random.randint(self.parent_view.mob_damage - 5, self.parent_view.mob_damage + 5)
@@ -167,7 +176,7 @@ class CombatAttackButton(discord.ui.Button):
             for child in self.parent_view.children:
                 if isinstance(child, Button):
                     child.disabled = True   
-            await interaction.response.edit_message(embed=embed, view=self.parent_view)
+            await interaction.edit_original_response(embed=embed, view=self.parent_view)
             return
         
         hit_text = f"💥 **CRITICAL HIT!** You dealt {total_damage} damage!" if crit else f"⚔️ You dealt {total_damage} damage!"
@@ -183,7 +192,7 @@ class CombatAttackButton(discord.ui.Button):
         embed.add_field(name=f"{self.parent_view.mob_name}", value=f"{mob_hp_bar}\n❤️ {self.parent_view.mob_health}/{self.parent_view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {self.parent_view.player_health or 0}/{self.parent_view.player_max_health or 0} HP", inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=self.parent_view)
+        await interaction.edit_original_response(embed=embed, view=self.parent_view)
 
 class CombatDefendButton(discord.ui.Button):
     def __init__(self, view):
@@ -191,6 +200,9 @@ class CombatDefendButton(discord.ui.Button):
         self.parent_view = view
     
     async def callback(self, interaction: discord.Interaction):
+
+        await interaction.response.defer()
+        
         if self.parent_view.player_stats is None:
             self.parent_view.player_stats = await StatCalculator.calculate_player_stats(self.parent_view.bot.db, self.parent_view.bot.game_data, self.parent_view.user_id)
         
@@ -223,7 +235,7 @@ class CombatDefendButton(discord.ui.Button):
             for child in self.parent_view.children:
                 if isinstance(child, Button):
                     child.disabled = True   
-            await interaction.response.edit_message(embed=embed, view=self.parent_view)
+            await interaction.edit_original_response(embed=embed, view=self.parent_view)
             return
         
         mob_hp_bar = self.parent_view._create_health_bar(self.parent_view.mob_health, self.parent_view.mob_max_health)
@@ -232,7 +244,7 @@ class CombatDefendButton(discord.ui.Button):
         embed.add_field(name=f"{self.parent_view.mob_name}", value=f"{mob_hp_bar}\n❤️ {self.parent_view.mob_health}/{self.parent_view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {self.parent_view.player_health or 0}/{self.parent_view.player_max_health or 0} HP", inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=self.parent_view)
+        await interaction.edit_original_response(embed=embed, view=self.parent_view)
 
 class CombatAbilityButton(discord.ui.Button):
     def __init__(self, view):
@@ -240,6 +252,9 @@ class CombatAbilityButton(discord.ui.Button):
         self.parent_view = view
     
     async def callback(self, interaction: discord.Interaction):
+
+        await interaction.response.defer()
+        
         if self.parent_view.player_stats is None:
             self.parent_view.player_stats = await StatCalculator.calculate_player_stats(self.parent_view.bot.db, self.parent_view.bot.game_data, self.parent_view.user_id)
         
@@ -254,7 +269,7 @@ class CombatAbilityButton(discord.ui.Button):
         mana_cost = random.randint(40, 60)
         current_mana = self.parent_view.player_stats.get('mana', self.parent_view.player_stats['max_mana'])
         if current_mana < mana_cost:
-            await interaction.response.send_message("❌ Not enough mana!", ephemeral=True)
+            await interaction.followup.send("❌ Not enough mana!", ephemeral=True)
             return
         
         combat_effects = StatCalculator.apply_combat_effects(self.parent_view.player_stats, None)
@@ -308,8 +323,14 @@ class CombatAbilityButton(discord.ui.Button):
             coins = int(coins * coin_multiplier)
             
             embed.description = f"💀 You defeated the {self.parent_view.mob_name} with your ability!"
+
             if items_obtained:
-                embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
+                items_text = "\n".join(items_obtained[:15])
+                if len(items_text) > 1000:
+                    items_text = "\n".join(items_obtained[:10])
+                if len(items_obtained) > 15:
+                    items_text += f"\n...and {len(items_obtained) - 15} more items"
+                embed.add_field(name="🎁 Items Dropped", value=items_text, inline=False)
             else:
                 embed.add_field(name="🎁 Items Dropped", value="No items dropped this time.", inline=False)
             
@@ -347,7 +368,7 @@ class CombatAbilityButton(discord.ui.Button):
             for child in self.parent_view.children:
                 if isinstance(child, Button):
                     child.disabled = True   
-            await interaction.response.edit_message(embed=embed, view=self.parent_view)
+            await interaction.edit_original_response(embed=embed, view=self.parent_view)
             return
         
         mob_damage = random.randint(self.parent_view.mob_damage - 5, self.parent_view.mob_damage + 5)
@@ -371,7 +392,7 @@ class CombatAbilityButton(discord.ui.Button):
             for child in self.parent_view.children:
                 if isinstance(child, Button):
                     child.disabled = True   
-            await interaction.response.edit_message(embed=embed, view=self.parent_view)
+            await interaction.edit_original_response(embed=embed, view=self.parent_view)
             return
         
         embed.description = f"✨ Your ability dealt {ability_damage} damage! (-{mana_cost} mana)\n🩸 The {self.parent_view.mob_name} dealt {mob_damage} damage to you!"
@@ -382,7 +403,7 @@ class CombatAbilityButton(discord.ui.Button):
         embed.add_field(name=f"{self.parent_view.mob_name}", value=f"{mob_hp_bar}\n❤️ {self.parent_view.mob_health}/{self.parent_view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {self.parent_view.player_health or 0}/{self.parent_view.player_max_health or 0} HP", inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=self.parent_view)
+        await interaction.edit_original_response(embed=embed, view=self.parent_view)
 
 class CombatRunButton(discord.ui.Button):
     def __init__(self, view):

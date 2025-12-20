@@ -16,6 +16,9 @@ class SlayerCombatAttackButton(Button):
         self.parent_view = view
     
     async def callback(self, interaction: "Interaction"):
+
+        await interaction.response.defer()
+        
         view = self.parent_view
         if view.player_stats is None:
             view.player_stats = await StatCalculator.calculate_player_stats(view.bot.db, view.bot.game_data, view.user_id)
@@ -45,7 +48,6 @@ class SlayerCombatAttackButton(Button):
         
         if view.mob_health <= 0:
             if hasattr(view, 'coop_session') and view.coop_session:
-                await interaction.response.defer()
                 await view.handle_victory(interaction, total_damage)
                 return
             
@@ -93,8 +95,15 @@ class SlayerCombatAttackButton(Button):
             coins = int(coins * coin_multiplier)
             
             embed.description = f"💀 You defeated the {view.mob_name}!"
+
             if items_obtained:
-                embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
+                items_text = "\n".join(items_obtained[:15])
+
+                if len(items_text) > 1000:
+                    items_text = "\n".join(items_obtained[:10])
+                if len(items_obtained) > 15:
+                    items_text += f"\n...and {len(items_obtained) - 15} more items"
+                embed.add_field(name="🎁 Items Dropped", value=items_text, inline=False)
             else:
                 embed.add_field(name="🎁 Items Dropped", value="No items dropped this time.", inline=False)
             
@@ -119,7 +128,7 @@ class SlayerCombatAttackButton(Button):
             for child in view.children:
                 if isinstance(child, Button):
                     child.disabled = True
-            await interaction.response.edit_message(embed=embed, view=view)
+            await interaction.edit_original_response(embed=embed, view=view)
             return
         
         mob_damage = random.randint(view.mob_damage - 5, view.mob_damage + 5)
@@ -141,7 +150,7 @@ class SlayerCombatAttackButton(Button):
             for child in view.children:
                 if isinstance(child, Button):
                     child.disabled = True
-            await interaction.response.edit_message(embed=embed, view=view)
+            await interaction.edit_original_response(embed=embed, view=view)
             return
         
         hit_text = f"💥 **CRITICAL HIT!** You dealt {total_damage} damage!" if crit else f"⚔️ You dealt {total_damage} damage!"
@@ -155,7 +164,7 @@ class SlayerCombatAttackButton(Button):
         embed.add_field(name=f"{view.mob_name}", value=f"{mob_hp_bar}\n❤️ {view.mob_health}/{view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {view.player_health or 0}/{view.player_max_health or 0} HP", inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=view)
+        await interaction.edit_original_response(embed=embed, view=view)
 
 class SlayerCombatDefendButton(Button):
     def __init__(self, view):
@@ -163,6 +172,9 @@ class SlayerCombatDefendButton(Button):
         self.parent_view = view
     
     async def callback(self, interaction: "Interaction"):
+
+        await interaction.response.defer()
+        
         view = self.parent_view
         if view.player_stats is None:
             view.player_stats = await StatCalculator.calculate_player_stats(view.bot.db, view.bot.game_data, view.user_id)
@@ -197,7 +209,7 @@ class SlayerCombatDefendButton(Button):
             for child in view.children:
                 if isinstance(child, Button):
                     child.disabled = True
-            await interaction.response.edit_message(embed=embed, view=view)
+            await interaction.edit_original_response(embed=embed, view=view)
             return
         
         mob_hp_bar = view._create_health_bar(view.mob_health, view.mob_max_health)
@@ -206,7 +218,7 @@ class SlayerCombatDefendButton(Button):
         embed.add_field(name=f"{view.mob_name}", value=f"{mob_hp_bar}\n❤️ {view.mob_health}/{view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {view.player_health or 0}/{view.player_max_health or 0} HP", inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=view)
+        await interaction.edit_original_response(embed=embed, view=view)
 
 class SlayerCombatAbilityButton(Button):
     def __init__(self, view):
@@ -214,6 +226,9 @@ class SlayerCombatAbilityButton(Button):
         self.parent_view = view
     
     async def callback(self, interaction: "Interaction"):
+
+        await interaction.response.defer()
+        
         view = self.parent_view
         if view.player_stats is None:
             view.player_stats = await StatCalculator.calculate_player_stats(view.bot.db, view.bot.game_data, view.user_id)
@@ -229,7 +244,7 @@ class SlayerCombatAbilityButton(Button):
         mana_cost = 50
         current_mana = view.player_stats.get('mana', view.player_stats['max_mana'])
         if current_mana < mana_cost:
-            await interaction.response.send_message("❌ Not enough mana!", ephemeral=True)
+            await interaction.followup.send("❌ Not enough mana!", ephemeral=True)
             return
         
         combat_effects = StatCalculator.apply_combat_effects(view.player_stats, None)
@@ -275,8 +290,15 @@ class SlayerCombatAbilityButton(Button):
             coins = int(coins * coin_multiplier)
             
             embed.description = f"💀 You defeated the {view.mob_name} with your ability!"
+
             if items_obtained:
-                embed.add_field(name="🎁 Items Dropped", value="\n".join(items_obtained[:10]), inline=False)
+                items_text = "\n".join(items_obtained[:15])
+
+                if len(items_text) > 1000:
+                    items_text = "\n".join(items_obtained[:10])
+                if len(items_obtained) > 15:
+                    items_text += f"\n...and {len(items_obtained) - 15} more items"
+                embed.add_field(name="🎁 Items Dropped", value=items_text, inline=False)
             else:
                 embed.add_field(name="🎁 Items Dropped", value="No items dropped this time.", inline=False)
             
@@ -301,7 +323,7 @@ class SlayerCombatAbilityButton(Button):
             for child in view.children:
                 if isinstance(child, Button):
                     child.disabled = True
-            await interaction.response.edit_message(embed=embed, view=view)
+            await interaction.edit_original_response(embed=embed, view=view)
             return
         
         mob_damage = random.randint(view.mob_damage - 5, view.mob_damage + 5)
@@ -323,7 +345,7 @@ class SlayerCombatAbilityButton(Button):
             for child in view.children:
                 if isinstance(child, Button):
                     child.disabled = True
-            await interaction.response.edit_message(embed=embed, view=view)
+            await interaction.edit_original_response(embed=embed, view=view)
             return
         
         embed.description = f"✨ Your ability dealt {ability_damage} damage! (-{mana_cost} mana)\n🩸 The {view.mob_name} dealt {mob_damage} damage to you!"
@@ -334,7 +356,7 @@ class SlayerCombatAbilityButton(Button):
         embed.add_field(name=f"{view.mob_name}", value=f"{mob_hp_bar}\n❤️ {view.mob_health}/{view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {view.player_health or 0}/{view.player_max_health or 0} HP", inline=False)
         
-        await interaction.response.edit_message(embed=embed, view=view)
+        await interaction.edit_original_response(embed=embed, view=view)
 
 class SlayerCombatRunButton(Button):
     def __init__(self, view):

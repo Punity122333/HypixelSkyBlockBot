@@ -1,7 +1,8 @@
 import random
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from ..stat_calculator import StatCalculator
+from .weapon_abilities import WeaponAbilities
 
 class CombatSystem:
     
@@ -35,20 +36,20 @@ class CombatSystem:
         return total_defense
     
     @classmethod
-    async def calculate_player_damage(cls, db, user_id: int, target_defense: int = 0) -> Dict[str, float]:
+    async def calculate_player_damage(cls, db, user_id: int, target_defense: int = 0) -> Dict[str, Any]:
         stats = await StatCalculator.calculate_full_stats(db, user_id)
         
-        weapon_damage = await cls._get_equipped_weapon_damage(db, user_id)
+        weapon_damage, weapon_tier = await cls._get_equipped_weapon_damage_and_tier(db, user_id)
         
         is_crit = random.random() * 100 < StatCalculator.get_crit_chance(stats)
         
-        base_damage = StatCalculator.calculate_damage(stats, weapon_damage, is_crit)
+        base_damage = StatCalculator.calculate_damage(stats, weapon_damage, is_crit, weapon_tier)
         
         skills = await db.get_skills(user_id)
         combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
         combat_level = combat_skill['level'] if combat_skill else 0
         
-        skill_multiplier = 1.0 + (combat_level * 0.1)
+        skill_multiplier = 1.0 + (combat_level * 0.05)
         base_damage *= skill_multiplier
         
         defense_multiplier = 1.0 - (target_defense / (target_defense + 100))
@@ -61,13 +62,20 @@ class CombatSystem:
             'weapon_damage': weapon_damage,
             'defense_reduction': 1.0 - defense_multiplier,
             'combat_level': combat_level,
-            'skill_multiplier': skill_multiplier
+            'skill_multiplier': skill_multiplier,
+            'weapon_tier': weapon_tier
         }
     
     @classmethod
     async def _get_equipped_weapon_damage(cls, db, user_id: int) -> int:
+        damage, _ = await cls._get_equipped_weapon_damage_and_tier(db, user_id)
+        return damage
+    
+    @classmethod
+    async def _get_equipped_weapon_damage_and_tier(cls, db, user_id: int) -> tuple[int, str]:
         equipped_items = await db.get_equipped_items(user_id)
         total_damage = 0
+        weapon_tier = 'COMMON'
         
         sword_item = equipped_items.get('sword')
         if sword_item and 'item_id' in sword_item:
@@ -81,6 +89,10 @@ class CombatSystem:
                 else:
                     item_stats = json.loads(sword_item.get('stats', '{}')) if sword_item.get('stats') else {}
                     total_damage += item_stats.get('damage', 0)
+                
+                rarity = sword_item.get('rarity', 'COMMON')
+                if rarity:
+                    weapon_tier = rarity
         
         bow_item = equipped_items.get('bow')
         if bow_item and 'item_id' in bow_item:
@@ -94,6 +106,10 @@ class CombatSystem:
                 else:
                     item_stats = json.loads(bow_item.get('stats', '{}')) if bow_item.get('stats') else {}
                     total_damage += item_stats.get('damage', 0)
+                
+                rarity = bow_item.get('rarity', 'COMMON')
+                if rarity:
+                    weapon_tier = rarity
 
         if total_damage == 0:
             axe_item = equipped_items.get('axe')
@@ -102,8 +118,28 @@ class CombatSystem:
                 weapon_stats = await db.get_weapon_stats(item_id)
                 if weapon_stats:
                     total_damage += weapon_stats.get('damage', 0)
+                
+                rarity = axe_item.get('rarity', 'COMMON')
+                if rarity:
+                    weapon_tier = rarity
         
-        return total_damage
+        return total_damage, weapon_tier
+    
+    @classmethod
+    async def get_equipped_weapon_info(cls, db, user_id: int) -> Optional[Dict[str, Any]]:
+        equipped_items = await db.get_equipped_items(user_id)
+        
+        for slot in ['sword', 'bow', 'axe']:
+            item = equipped_items.get(slot)
+            if item and 'item_id' in item:
+                return {
+                    'item_id': item['item_id'],
+                    'name': item.get('name', ''),
+                    'rarity': item.get('rarity', 'COMMON'),
+                    'type': item.get('item_type', '')
+                }
+        
+        return None
     
     @classmethod
     async def get_mob_level_scaling(cls, db, level: int) -> Dict[str, float]:
@@ -340,10 +376,17 @@ class CombatSystem:
         await db.update_skill(user_id, 'combat', xp=xp_amount)
     
     @classmethod
-    async def calculate_ability_damage(cls, db, user_id: int, ability_multiplier: float) -> float:
+    async def calculate_ability_damage(cls, db, user_id: int, ability_multiplier: float = 3.0) -> float:
         stats = await StatCalculator.calculate_full_stats(db, user_id)
         weapon_damage = await cls._get_equipped_weapon_damage(db, user_id)
-
+        
+        weapon_info = await cls.get_equipped_weapon_info(db, user_id)
+        if weapon_info and WeaponAbilities.has_ability(weapon_info['item_id']):
+            ability_damage = await WeaponAbilities.calculate_ability_damage(
+                weapon_info['item_id'], stats, weapon_damage
+            )
+            return ability_damage
+        
         base_damage = StatCalculator.calculate_damage(stats, weapon_damage, False)
         ability_damage = base_damage * ability_multiplier * (1 + stats.get('ability_damage', 0) / 100)
         

@@ -202,6 +202,10 @@ class StatCalculator:
                     for stat, value in item_stats.items():
                         if stat in stats:
                             stats[stat] += value
+                
+                tier_data = await cls._get_weapon_tier_data(db, item_id)
+                if tier_data:
+                    stats['weapon_tier_multiplier'] = tier_data.get('stat_multiplier', 1.0)
         
         bow_item = equipped_items.get('bow')
         if bow_item:
@@ -220,6 +224,29 @@ class StatCalculator:
                     for stat, value in item_stats.items():
                         if stat in stats:
                             stats[stat] += value
+                
+                tier_data = await cls._get_weapon_tier_data(db, item_id)
+                if tier_data:
+                    stats['weapon_tier_multiplier'] = tier_data.get('stat_multiplier', 1.0)
+    
+    @classmethod
+    async def _get_weapon_tier_data(cls, db, weapon_id: str) -> Optional[Dict[str, Any]]:
+        if not db.conn:
+            return None
+        
+        try:
+            cursor = await db.conn.execute('''
+                SELECT wt.* FROM item_tier_classification itc
+                JOIN weapon_tiers wt ON itc.tier = wt.tier
+                WHERE itc.item_id = ?
+            ''', (weapon_id,))
+            tier_data = await cursor.fetchone()
+            if tier_data:
+                return dict(tier_data)
+        except Exception:
+            pass
+        
+        return None
     
     @classmethod
     async def _apply_accessory_stats(cls, db, user_id: int, stats: Dict):
@@ -516,18 +543,38 @@ class StatCalculator:
 
     
     @classmethod
-    def calculate_damage(cls, stats: Dict, weapon_damage: int, is_crit: bool = False) -> float:
+    def calculate_damage(cls, stats: Dict, weapon_damage: int, is_crit: bool = False, weapon_tier: str = 'COMMON') -> float:
         base_damage = 5 + weapon_damage
         strength_bonus = stats.get('strength', 0)
         
-        total_damage = (base_damage + strength_bonus / 5) * (1 + strength_bonus / 100)
+        tier_multipliers = {
+            'COMMON': 1.0,
+            'UNCOMMON': 1.05,
+            'RARE': 1.1,
+            'EPIC': 1.15,
+            'LEGENDARY': 1.25,
+            'MYTHIC': 1.35
+        }
+        
+        tier_mult = tier_multipliers.get(weapon_tier, 1.0)
+        
+        weapon_tier_mult = stats.get('weapon_tier_multiplier', 1.0)
+        
+        total_damage = (base_damage + strength_bonus / 5) * (1 + strength_bonus / 100) * tier_mult * weapon_tier_mult
         
         if is_crit:
             crit_damage_percent = stats.get('crit_damage', 50)
             total_damage *= (1 + crit_damage_percent / 100)
         
-        ability_multiplier = 1 + (stats.get('ability_damage', 0) / 100)
-        total_damage *= ability_multiplier
+        attack_speed_bonus = stats.get('attack_speed', 0)
+        if attack_speed_bonus > 0:
+            attack_speed_mult = 1 + (attack_speed_bonus / 200)
+            total_damage *= attack_speed_mult
+        
+        ferocity_bonus = stats.get('ferocity', 0)
+        if ferocity_bonus > 0:
+            ferocity_mult = 1 + (ferocity_bonus / 500)
+            total_damage *= ferocity_mult
         
         return total_damage
     
