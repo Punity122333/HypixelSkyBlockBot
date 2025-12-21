@@ -174,7 +174,7 @@ class HotmMenuView(discord.ui.View):
                 progress_bar = "█" * int((comm['progress'] / comm['requirement']) * 10)
                 progress_bar += "░" * (10 - len(progress_bar))
                 
-                status = "✅ COMPLETE" if comm['completed'] else f"{comm['progress']}/{comm['requirement']}"
+                status = "✅ COMPLETE" if comm.get('completed', 0) else f"{comm['progress']}/{comm['requirement']}"
                 
                 embed.add_field(
                     name=f"{comm['name']}",

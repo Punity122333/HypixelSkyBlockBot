@@ -179,21 +179,72 @@ class InventoryMenuView(discord.ui.View):
                 if item_type in ['HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS']:
                     armor_stats = await self.bot.db.get_armor_stats(item_id)
                     if armor_stats:
-                        top_stats = [(k, v) for k, v in armor_stats.items() if k not in ['item_id'] and v > 0]
-                        top_stats.sort(key=lambda x: x[1], reverse=True)
-                        stat_display = '\n'.join([f"{k.replace('_', ' ').title()}: +{v}" for k, v in top_stats[:3]])
+                        multiplier_stats = []
+                        regular_stats = []
+                        for k, v in armor_stats.items():
+                            if k == 'item_id':
+                                continue
+                            if 'multiplier' in k and v != 1.0:
+                                multiplier_stats.append((k, v))
+                            elif v > 0:
+                                regular_stats.append((k, v))
+                        
+                        multiplier_stats.sort(key=lambda x: x[1], reverse=True)
+                        regular_stats.sort(key=lambda x: x[1], reverse=True)
+                        
+                        display_stats = []
+                        for k, v in (multiplier_stats + regular_stats)[:3]:
+                            if 'multiplier' in k:
+                                display_stats.append(f"{k.replace('_', ' ').title()}: {v}x")
+                            else:
+                                display_stats.append(f"{k.replace('_', ' ').title()}: +{v}")
+                        stat_display = '\n'.join(display_stats)
                 elif item_type in ['SWORD', 'BOW']:
                     weapon_stats = await self.bot.db.get_weapon_stats(item_id)
                     if weapon_stats:
-                        top_stats = [(k, v) for k, v in weapon_stats.items() if k not in ['item_id'] and v > 0]
-                        top_stats.sort(key=lambda x: x[1], reverse=True)
-                        stat_display = '\n'.join([f"{k.replace('_', ' ').title()}: +{v}" for k, v in top_stats[:3]])
+                        multiplier_stats = []
+                        regular_stats = []
+                        for k, v in weapon_stats.items():
+                            if k == 'item_id':
+                                continue
+                            if 'multiplier' in k and v != 1.0:
+                                multiplier_stats.append((k, v))
+                            elif v > 0:
+                                regular_stats.append((k, v))
+                        
+                        multiplier_stats.sort(key=lambda x: x[1], reverse=True)
+                        regular_stats.sort(key=lambda x: x[1], reverse=True)
+                        
+                        display_stats = []
+                        for k, v in (multiplier_stats + regular_stats)[:3]:
+                            if 'multiplier' in k:
+                                display_stats.append(f"{k.replace('_', ' ').title()}: {v}x")
+                            else:
+                                display_stats.append(f"{k.replace('_', ' ').title()}: +{v}")
+                        stat_display = '\n'.join(display_stats)
                 elif item_type in ['PICKAXE', 'AXE', 'HOE', 'SHOVEL', 'FISHING_ROD']:
                     tool_stats = await self.bot.db.get_tool_stats(item_id)
                     if tool_stats:
-                        top_stats = [(k, v) for k, v in tool_stats.items() if k not in ['item_id', 'tool_type', 'durability'] and v > 0 and v != 1.0]
-                        top_stats.sort(key=lambda x: x[1], reverse=True)
-                        stat_display = '\n'.join([f"{k.replace('_', ' ').title()}: +{v}" for k, v in top_stats[:3]])
+                        multiplier_stats = []
+                        regular_stats = []
+                        for k, v in tool_stats.items():
+                            if k in ['item_id', 'tool_type', 'durability']:
+                                continue
+                            if 'multiplier' in k and v != 1.0:
+                                multiplier_stats.append((k, v))
+                            elif v > 0 and v != 1.0:
+                                regular_stats.append((k, v))
+                        
+                        multiplier_stats.sort(key=lambda x: x[1], reverse=True)
+                        regular_stats.sort(key=lambda x: x[1], reverse=True)
+                        
+                        display_stats = []
+                        for k, v in (multiplier_stats + regular_stats)[:3]:
+                            if 'multiplier' in k:
+                                display_stats.append(f"{k.replace('_', ' ').title()}: {v}x")
+                            else:
+                                display_stats.append(f"{k.replace('_', ' ').title()}: +{v}")
+                        stat_display = '\n'.join(display_stats)
                 
                 if not stat_display:
                     stats = json.loads(item.get('stats', '{}'))

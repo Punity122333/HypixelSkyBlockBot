@@ -97,9 +97,10 @@ class DwarvenMinesSystem:
         commissions = []
         for row in rows:
             comm_data = cls.COMMISSION_TYPES.get(row['commission_type'], {})
-            row['name'] = comm_data.get('name', 'Unknown')
-            row['description'] = comm_data.get('description', '').format(amount=row['requirement'])
-            commissions.append(row)
+            commission_dict = dict(row)
+            commission_dict['name'] = comm_data.get('name', 'Unknown')
+            commission_dict['description'] = comm_data.get('description', '').format(amount=row['requirement'])
+            commissions.append(commission_dict)
         
         return commissions
     

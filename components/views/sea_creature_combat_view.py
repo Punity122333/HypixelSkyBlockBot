@@ -4,7 +4,6 @@ import discord
 from discord.ui import View, Button
 from utils.stat_calculator import StatCalculator
 from utils.systems.combat_system import CombatSystem
-from utils.compat import roll_loot as compat_roll_loot
 from utils.event_effects import EventEffects
 from utils.normalize import normalize_item_id
 from components.buttons.combat_buttons import (

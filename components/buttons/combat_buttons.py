@@ -3,7 +3,6 @@ import random
 from discord.ui import Button
 from utils.stat_calculator import StatCalculator
 from utils.systems.combat_system import CombatSystem
-from utils.compat import roll_loot as compat_roll_loot
 from utils.normalize import normalize_item_id
 
 class CombatAttackButton(discord.ui.Button):
@@ -59,7 +58,14 @@ class CombatAttackButton(discord.ui.Button):
             
             magic_find = self.parent_view.player_stats.get('magic_find', 0)
             fortune = self.parent_view.player_stats.get('looting', 0)
-            drops = await compat_roll_loot(self.parent_view.bot.game_data, loot_table, magic_find, fortune)
+            drops = await CombatSystem.roll_combat_loot(
+                self.parent_view.bot.game_data, 
+                self.parent_view.bot.db, 
+                self.parent_view.user_id, 
+                loot_table, 
+                magic_find, 
+                fortune
+            )
             
             items_obtained = []
             for item_id, amount in drops:
@@ -78,6 +84,9 @@ class CombatAttackButton(discord.ui.Button):
             
             coins = self.parent_view.coins_reward
             xp = self.parent_view.xp_reward
+            
+            drop_xp = await CombatSystem._calculate_drop_xp(self.parent_view.bot.db, [{'item_id': item_id, 'amount': amount} for item_id, amount in drops])
+            xp += drop_xp
             
             xp_multiplier = await self.parent_view.event_effects.get_xp_multiplier('combat')
             coin_multiplier = await self.parent_view.event_effects.get_coin_multiplier()
@@ -321,7 +330,14 @@ class CombatAbilityButton(discord.ui.Button):
             
             magic_find = self.parent_view.player_stats.get('magic_find', 0)
             fortune = self.parent_view.player_stats.get('looting', 0)
-            drops = await compat_roll_loot(self.parent_view.bot.game_data, loot_table, magic_find, fortune)
+            drops = await CombatSystem.roll_combat_loot(
+                self.parent_view.bot.game_data, 
+                self.parent_view.bot.db, 
+                self.parent_view.user_id, 
+                loot_table, 
+                magic_find, 
+                fortune
+            )
             
             items_obtained = []
             for item_id, amount in drops:
@@ -340,6 +356,9 @@ class CombatAbilityButton(discord.ui.Button):
             
             coins = self.parent_view.coins_reward
             xp = self.parent_view.xp_reward
+            
+            drop_xp = await CombatSystem._calculate_drop_xp(self.parent_view.bot.db, [{'item_id': item_id, 'amount': amount} for item_id, amount in drops])
+            xp += drop_xp
             
             xp_multiplier = await self.parent_view.event_effects.get_xp_multiplier('combat')
             coin_multiplier = await self.parent_view.event_effects.get_coin_multiplier()

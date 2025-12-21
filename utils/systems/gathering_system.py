@@ -126,7 +126,7 @@ class GatheringSystem:
         stats['user_id'] = user_id
         drops = await cls._generate_gathering_drops(db, gathering_skill, resource_type, yield_amount, stats)
         
-        xp_gained = cls._calculate_gathering_xp(yield_amount, resource_type)
+        xp_gained = await cls._calculate_gathering_xp(db, drops)
         
         skill_drop_multiplier = 1.0 + (skill_level * 0.05)
         
@@ -209,30 +209,27 @@ class GatheringSystem:
         return drops
     
     @classmethod
-    def _calculate_gathering_xp(cls, amount: int, resource_type: str) -> int:
-        base_xp_map = {
+    async def _calculate_gathering_xp(cls, db, drops: List[Dict[str, Any]]) -> int:
+        if not db.conn:
+            return 0
         
-            'cobblestone': 10,    
-            'coal': 15,          
-            'iron_ingot': 20,   
-            'gold_ingot': 30,    
-            'diamond': 50,       
-
-            'wheat': 15,         
-            'carrot': 15,
-            'potato': 20,
-            'sugar_cane': 25,    
-            'pumpkin': 30,
-            'melon': 40,
-
-            'oak_wood': 20,    
-            'jungle_wood': 30,
-            'dark_oak_wood': 40
-        }
-
+        total_xp = 0
         
-        base_xp = base_xp_map.get(resource_type, 1)
-        return base_xp * amount
+        for drop in drops:
+            item_id = drop.get('item_id')
+            amount = drop.get('amount', 1)
+            
+            if item_id:
+                cursor = await db.conn.execute('''
+                    SELECT base_xp FROM gathering_drop_xp WHERE item_id = ?
+                ''', (item_id,))
+                row = await cursor.fetchone()
+                
+                if row:
+                    base_xp = row['base_xp']
+                    total_xp += base_xp * amount
+        
+        return total_xp
     
     @classmethod
     async def mine_block(cls, db, user_id: int, block_type: str, event_bonuses: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -306,27 +303,31 @@ class GatheringSystem:
             rarity = 'legendary'
             item_id = 'clownfish'
             amount = 20
-            xp = 500
         elif rarity_roll < 0.05 * drop_multiplier:
             rarity = 'epic'
             item_id = 'raw_fish'
             amount = 15
-            xp = 200
         elif rarity_roll < 0.15 * drop_multiplier:
             rarity = 'rare'
             item_id = 'pufferfish'
             amount = 5
-            xp = 75
         elif rarity_roll < 0.40:
             rarity = 'uncommon'
             item_id = 'clownfish'
             amount = 3
-            xp = 30
         else:
             rarity = 'common'
             item_id = 'raw_fish'
             amount = 1
-            xp = 10
+        
+        xp = 0
+        if db.conn and item_id:
+            cursor = await db.conn.execute('''
+                SELECT base_xp FROM gathering_drop_xp WHERE item_id = ?
+            ''', (item_id,))
+            row = await cursor.fetchone()
+            if row:
+                xp = row['base_xp'] * amount
         
         return {
             'item_id': item_id,

@@ -1,6 +1,7 @@
 import discord
 from utils.systems.economy_system import EconomySystem
 from utils.normalize import normalize_item_id
+from utils.bazaar_validation import is_item_bazaar_tradeable
 
 class BazaarOrderModal(discord.ui.Modal, title="Place Bazaar Order"):
     order_type = discord.ui.TextInput(label="Order Type (BUY or SELL)", placeholder="BUY or SELL", required=True)
@@ -27,6 +28,12 @@ class BazaarOrderModal(discord.ui.Modal, title="Place Bazaar Order"):
             return
         
         item_id_normalized = normalize_item_id(self.item_id.value)
+        
+        can_trade, reason = await is_item_bazaar_tradeable(self.bot.db, item_id_normalized)
+        if not can_trade:
+            await interaction.followup.send(f"❌ {reason}", ephemeral=True)
+            return
+        
         result = await EconomySystem.create_bazaar_order(self.bot.db, interaction.user.id, item_id_normalized, order_type, amount, price)
         
         if result['success']:

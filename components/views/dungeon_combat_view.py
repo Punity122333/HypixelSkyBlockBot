@@ -431,8 +431,19 @@ class DungeonCombatView(View):
         player_stats = await StatCalculator.calculate_full_stats(self.bot.db, self.user_id)
         magic_find = player_stats.get('magic_find', 0)
         
-        drops = await compat_roll_loot(self.bot.game_data, loot_table, magic_find)
+        drops = await CombatSystem.roll_combat_loot(
+            self.bot.game_data, 
+            self.bot.db, 
+            self.user_id, 
+            loot_table, 
+            magic_find
+        )
         dungeon_loot = await self.dungeon_view._roll_dungeon_loot(floor_key, score, magic_find)
+        
+        combat_drop_yield = await CombatSystem._get_combat_drop_yield_multiplier(
+            self.bot.db, self.user_id
+        )
+        dungeon_loot = [(item_id, max(1, int(amount * combat_drop_yield))) for item_id, amount in dungeon_loot]
         
         items_obtained = []
         if self.party_id:
@@ -444,8 +455,19 @@ class DungeonCombatView(View):
                     member_stats = await StatCalculator.calculate_full_stats(self.bot.db, member_id)
                     member_magic_find = member_stats.get('magic_find', 0)
                     
-                    member_drops = await compat_roll_loot(self.bot.game_data, loot_table, member_magic_find)
+                    member_drops = await CombatSystem.roll_combat_loot(
+                        self.bot.game_data, 
+                        self.bot.db, 
+                        member_id, 
+                        loot_table, 
+                        member_magic_find
+                    )
                     member_dungeon_loot = await self.dungeon_view._roll_dungeon_loot(floor_key, score, member_magic_find)
+                    
+                    member_combat_drop_yield = await CombatSystem._get_combat_drop_yield_multiplier(
+                        self.bot.db, member_id
+                    )
+                    member_dungeon_loot = [(item_id, max(1, int(amount * member_combat_drop_yield))) for item_id, amount in member_dungeon_loot]
                     
                     for item_id, amount in member_drops:
                         await self.bot.db.add_item_to_inventory(member_id, item_id, amount)

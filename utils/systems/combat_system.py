@@ -21,19 +21,127 @@ class CombatSystem:
     @classmethod
     async def _get_equipped_armor_defense(cls, db, user_id: int) -> int:
         """Get total defense from all equipped armor pieces"""
-        equipped_items = await db.get_equipped_items(user_id)
-        total_defense = 0
+        if not db.conn:
+            return 0
         
-        armor_slots = ['helmet', 'chestplate', 'leggings', 'boots']
-        for slot in armor_slots:
-            item = equipped_items.get(slot)
-            if item and 'item_id' in item:
-                item_id = item['item_id']
+        cursor = await db.conn.execute('''
+            SELECT * FROM player_equipment WHERE user_id = ?
+        ''', (user_id,))
+        row = await cursor.fetchone()
+        
+        if not row:
+            return 0
+        
+        equipment = dict(row)
+        total_defense = 0
+        slots = ['helmet_slot', 'chestplate_slot', 'leggings_slot', 'boots_slot']
+        
+        for slot in slots:
+            item_id = equipment.get(slot)
+            if item_id:
                 armor_stats = await db.get_armor_stats(item_id)
                 if armor_stats:
                     total_defense += armor_stats.get('defense', 0)
         
         return total_defense
+    
+    @classmethod
+    async def _get_combat_drop_yield_multiplier(cls, db, user_id: int) -> float:
+        if not db.conn:
+            return 1.0
+        
+        multiplier = 1.0
+        
+        cursor = await db.conn.execute('''
+            SELECT * FROM player_equipment WHERE user_id = ?
+        ''', (user_id,))
+        row = await cursor.fetchone()
+        
+        if not row:
+            return multiplier
+            
+        equipment = dict(row)
+        
+        # Get sword item_id from inventory
+        sword_slot_id = equipment.get('sword_slot')
+        if sword_slot_id:
+            cursor = await db.conn.execute('''
+                SELECT i.item_id FROM inventory_items i
+                WHERE i.user_id = ? AND i.slot = ?
+            ''', (user_id, sword_slot_id))
+            inv_row = await cursor.fetchone()
+            if inv_row:
+                item_id = inv_row['item_id']
+                cursor = await db.conn.execute('''
+                    SELECT combat_drop_yield_multiplier FROM weapon_stats WHERE item_id = ?
+                ''', (item_id,))
+                weapon_row = await cursor.fetchone()
+                if weapon_row:
+                    weapon_stats = dict(weapon_row)
+                    if weapon_stats.get('combat_drop_yield_multiplier'):
+                        multiplier *= weapon_stats['combat_drop_yield_multiplier']
+        
+        # Get bow item_id from inventory
+        bow_slot_id = equipment.get('bow_slot')
+        if bow_slot_id:
+            cursor = await db.conn.execute('''
+                SELECT i.item_id FROM inventory_items i
+                WHERE i.user_id = ? AND i.slot = ?
+            ''', (user_id, bow_slot_id))
+            inv_row = await cursor.fetchone()
+            if inv_row:
+                item_id = inv_row['item_id']
+                cursor = await db.conn.execute('''
+                    SELECT combat_drop_yield_multiplier FROM weapon_stats WHERE item_id = ?
+                ''', (item_id,))
+                weapon_row = await cursor.fetchone()
+                if weapon_row:
+                    weapon_stats = dict(weapon_row)
+                    if weapon_stats.get('combat_drop_yield_multiplier'):
+                        multiplier = max(multiplier, weapon_stats['combat_drop_yield_multiplier'])
+        
+        # Get armor item_ids from inventory
+        armor_slots = ['helmet_slot', 'chestplate_slot', 'leggings_slot', 'boots_slot']
+        armor_count = 0
+        armor_multiplier_sum = 0.0
+        
+        for slot in armor_slots:
+            armor_slot_id = equipment.get(slot)
+            if armor_slot_id:
+                cursor = await db.conn.execute('''
+                    SELECT i.item_id FROM inventory_items i
+                    WHERE i.user_id = ? AND i.slot = ?
+                ''', (user_id, armor_slot_id))
+                inv_row = await cursor.fetchone()
+                if inv_row:
+                    item_id = inv_row['item_id']
+                    cursor = await db.conn.execute('''
+                        SELECT combat_drop_yield_multiplier FROM armor_stats WHERE item_id = ?
+                    ''', (item_id,))
+                    armor_row = await cursor.fetchone()
+                    if armor_row:
+                        armor_stats = dict(armor_row)
+                        if armor_stats.get('combat_drop_yield_multiplier'):
+                            armor_count += 1
+                            armor_multiplier_sum += armor_stats['combat_drop_yield_multiplier']
+        
+        if armor_count > 0:
+            avg_armor_multiplier = armor_multiplier_sum / armor_count
+            multiplier *= avg_armor_multiplier
+        
+        return multiplier
+    
+    @classmethod
+    async def roll_combat_loot(cls, game_data, db, user_id: int, loot_table: Dict[str, Any], magic_find: float = 0, fortune: int = 0) -> List[tuple[str, int]]:
+        from ..compat import roll_loot as compat_roll_loot
+        
+        drops = await compat_roll_loot(game_data, loot_table, magic_find, fortune)
+        
+        combat_drop_yield = await cls._get_combat_drop_yield_multiplier(db, user_id)
+        
+        drops = [(item_id, max(1, int(amount * combat_drop_yield))) for item_id, amount in drops]
+        
+        return drops
     
     @classmethod
     async def calculate_player_damage(cls, db, user_id: int, target_defense: int = 0) -> Dict[str, Any]:
@@ -155,10 +263,10 @@ class CombatSystem:
         cursor = await db.conn.execute('''
             SELECT * FROM mob_level_scaling WHERE level <= ? ORDER BY level DESC LIMIT 1
         ''', (level,))
-        scaling = await cursor.fetchone()
+        scaling_row = await cursor.fetchone()
         
-        if scaling:
-            return dict(scaling)
+        if scaling_row:
+            return dict(scaling_row)
         
         return {
             'health_multiplier': 1.0 + (level - 1) * 0.1,
@@ -176,11 +284,12 @@ class CombatSystem:
         cursor = await db.conn.execute('''
             SELECT * FROM mob_locations WHERE mob_id = ? AND location_id = ?
         ''', (mob_id, location))
-        mob_data = await cursor.fetchone()
+        mob_row = await cursor.fetchone()
         
-        if not mob_data:
+        if not mob_row:
             return {'success': False, 'error': 'Mob not found'}
         
+        mob_data = dict(mob_row)
         mob_level = mob_data.get('level', 1)
         scaling = await cls.get_mob_level_scaling(db, mob_level)
         
@@ -277,6 +386,9 @@ class CombatSystem:
         
         drop_multiplier *= museum_bonus * achievement_luck
         
+        combat_drop_yield = await cls._get_combat_drop_yield_multiplier(db, user_id)
+        drop_multiplier *= combat_drop_yield
+        
         skills = await db.get_skills(user_id)
         combat_skill = next((s for s in skills if s['skill_name'] == 'combat'), None)
         combat_level = combat_skill['level'] if combat_skill else 0
@@ -286,12 +398,16 @@ class CombatSystem:
         
         drops = await cls._roll_mob_drops(db, mob_data['mob_id'], drop_multiplier, combat_level)
         
+        drop_xp = await cls._calculate_drop_xp(db, drops)
+        xp += drop_xp
+        
         return {
             'coins': coins,
             'xp': xp,
             'drops': drops,
             'combat_level': combat_level,
-            'mob_level': mob_level
+            'mob_level': mob_level,
+            'combat_drop_yield_multiplier': combat_drop_yield
         }
     
     @classmethod
@@ -302,13 +418,14 @@ class CombatSystem:
         cursor = await db.conn.execute('''
             SELECT * FROM loot_tables WHERE table_id = ? AND category = 'mob'
         ''', (mob_id,))
-        loot_tables = await cursor.fetchall()
+        loot_table_rows = await cursor.fetchall()
         
         drops = []
         
         skill_drop_multiplier = 1.0 + (combat_level * 0.05)
         
-        for loot_table in loot_tables:
+        for row in loot_table_rows:
+            loot_table = dict(row)
             rarity = loot_table['rarity']
             loot_data = json.loads(loot_table['loot_data']) if loot_table['loot_data'] else []
             
@@ -345,6 +462,29 @@ class CombatSystem:
         return drops
     
     @classmethod
+    async def _calculate_drop_xp(cls, db, drops: List[Dict[str, Any]]) -> int:
+        if not db.conn:
+            return 0
+        
+        total_xp = 0
+        
+        for drop in drops:
+            item_id = drop.get('item_id')
+            amount = drop.get('amount', 1)
+            
+            if item_id:
+                cursor = await db.conn.execute('''
+                    SELECT base_xp FROM combat_drop_xp WHERE item_id = ?
+                ''', (item_id,))
+                row = await cursor.fetchone()
+                
+                if row:
+                    base_xp = row['base_xp']
+                    total_xp += base_xp * amount
+        
+        return total_xp
+    
+    @classmethod
     async def calculate_slayer_damage(cls, db, user_id: int, boss_id: str, tier: int) -> Dict[str, Any]:
         if not db.conn:
             return {'success': False, 'error': 'Database not connected'}
@@ -352,11 +492,12 @@ class CombatSystem:
         cursor = await db.conn.execute('''
             SELECT * FROM slayer_bosses WHERE boss_id = ?
         ''', (boss_id,))
-        boss_data = await cursor.fetchone()
+        boss_row = await cursor.fetchone()
         
-        if not boss_data:
+        if not boss_row:
             return {'success': False, 'error': 'Boss not found'}
         
+        boss_data = dict(boss_row)
         tier_data = json.loads(boss_data['tier_data'])
         tier_key = f'tier_{tier}'
         

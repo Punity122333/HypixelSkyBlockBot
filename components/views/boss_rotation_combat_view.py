@@ -6,7 +6,6 @@ import time
 from utils.systems.combat_system import CombatSystem
 from utils.stat_calculator import StatCalculator
 from utils.event_effects import EventEffects
-from utils.compat import roll_loot as compat_roll_loot
 from components.buttons.slayer_combat_buttons import (
     SlayerCombatAttackButton,
     SlayerCombatDefendButton,
@@ -105,11 +104,25 @@ class BossRotationCombatView(View):
             self.coop_session, self.coins_reward, self.xp_reward
         )
         
-        loot_items = []
-        for _ in range(random.randint(1, 3)):
-            item_id = random.choice(['iron_ingot', 'diamond', 'emerald', 'gold_ingot'])
-            amount = random.randint(1, 5)
-            loot_items.append((item_id, amount))
+        boss_loot_table = {
+            'common': [
+                ('iron_ingot', 1, 5),
+                ('gold_ingot', 1, 5),
+                ('diamond', 1, 3),
+                ('emerald', 1, 3)
+            ]
+        }
+        
+        player_stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+        magic_find = player_stats.get('magic_find', 0)
+        
+        loot_items = await CombatSystem.roll_combat_loot(
+            self.bot.game_data,
+            self.bot.db,
+            interaction.user.id,
+            boss_loot_table,
+            magic_find
+        )
         
         member_loot = await CooperativeBossSystem.distribute_loot(
             self.bot.db, self.coop_session, loot_items

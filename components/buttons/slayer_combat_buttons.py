@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from utils.systems.combat_system import CombatSystem
 from utils.stat_calculator import StatCalculator
 from utils.event_effects import EventEffects
-from utils.compat import roll_loot as compat_roll_loot
 
 if TYPE_CHECKING:
     from discord import Interaction
@@ -67,7 +66,14 @@ class SlayerCombatAttackButton(Button):
 
             magic_find = view.player_stats.get('magic_find', 0)
             fortune = view.player_stats.get('looting', 0)
-            drops = await compat_roll_loot(view.bot.game_data, view.loot_table, magic_find, fortune)
+            drops = await CombatSystem.roll_combat_loot(
+                view.bot.game_data, 
+                view.bot.db, 
+                view.user_id, 
+                view.loot_table, 
+                magic_find, 
+                fortune
+            )
             
             items_obtained = []
             for item_id, amount in drops:
@@ -287,7 +293,14 @@ class SlayerCombatAbilityButton(Button):
 
             magic_find = view.player_stats.get('magic_find', 0)
             fortune = view.player_stats.get('looting', 0)
-            drops = await compat_roll_loot(view.bot.game_data, view.loot_table, magic_find, fortune)
+            drops = await CombatSystem.roll_combat_loot(
+                view.bot.game_data, 
+                view.bot.db, 
+                view.user_id, 
+                view.loot_table, 
+                magic_find, 
+                fortune
+            )
             
             items_obtained = []
             for item_id, amount in drops:

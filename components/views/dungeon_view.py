@@ -8,7 +8,6 @@ from utils.systems.combat_system import CombatSystem
 from utils.normalize import normalize_item_id
 from utils.systems.party_system import PartySystem
 from components.views.puzzle_view import PuzzleView
-from utils.compat import roll_loot as compat_roll_loot
 from utils.data.loot_tables import default_loot
 from components.buttons.dungeon_buttons import (
     DungeonOpenDoorButton,

@@ -316,8 +316,8 @@ class DungeonExitButton(discord.ui.Button):
         
         from utils.systems.party_system import PartySystem
         from utils.normalize import normalize_item_id
-        from utils.compat import roll_loot as compat_roll_loot
         from utils.data.loot_tables import default_loot
+        from utils.systems.combat_system import CombatSystem
         
         floor_id = self.parent_view.floor_name.lower().replace(' ', '')
         score = self.parent_view._calculate_score()
@@ -339,7 +339,14 @@ class DungeonExitButton(discord.ui.Button):
         player_stats = await StatCalculator.calculate_player_stats(self.parent_view.bot.db, self.parent_view.bot.game_data, self.parent_view.user_id)
         magic_find = player_stats.get('magic_find', 0)
         
-        drops = await compat_roll_loot(self.parent_view.bot.game_data, loot_table, magic_find)
+        drops = await CombatSystem.roll_combat_loot(
+            self.parent_view.bot.game_data, 
+            self.parent_view.bot.db, 
+            self.parent_view.user_id, 
+            loot_table, 
+            magic_find
+        )
+        
         items_obtained = []
         
         if self.parent_view.party_id:
