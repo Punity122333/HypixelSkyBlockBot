@@ -400,6 +400,7 @@ class CombatSystem:
         
         drop_xp = await cls._calculate_drop_xp(db, drops)
         xp += drop_xp
+        coins += int(drop_xp * 0.8)
         
         return {
             'coins': coins,

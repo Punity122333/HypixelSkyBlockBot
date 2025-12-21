@@ -1,7 +1,7 @@
 import discord
 from utils.systems.economy_system import EconomySystem
 from utils.normalize import normalize_item_id
-from utils.bazaar_validation import is_item_bazaar_tradeable
+from utils.helper import is_item_bazaar_tradeable
 
 class BazaarSellModal(discord.ui.Modal, title="Sell to Bazaar"):
     item_id = discord.ui.TextInput(label="Item ID", placeholder="Enter item ID", required=True)
