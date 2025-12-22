@@ -30,5 +30,15 @@ class WithdrawModal(discord.ui.Modal, title="Withdraw Coins"):
             bank=player['bank'] - amount
         )
         
+        # Clear cache to ensure fresh data
+        self.bot.player_manager.clear_cache(interaction.user.id)
+        
+        # Update the embed with fresh data
         embed = await self.view.get_embed()
+        
+        # Send confirmation message
         await interaction.response.send_message(f"✅ Withdrew {amount:,} coins from your bank!", ephemeral=True)
+        
+        # Update the original bank message if available
+        if self.view.message:
+            await self.view.message.edit(embed=embed, view=self.view)

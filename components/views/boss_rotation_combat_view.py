@@ -47,6 +47,8 @@ class BossRotationCombatView(View):
         
         self.player_health: Optional[int] = None
         self.player_max_health: Optional[int] = None
+        self.current_mana: Optional[int] = None
+        self.max_mana: Optional[int] = None
         self.player_stats: Optional[Dict[str, Any]] = None
         self.message: Optional["Message"] = None
         self.event_effects = EventEffects(bot)

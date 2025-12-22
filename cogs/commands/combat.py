@@ -4,6 +4,7 @@ from discord import app_commands
 from discord.ui import View, Button
 import random
 from components.views.combat_view import CombatView
+from utils.stat_calculator import StatCalculator
 
 class CombatCommands(commands.Cog):
     def __init__(self, bot):
@@ -103,6 +104,12 @@ class CombatCommands(commands.Cog):
         
         view = CombatView(self.bot, interaction.user.id, mob_name, mob_health, mob_damage, coins, xp)
         
+        player_stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+        player_mana = int(player_stats.get('max_mana', 100))
+        player_health = int(player_stats.get('health', 100))
+        view.current_mana = player_mana
+        view.max_mana = player_mana
+        
         level_color = discord.Color.green()
         if mob_level >= 10:
             level_color = discord.Color.gold()
@@ -116,9 +123,11 @@ class CombatCommands(commands.Cog):
             description=f"Prepare for battle in {ProgressionSystem.COMBAT_UNLOCKS[location]['name']}!",
             color=level_color
         )
+        embed.add_field(name="Your Health", value=f"❤️ {player_health} HP", inline=True)
+        embed.add_field(name="Your Mana", value=f"✨ {player_mana}", inline=True)
+        embed.add_field(name="Enemy Level", value=f"🎯 {mob_level}", inline=True)
         embed.add_field(name="Enemy Health", value=f"❤️ {mob_health} HP", inline=True)
         embed.add_field(name="Enemy Damage", value=f"⚔️ ~{mob_damage} damage", inline=True)
-        embed.add_field(name="Level", value=f"🎯 {mob_level}", inline=True)
         embed.set_footer(text="Use the buttons below to fight!")
         
         await interaction.followup.send(embed=embed, view=view)
@@ -198,6 +207,12 @@ class CombatCommands(commands.Cog):
         
         view = CombatView(self.bot, interaction.user.id, boss.title(), health, damage, coins, xp)
         
+        player_stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+        player_mana = int(player_stats.get('max_mana', 100))
+        player_health = int(player_stats.get('health', 100))
+        view.current_mana = player_mana
+        view.max_mana = player_mana
+        
         level_color = discord.Color.dark_red()
         if boss_level >= 50:
             level_color = discord.Color.purple()
@@ -207,9 +222,11 @@ class CombatCommands(commands.Cog):
             description="A powerful boss has appeared!",
             color=level_color
         )
+        embed.add_field(name="Your Health", value=f"❤️ {player_health} HP", inline=True)
+        embed.add_field(name="Your Mana", value=f"✨ {player_mana}", inline=True)
+        embed.add_field(name="Boss Level", value=f"🎯 {boss_level}", inline=True)
         embed.add_field(name="Boss Health", value=f"❤️ {health} HP", inline=True)
         embed.add_field(name="Boss Damage", value=f"⚔️ ~{damage} damage", inline=True)
-        embed.add_field(name="Level", value=f"🎯 {boss_level}", inline=True)
         embed.set_footer(text="Use the buttons below to fight the boss!")
         
         await interaction.response.send_message(embed=embed, view=view)

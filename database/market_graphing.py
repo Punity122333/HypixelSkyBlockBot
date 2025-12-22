@@ -198,7 +198,7 @@ class MarketGraphingDB(DatabaseCore):
         return buf
     
     async def calculate_networth(self, user_id: int) -> float:
-        player = await self.fetchone('SELECT coins, bank FROM players WHERE user_id = ?', (user_id,))
+        player = await self.fetchone('SELECT coins, bank FROM player_economy WHERE user_id = ?', (user_id,))
         if not player:
             return 0.0
         

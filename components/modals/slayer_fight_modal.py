@@ -81,9 +81,13 @@ class SlayerFightModal(Modal):
         
         player_stats = await StatCalculator.calculate_player_stats(bot.db, bot.game_data, user_id)
         player_health = int(player_stats.get('max_health', 100))
+        player_mana = int(player_stats.get('max_mana', 100))
+        view.current_mana = player_mana
+        view.max_mana = player_mana
         
         player_hp_bar = view._create_health_bar(player_health, player_health)
         mob_hp_bar = view._create_health_bar(mob_health, mob_health)
+        mana_bar = view._create_health_bar(player_mana, player_mana) if player_mana > 0 else "[No Mana]"
         
         embed = discord.Embed(
             title=f"💀 Slayer Boss Fight: {boss_name}",
@@ -91,6 +95,7 @@ class SlayerFightModal(Modal):
             color=discord.Color.dark_red()
         )
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {player_health}/{player_health} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {player_mana}/{player_mana}", inline=False)
         embed.add_field(name=f"{boss_name} Health", value=f"{mob_hp_bar}\n❤️ {mob_health}/{mob_health} HP", inline=False)
         embed.set_footer(text=f"Boss Damage: ~{mob_damage:,} | Expected Coin Reward: {coins_reward:,}")
 

@@ -30,6 +30,8 @@ class SeaCreatureCombatView(View):
         self.xp_reward = xp_reward
         self.player_health: Optional[int] = None
         self.player_max_health: Optional[int] = None
+        self.current_mana: Optional[int] = None
+        self.max_mana: Optional[int] = None
         self.player_damage: int = 50
         self.player_stats: Optional[dict] = None
         self.message: Optional[discord.Message] = None
@@ -67,15 +69,20 @@ class SeaCreatureCombatView(View):
             stats = await self._get_player_stats()
             self.player_max_health = stats.get('max_health', 100)
             self.player_health = self.player_max_health
+            self.max_mana = stats.get('intelligence', 0)
+            self.current_mana = self.max_mana
     
     async def update_embed(self, interaction: discord.Interaction, action_text: str = ""):
         await self._initialize_player_health()
 
         player_health = self.player_health if self.player_health is not None else 0
         player_max_health = self.player_max_health if self.player_max_health is not None else 1
+        current_mana = self.current_mana if self.current_mana is not None else 0
+        max_mana = self.max_mana if self.max_mana is not None else 0
 
         player_health_bar = self._create_health_bar(player_health, player_max_health)
         mob_health_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
+        mana_bar = self._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
         
         embed = discord.Embed(
             title=f"⚔️ Fighting {self.mob_name}!",
@@ -86,6 +93,12 @@ class SeaCreatureCombatView(View):
         embed.add_field(
             name=f"Your Health: {player_health}/{player_max_health}",
             value=player_health_bar,
+            inline=False
+        )
+        
+        embed.add_field(
+            name=f"Your Mana: {current_mana}/{max_mana}",
+            value=mana_bar,
             inline=False
         )
         

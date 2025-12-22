@@ -143,7 +143,7 @@ class CoopDB(DatabaseCore):
         if not await self.has_permission(user_id, coop_id, 'use_bank'):
             return False
         
-        player = await self.fetchone('SELECT coins FROM players WHERE user_id = ?', (user_id,))
+        player = await self.fetchone('SELECT coins FROM player_economy WHERE user_id = ?', (user_id,))
         if not player or player['coins'] < amount:
             return False
         
@@ -155,7 +155,7 @@ class CoopDB(DatabaseCore):
         if new_balance > coop['bank_capacity']:
             return False
         
-        await self.execute('UPDATE players SET coins = coins - ? WHERE user_id = ?', (amount, user_id))
+        await self.execute('UPDATE player_economy SET coins = coins - ? WHERE user_id = ?', (amount, user_id))
         await self.execute('UPDATE coops SET shared_bank = ? WHERE id = ?', (new_balance, coop_id))
         await self.commit()
         
@@ -170,7 +170,7 @@ class CoopDB(DatabaseCore):
             return False
         
         await self.execute('UPDATE coops SET shared_bank = shared_bank - ? WHERE id = ?', (amount, coop_id))
-        await self.execute('UPDATE players SET coins = coins + ? WHERE user_id = ?', (amount, user_id))
+        await self.execute('UPDATE player_economy SET coins = coins + ? WHERE user_id = ?', (amount, user_id))
         await self.commit()
         
         return True

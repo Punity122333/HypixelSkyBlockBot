@@ -29,6 +29,9 @@ class BazaarBuyModal(discord.ui.Modal, title="Buy from Bazaar"):
         result = await EconomySystem.instant_buy_bazaar(self.bot.db, interaction.user.id, item_id_normalized, amount)
         
         if result['success']:
+            # Clear player cache to ensure fresh data on next view
+            self.bot.player_manager.clear_cache(interaction.user.id)
+            
             from utils.systems.badge_system import BadgeSystem
             profit_check = await self.bot.db.fetchone(
                 'SELECT SUM(profit) as total_profit FROM bazaar_flips WHERE user_id = ?',

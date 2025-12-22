@@ -198,8 +198,13 @@ class CombatAttackButton(discord.ui.Button):
         mob_hp_bar = self.parent_view._create_health_bar(self.parent_view.mob_health, self.parent_view.mob_max_health)
         player_hp_bar = self.parent_view._create_health_bar(self.parent_view.player_health or 0, self.parent_view.player_max_health or 100)
         
+        current_mana = self.parent_view.current_mana if self.parent_view.current_mana is not None else 0
+        max_mana = self.parent_view.max_mana if self.parent_view.max_mana is not None else 0
+        mana_bar = self.parent_view._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
+        
         embed.add_field(name=f"{self.parent_view.mob_name}", value=f"{mob_hp_bar}\n❤️ {self.parent_view.mob_health}/{self.parent_view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {self.parent_view.player_health or 0}/{self.parent_view.player_max_health or 0} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {current_mana}/{max_mana}", inline=False)
         
         await interaction.edit_original_response(embed=embed, view=self.parent_view)
 
@@ -250,8 +255,13 @@ class CombatDefendButton(discord.ui.Button):
         mob_hp_bar = self.parent_view._create_health_bar(self.parent_view.mob_health, self.parent_view.mob_max_health)
         player_hp_bar = self.parent_view._create_health_bar(self.parent_view.player_health or 0, self.parent_view.player_max_health or 100)
         
+        current_mana = self.parent_view.current_mana if self.parent_view.current_mana is not None else 0
+        max_mana = self.parent_view.max_mana if self.parent_view.max_mana is not None else 0
+        mana_bar = self.parent_view._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
+        
         embed.add_field(name=f"{self.parent_view.mob_name}", value=f"{mob_hp_bar}\n❤️ {self.parent_view.mob_health}/{self.parent_view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {self.parent_view.player_health or 0}/{self.parent_view.player_max_health or 0} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {current_mana}/{max_mana}", inline=False)
         
         await interaction.edit_original_response(embed=embed, view=self.parent_view)
 
@@ -270,6 +280,10 @@ class CombatAbilityButton(discord.ui.Button):
         if self.parent_view.player_health is None:
             self.parent_view.player_health = int(self.parent_view.player_stats['max_health'])
             self.parent_view.player_max_health = int(self.parent_view.player_stats['max_health'])
+        
+        if not hasattr(self.parent_view, 'current_mana'):
+            self.parent_view.current_mana = self.parent_view.player_stats.get('max_mana', 100)
+            self.parent_view.max_mana = self.parent_view.player_stats.get('max_mana', 100)
             
         self.parent_view.player_health = await CombatSystem.apply_health_regeneration(
             self.parent_view.bot.db, self.parent_view.user_id, int(self.parent_view.player_health), int(self.parent_view.player_max_health)
@@ -305,14 +319,13 @@ class CombatAbilityButton(discord.ui.Button):
             ability_multiplier = 3 + (self.parent_view.player_stats.get('ability_damage', 0) / 100)
             ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
         
-        current_mana = self.parent_view.player_stats.get('mana', self.parent_view.player_stats['max_mana'])
-        if current_mana < mana_cost:
-            await interaction.followup.send("❌ Not enough mana!", ephemeral=True)
+        if not await CombatSystem.can_use_ability(self.parent_view.current_mana, mana_cost):
+            await interaction.followup.send(f"❌ Not enough mana! Need {mana_cost}, have {self.parent_view.current_mana}", ephemeral=True)
             return
         
-        self.parent_view.mob_health -= ability_damage
+        self.parent_view.current_mana = await CombatSystem.consume_mana(self.parent_view.current_mana, mana_cost)
         
-        await self.parent_view.bot.db.update_player(self.parent_view.user_id, mana=current_mana - mana_cost)
+        self.parent_view.mob_health -= ability_damage
         
         embed = discord.Embed(title=f"⚔️ Fighting {self.parent_view.mob_name}", color=discord.Color.purple())
         
@@ -445,8 +458,13 @@ class CombatAbilityButton(discord.ui.Button):
         mob_hp_bar = self.parent_view._create_health_bar(self.parent_view.mob_health, self.parent_view.mob_max_health)
         player_hp_bar = self.parent_view._create_health_bar(self.parent_view.player_health or 0, self.parent_view.player_max_health or 100)
         
+        current_mana = self.parent_view.current_mana if self.parent_view.current_mana is not None else 0
+        max_mana = self.parent_view.max_mana if self.parent_view.max_mana is not None else 0
+        mana_bar = self.parent_view._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
+        
         embed.add_field(name=f"{self.parent_view.mob_name}", value=f"{mob_hp_bar}\n❤️ {self.parent_view.mob_health}/{self.parent_view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {self.parent_view.player_health or 0}/{self.parent_view.player_max_health or 0} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {current_mana}/{max_mana}", inline=False)
         
         await interaction.edit_original_response(embed=embed, view=self.parent_view)
 

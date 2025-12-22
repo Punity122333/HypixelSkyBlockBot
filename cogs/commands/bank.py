@@ -27,7 +27,8 @@ class BankCommands(commands.Cog):
         view = BankView(self.bot, interaction.user.id, interaction.user.name)
         embed = await view.get_embed()
         
-        await interaction.followup.send(embed=embed, view=view)
+        message = await interaction.followup.send(embed=embed, view=view)
+        view.message = message  # Store message reference for updates
 
     @app_commands.command(name="pay", description="Pay coins to another player")
     @app_commands.describe(user="The player to pay", amount="Amount to pay")

@@ -35,5 +35,7 @@ class BankRefreshButton(discord.ui.Button):
         if interaction.user.id != self.parent_view.user_id:
             await interaction.response.send_message("This isn't your menu!", ephemeral=True)
             return
+
+        self.parent_view.bot.player_manager.clear_cache(interaction.user.id)
         
         await interaction.response.edit_message(embed=await self.parent_view.get_embed(), view=self.parent_view)

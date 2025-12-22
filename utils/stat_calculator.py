@@ -194,7 +194,7 @@ class StatCalculator:
                 weapon_stats = await db.get_weapon_stats(item_id)
                 if weapon_stats:
                     for stat_key in ['damage', 'strength', 'crit_chance', 'crit_damage', 
-                                    'attack_speed', 'ability_damage', 'ferocity', 'bonus_attack_speed']:
+                                    'attack_speed', 'ability_damage', 'ferocity', 'bonus_attack_speed', 'intelligence']:
                         if stat_key in stats and weapon_stats.get(stat_key):
                             stats[stat_key] += weapon_stats[stat_key]
                 else:
@@ -216,7 +216,7 @@ class StatCalculator:
                 weapon_stats = await db.get_weapon_stats(item_id)
                 if weapon_stats:
                     for stat_key in ['damage', 'strength', 'crit_chance', 'crit_damage', 
-                                    'attack_speed', 'ability_damage', 'ferocity', 'bonus_attack_speed']:
+                                    'attack_speed', 'ability_damage', 'ferocity', 'bonus_attack_speed', 'intelligence']:
                         if stat_key in stats and weapon_stats.get(stat_key):
                             stats[stat_key] += weapon_stats[stat_key]
                 else:

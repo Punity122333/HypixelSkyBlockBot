@@ -106,11 +106,10 @@ class ProfileMenuView(discord.ui.View):
         embed.add_field(name="💥 Crit Damage", value=f"{stats.get('crit_damage', 0):.1f}%", inline=True)
         embed.add_field(name="💢 Ferocity", value=str(int(stats.get('ferocity', 0))), inline=True)
 
-        embed.add_field(name="💙 Max Mana", value=str(int(stats.get('max_mana', 0))), inline=True)
-        embed.add_field(name="✨ Intelligence", value=str(int(stats.get('intelligence', 0))), inline=True)
+        embed.add_field(name="💙 Mana", value=str(int(stats.get('max_mana', 0))), inline=True)
         embed.add_field(name="⚡ Ability Damage", value=f"{stats.get('ability_damage', 0):.1f}%", inline=True)
-        
         embed.add_field(name="🏃 Speed", value=str(int(stats.get('speed', 0))), inline=True)
+        
         embed.add_field(name="⚔️ Attack Speed", value=f"{stats.get('attack_speed', 0):.1f}%", inline=True)
         embed.add_field(name="💚 Health Regen", value=f"{stats.get('health_regen', 0):.1f}%", inline=True)
 

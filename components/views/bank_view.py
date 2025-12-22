@@ -11,6 +11,7 @@ class BankView(discord.ui.View):
         self.bot = bot
         self.user_id = user_id
         self.username = username
+        self.message = None  # Store message reference
         
         self.add_item(BankDepositButton(self))
         self.add_item(BankWithdrawButton(self))

@@ -316,7 +316,7 @@ class CombatSystem:
         player_stats['defense'] = player_stats.get('defense', 0) + armor_defense
         
         player_health = player_stats['health']
-        
+        current_mana = player_stats.get('max_mana', 100)
         turns = 0
         combat_log = []
         
@@ -541,3 +541,25 @@ class CombatSystem:
         ability_damage = base_damage * ability_multiplier * (1 + stats.get('ability_damage', 0) / 100)
         
         return ability_damage
+    
+    @classmethod
+    async def get_ability_mana_cost(cls, db, user_id: int) -> int:
+        weapon_info = await cls.get_equipped_weapon_info(db, user_id)
+        if weapon_info and await WeaponAbilities.has_ability(db, weapon_info['item_id']):
+            ability = await WeaponAbilities.get_ability(db, weapon_info['item_id'])
+            if ability:
+                return ability.get('mana_cost', 50)
+        return 50
+    
+    @classmethod
+    async def can_use_ability(cls, current_mana: int, mana_cost: int) -> bool:
+        return current_mana >= mana_cost
+    
+    @classmethod
+    async def consume_mana(cls, current_mana: int, mana_cost: int) -> int:
+        return max(0, current_mana - mana_cost)
+    
+    @classmethod
+    async def reset_mana(cls, db, user_id: int) -> int:
+        stats = await StatCalculator.calculate_full_stats(db, user_id)
+        return int(stats.get('intelligence', 0))

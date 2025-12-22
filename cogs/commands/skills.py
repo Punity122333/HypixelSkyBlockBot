@@ -33,6 +33,26 @@ class SkillCommands(commands.Cog):
                 value=f"{bar} ({progress:,}/{needed:,} XP)",
                 inline=False
             )
+        
+        # Add Catacombs (Dungeoneering) level
+        dungeon_stats = await self.bot.db.get_dungeon_stats(interaction.user.id)
+        if dungeon_stats:
+            catacombs_level = dungeon_stats.get('catacombs_level', 0)
+            catacombs_xp = dungeon_stats.get('catacombs_xp', 0)
+            
+            next_level_xp = await self.bot.game_data.get_xp_for_level('dungeoneering', catacombs_level + 1)
+            current_level_xp = await self.bot.game_data.get_xp_for_level('dungeoneering', catacombs_level)
+            progress = catacombs_xp - current_level_xp
+            needed = next_level_xp - current_level_xp
+            bar_length = 10
+            filled = int((progress / needed) * bar_length) if needed > 0 else bar_length
+            bar = '█' * filled + '░' * (bar_length - filled)
+            embed.add_field(
+                name=f"💀 Catacombs - Level {catacombs_level}",
+                value=f"{bar} ({progress:,}/{needed:,} XP)",
+                inline=False
+            )
+        
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="alchemy", description="Brew potions!")

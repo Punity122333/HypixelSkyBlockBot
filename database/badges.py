@@ -84,8 +84,9 @@ class BadgeDB(DatabaseCore):
             elif minion_count >= 10:
                 await self.unlock_badge(user_id, 'minion_10')
         
-        elif context == 'coins' and player:
-            if player['coins'] == 0:
+        elif context == 'coins':
+            player_economy = await self.fetchone('SELECT coins FROM player_economy WHERE user_id = ?', (user_id,))
+            if player_economy and player_economy['coins'] == 0:
                 await self.unlock_badge(user_id, 'broke')
         
         elif context == 'stats' and stats:

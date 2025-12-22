@@ -29,6 +29,9 @@ class BazaarSellModal(discord.ui.Modal, title="Sell to Bazaar"):
         result = await EconomySystem.instant_sell_bazaar(self.bot.db, interaction.user.id, item_id_normalized, amount)
         
         if result['success']:
+            # Clear player cache to ensure fresh data on next view
+            self.bot.player_manager.clear_cache(interaction.user.id)
+            
             from utils.systems.badge_system import BadgeSystem
             await BadgeSystem.unlock_badge(self.bot.db, interaction.user.id, 'bazaar_flip')
             profit_check = await self.bot.db.fetchone(

@@ -29,6 +29,9 @@ class DepositModal(discord.ui.Modal, title="Deposit Coins"):
             bank=player['bank'] + amount
         )
         
+        # Clear cache to ensure fresh data
+        self.bot.player_manager.clear_cache(interaction.user.id)
+        
         from utils.systems.badge_system import BadgeSystem
         new_bank = player['bank'] + amount
         if new_bank >= 1000000:
@@ -37,5 +40,12 @@ class DepositModal(discord.ui.Modal, title="Deposit Coins"):
         from utils.systems.achievement_system import AchievementSystem
         await AchievementSystem.check_bank_balance_achievements(self.bot.db, interaction, interaction.user.id, new_bank)
         
+        # Update the embed with fresh data
         embed = await self.view.get_embed()
+        
+        # Send confirmation message
         await interaction.response.send_message(f"✅ Deposited {amount:,} coins to your bank!", ephemeral=True)
+        
+        # Update the original bank message if available
+        if self.view.message:
+            await self.view.message.edit(embed=embed, view=self.view)

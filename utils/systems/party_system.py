@@ -362,7 +362,7 @@ class PartySystem:
                 
                 for member in party['members']:
                     await db.conn.execute(
-                        'UPDATE players SET coins = coins + ? WHERE user_id = ?',
+                        'UPDATE player_economy SET coins = coins + ? WHERE user_id = ?',
                         (coins_per_member, member['user_id'])
                     )
                     rewards[member['user_id']] = coins_per_member

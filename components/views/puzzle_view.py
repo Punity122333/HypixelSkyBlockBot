@@ -82,6 +82,14 @@ class PuzzleView(View):
             success, message = self.puzzle.attempt_solve(option_index)
             
             if success:
+                floor_difficulty = {
+                    'entrance': 1, 'floor1': 2, 'floor2': 3, 'floor3': 4,
+                    'floor4': 5, 'floor5': 7, 'floor6': 10, 'floor7': 15,
+                    'm1': 20, 'm2': 25, 'm3': 30, 'm4': 35, 'm5': 40, 'm6': 45, 'm7': 50
+                }
+                floor_id = self.dungeon_view.floor_name.lower().replace(' ', '')
+                floor_mult = floor_difficulty.get(floor_id, 1)
+                
                 embed = discord.Embed(
                     title="✅ Puzzle Solved!",
                     description=message,
@@ -90,7 +98,7 @@ class PuzzleView(View):
                 
                 self.dungeon_view.current_puzzle = None
                 self.dungeon_view.secrets_found += random.randint(1, 3)
-                coins = random.randint(50, 150)
+                coins = random.randint(50, 150) * floor_mult
                 self.dungeon_view.coins_gained_in_run += coins
                 
                 embed.add_field(name="Rewards", value=f"💰 {coins} coins\n✨ Secrets found!", inline=False)

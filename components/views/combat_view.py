@@ -30,6 +30,8 @@ class CombatView(View):
         self.xp_reward = xp_reward
         self.player_health: Optional[int] = None
         self.player_max_health: Optional[int] = None
+        self.current_mana: Optional[int] = None
+        self.max_mana: Optional[int] = None
         self.player_damage: int = 50
         self.player_stats: Optional[dict] = None
         self.message: Optional[discord.Message] = None

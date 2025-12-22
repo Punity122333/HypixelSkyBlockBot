@@ -125,26 +125,26 @@ class TradingDB(DatabaseCore):
         
         if initiator_coins > 0:
             await self.execute(
-                'UPDATE players SET coins = coins - ? WHERE user_id = ?',
+                'UPDATE player_economy SET coins = coins - ? WHERE user_id = ?',
                 (initiator_coins, initiator_id)
             )
             await self.execute(
-                'UPDATE players SET coins = coins + ? WHERE user_id = ?',
+                'UPDATE player_economy SET coins = coins + ? WHERE user_id = ?',
                 (initiator_coins, receiver_id)
             )
         
         if receiver_coins > 0:
             await self.execute(
-                'UPDATE players SET coins = coins - ? WHERE user_id = ?',
+                'UPDATE player_economy SET coins = coins - ? WHERE user_id = ?',
                 (receiver_coins, receiver_id)
             )
             await self.execute(
-                'UPDATE players SET coins = coins + ? WHERE user_id = ?',
+                'UPDATE player_economy SET coins = coins + ? WHERE user_id = ?',
                 (receiver_coins, initiator_id)
             )
         
         await self.execute(
-            'UPDATE players SET trading_reputation = trading_reputation + 1 WHERE user_id IN (?, ?)',
+            'UPDATE player_economy SET trading_reputation = trading_reputation + 1 WHERE user_id IN (?, ?)',
             (initiator_id, receiver_id)
         )
         
@@ -218,7 +218,7 @@ class TradingDB(DatabaseCore):
         )
         
         player = await self.fetchone(
-            'SELECT trading_reputation FROM players WHERE user_id = ?',
+            'SELECT trading_reputation FROM player_economy WHERE user_id = ?',
             (user_id,)
         )
         

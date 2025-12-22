@@ -167,8 +167,13 @@ class SlayerCombatAttackButton(Button):
         mob_hp_bar = view._create_health_bar(view.mob_health, view.mob_max_health)
         player_hp_bar = view._create_health_bar(view.player_health or 0, view.player_max_health or 100)
         
+        current_mana = view.current_mana if view.current_mana is not None else 0
+        max_mana = view.max_mana if view.max_mana is not None else 0
+        mana_bar = view._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
+        
         embed.add_field(name=f"{view.mob_name}", value=f"{mob_hp_bar}\n❤️ {view.mob_health}/{view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {view.player_health or 0}/{view.player_max_health or 0} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {current_mana}/{max_mana}", inline=False)
         
         await interaction.edit_original_response(embed=embed, view=view)
 
@@ -221,8 +226,13 @@ class SlayerCombatDefendButton(Button):
         mob_hp_bar = view._create_health_bar(view.mob_health, view.mob_max_health)
         player_hp_bar = view._create_health_bar(view.player_health or 0, view.player_max_health or 100)
         
+        current_mana = view.current_mana if view.current_mana is not None else 0
+        max_mana = view.max_mana if view.max_mana is not None else 0
+        mana_bar = view._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
+        
         embed.add_field(name=f"{view.mob_name}", value=f"{mob_hp_bar}\n❤️ {view.mob_health}/{view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {view.player_health or 0}/{view.player_max_health or 0} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {current_mana}/{max_mana}", inline=False)
         
         await interaction.edit_original_response(embed=embed, view=view)
 
@@ -391,8 +401,13 @@ class SlayerCombatAbilityButton(Button):
         mob_hp_bar = view._create_health_bar(view.mob_health, view.mob_max_health)
         player_hp_bar = view._create_health_bar(view.player_health or 0, view.player_max_health or 100)
         
+        current_mana = view.current_mana if view.current_mana is not None else 0
+        max_mana = view.max_mana if view.max_mana is not None else 0
+        mana_bar = view._create_health_bar(current_mana, max_mana) if max_mana > 0 else "[No Mana]"
+        
         embed.add_field(name=f"{view.mob_name}", value=f"{mob_hp_bar}\n❤️ {view.mob_health}/{view.mob_max_health} HP", inline=False)
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {view.player_health or 0}/{view.player_max_health or 0} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {current_mana}/{max_mana}", inline=False)
         
         await interaction.edit_original_response(embed=embed, view=view)
 

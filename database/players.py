@@ -41,7 +41,12 @@ class PlayersDB(DatabaseCore):
 
     async def get_player(self, user_id: int) -> Optional[Dict]:
         row = await self.fetchone(
-            '''SELECT p.*, s.*, e.*, d.* 
+            '''SELECT 
+               p.user_id, p.username, p.created_at,
+               s.*,
+               e.coins, e.bank, e.bank_capacity, e.total_earned, e.total_spent, 
+               e.trading_reputation, e.merchant_level,
+               d.catacombs_level, d.catacombs_xp
                FROM players p
                LEFT JOIN player_stats s ON p.user_id = s.user_id
                LEFT JOIN player_economy e ON p.user_id = e.user_id

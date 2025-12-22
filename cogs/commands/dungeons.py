@@ -4,6 +4,7 @@ from discord import app_commands
 from utils.decorators import auto_defer
 from utils.systems.party_system import PartySystem
 from utils.systems.dungeon_system import DungeonSystem
+from utils.stat_calculator import StatCalculator
 from components.views.dungeon_view import DungeonView
 
 class DungeonCommands(commands.Cog):
@@ -91,6 +92,21 @@ class DungeonCommands(commands.Cog):
         
         view = DungeonView(self.bot, interaction.user.id, floor_info['name'], floor_info, party_id)
         
+        if party_id:
+            party = PartySystem.get_party_by_id(party_id)
+            if party:
+                total_mana = 0
+                for member in party['members']:
+                    member_stats = await StatCalculator.calculate_full_stats(self.bot.db, member['user_id'])
+                    total_mana += int(member_stats.get('max_mana', 100))
+                view.dungeon_mana_pool = total_mana
+                view.max_dungeon_mana_pool = total_mana
+        else:
+            player_stats = await StatCalculator.calculate_full_stats(self.bot.db, interaction.user.id)
+            solo_mana = int(player_stats.get('max_mana', 100))
+            view.dungeon_mana_pool = solo_mana
+            view.max_dungeon_mana_pool = solo_mana
+        
         embed = discord.Embed(
             title=f"🏰 Entering {floor_info['name']}",
             description="Your dungeon run has started!\n\nNavigate through rooms, find secrets, and survive to get rewards!",
@@ -99,6 +115,7 @@ class DungeonCommands(commands.Cog):
         embed.add_field(name="Expected Time", value=f"~{floor_info['time']//60}m {floor_info['time']%60}s", inline=True)
         embed.add_field(name="Base Rewards", value=f"{floor_info['rewards']:,} coins", inline=True)
         embed.add_field(name="Gear Score", value=f"{gear_score}", inline=True)
+        embed.add_field(name="Dungeon Mana Pool", value=f"✨ {view.dungeon_mana_pool}/{view.max_dungeon_mana_pool}", inline=True)
         
         if party_id:
             party = PartySystem.get_party_by_id(party_id)

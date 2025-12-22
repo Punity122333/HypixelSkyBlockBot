@@ -29,6 +29,10 @@ class DungeonCombatView(View):
         self.party_member_healths = {}
         self.party_member_max_healths = {}
         
+        if not hasattr(self.dungeon_view, 'dungeon_mana_pool'):
+            self.dungeon_view.dungeon_mana_pool = 0
+            self.dungeon_view.max_dungeon_mana_pool = 0
+        
         self.dungeon_view_buttons_backup = []
         for child in list(self.dungeon_view.children):
             self.dungeon_view_buttons_backup.append(child)
@@ -297,16 +301,15 @@ class DungeonCombatView(View):
             ability_multiplier = 3 + (player_stats.get('ability_damage', 0) / 100)
             ability_damage = int(combat_effects['base_damage'] * ability_multiplier)
         
-        player = await self.bot.db.get_player(self.user_id)
-        current_mana = player.get('mana', 0) if player else 0
+        current_dungeon_mana = self.dungeon_view.dungeon_mana_pool
         
-        if current_mana < mana_cost:
-            await interaction.response.send_message("❌ Not enough mana!", ephemeral=True)
+        if not await CombatSystem.can_use_ability(current_dungeon_mana, mana_cost):
+            await interaction.response.send_message(f"❌ Not enough dungeon mana! Need {mana_cost}, have {current_dungeon_mana}", ephemeral=True)
             return
         
-        self.mob_health -= ability_damage
+        self.dungeon_view.dungeon_mana_pool = await CombatSystem.consume_mana(current_dungeon_mana, mana_cost)
         
-        await self.bot.db.update_player(self.user_id, mana=current_mana - mana_cost)
+        self.mob_health -= ability_damage
         
         result = f"✨ **{ability_name}** dealt {ability_damage} damage! (-{mana_cost} mana)"
         
@@ -338,6 +341,7 @@ class DungeonCombatView(View):
         )
         
         embed.add_field(name="Your Health", value=f"❤️ {self.player_health}/{self.player_max_health}", inline=True)
+        embed.add_field(name="Dungeon Mana", value=f"✨ {self.dungeon_view.dungeon_mana_pool}/{self.dungeon_view.max_dungeon_mana_pool}", inline=True)
         mob_health_bar = self._create_health_bar(self.mob_health, self.mob_max_health)
         embed.add_field(name="Enemy Health", value=f"💀 {self.mob_health}/{self.mob_max_health}\n{mob_health_bar}", inline=True)
         
@@ -489,6 +493,11 @@ class DungeonCombatView(View):
         
         coin_rewards = (self.dungeon_view.rooms_cleared * 100) + (self.dungeon_view.secrets_found * 50) - (self.dungeon_view.death_count * 50)
         xp_rewards = (self.dungeon_view.rooms_cleared * 20) + (self.dungeon_view.secrets_found * 10) + 100
+        
+        drop_xp = await CombatSystem._calculate_drop_xp(self.bot.db, [{'item_id': item_id, 'amount': amount} for item_id, amount in drops])
+        dungeon_drop_xp = await CombatSystem._calculate_drop_xp(self.bot.db, [{'item_id': item_id, 'amount': amount} for item_id, amount in dungeon_loot])
+        xp_rewards += drop_xp + dungeon_drop_xp
+        
         total_rewards = coin_rewards + self.dungeon_view.coins_gained_in_run
         
         if self.party_id:

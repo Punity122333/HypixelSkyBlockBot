@@ -45,6 +45,8 @@ class DungeonView(View):
         self.coins_gained_in_run = 0
         self.current_puzzle: Optional[Puzzle] = None
         self.party_size = 1
+        self.dungeon_mana_pool = 0
+        self.max_dungeon_mana_pool = 0
         
         if self.party_id:
             party = PartySystem.get_party_by_id(self.party_id)

@@ -32,7 +32,8 @@ class DungeonOpenDoorButton(discord.ui.Button):
             
             floor_difficulty = {
                 'entrance': 1, 'floor1': 2, 'floor2': 3, 'floor3': 5,
-                'floor4': 7, 'floor5': 10, 'floor6': 15, 'floor7': 20
+                'floor4': 7, 'floor5': 10, 'floor6': 15, 'floor7': 20,
+                'm1': 25, 'm2': 30, 'm3': 35, 'm4': 40, 'm5': 45, 'm6': 50, 'm7': 55
             }
             floor_id = self.parent_view.floor_name.lower().replace(' ', '')
             difficulty = floor_difficulty.get(floor_id, 1)
@@ -105,27 +106,43 @@ class DungeonOpenDoorButton(discord.ui.Button):
                 result = f"🩸 **Blood Door!** Not enough HP to open (need {cost} HP)"
                 room_type = 'blocked'
         elif room_type == 'crypt':
+            floor_difficulty = {
+                'entrance': 1, 'floor1': 2, 'floor2': 3, 'floor3': 4,
+                'floor4': 5, 'floor5': 7, 'floor6': 10, 'floor7': 15,
+                'm1': 20, 'm2': 25, 'm3': 30, 'm4': 35, 'm5': 40, 'm6': 45, 'm7': 50
+            }
+            floor_id = self.parent_view.floor_name.lower().replace(' ', '')
+            floor_mult = floor_difficulty.get(floor_id, 1)
+            
             self.parent_view.crypts_opened += 1
             loot_roll = random.random()
             if loot_roll > 0.7:
-                coins = random.randint(100, 300)
+                coins = random.randint(100, 300) * floor_mult
                 self.parent_view.coins_gained_in_run += coins
                 result = f"⚰️ **Crypt!** You opened a crypt and found {coins} coins!"
             else:
-                damage_taken = random.randint(15, 35)
+                damage_taken = random.randint(15, 35) * floor_mult
                 self.parent_view.current_health = (self.parent_view.current_health or 0) - damage_taken
                 self.parent_view.total_damage += damage_taken
                 result = f"⚰️ **Crypt!** Undead burst out and dealt {damage_taken} damage!"
         elif room_type == 'mob':
             from components.views.dungeon_combat_view import DungeonCombatView
             
+            floor_difficulty = {
+                'entrance': 1, 'floor1': 2, 'floor2': 3, 'floor3': 4,
+                'floor4': 5, 'floor5': 7, 'floor6': 10, 'floor7': 15,
+                'm1': 20, 'm2': 25, 'm3': 30, 'm4': 35, 'm5': 40, 'm6': 45, 'm7': 50
+            }
+            floor_id = self.parent_view.floor_name.lower().replace(' ', '')
+            floor_mult = floor_difficulty.get(floor_id, 1)
+            
             mob_difficulty = random.choice(['easy', 'medium', 'hard', 'miniboss'])
             
             mob_configs = {
-                'easy': {'health': 150, 'damage': 10, 'defense': 10},
-                'medium': {'health': 300, 'damage': 20, 'defense': 25},
-                'hard': {'health': 500, 'damage': 35, 'defense': 50},
-                'miniboss': {'health': 1000, 'damage': 60, 'defense': 100}
+                'easy': {'health': 150 * floor_mult, 'damage': 10 * floor_mult, 'defense': 10 * floor_mult},
+                'medium': {'health': 300 * floor_mult, 'damage': 20 * floor_mult, 'defense': 25 * floor_mult},
+                'hard': {'health': 500 * floor_mult, 'damage': 35 * floor_mult, 'defense': 50 * floor_mult},
+                'miniboss': {'health': 1000 * floor_mult, 'damage': 60 * floor_mult, 'defense': 100 * floor_mult}
             }
             
             config = mob_configs[mob_difficulty]
@@ -279,8 +296,16 @@ class DungeonSearchSecretsButton(discord.ui.Button):
         
         result = ""
         if random.random() > 0.4:
+            floor_difficulty = {
+                'entrance': 1, 'floor1': 2, 'floor2': 3, 'floor3': 4,
+                'floor4': 5, 'floor5': 7, 'floor6': 10, 'floor7': 15,
+                'm1': 20, 'm2': 25, 'm3': 30, 'm4': 35, 'm5': 40, 'm6': 45, 'm7': 50
+            }
+            floor_id = self.parent_view.floor_name.lower().replace(' ', '')
+            floor_mult = floor_difficulty.get(floor_id, 1)
+            
             self.parent_view.secrets_found += 1
-            coins = random.randint(30, 120)
+            coins = random.randint(30, 120) * floor_mult
             self.parent_view.coins_gained_in_run += coins
             
             secret_types = ['Chest', 'Lever', 'Wither Essence', 'Bat', 'Item Frame', 'Redstone Key']
@@ -379,6 +404,10 @@ class DungeonExitButton(discord.ui.Button):
         
         coin_rewards = (self.parent_view.rooms_cleared * 100) + (self.parent_view.secrets_found * 50) - (self.parent_view.death_count * 50)
         xp_rewards = (self.parent_view.rooms_cleared * 20) + (self.parent_view.secrets_found * 10)
+        
+        drop_xp = await CombatSystem._calculate_drop_xp(self.parent_view.bot.db, [{'item_id': item_id, 'amount': amount} for item_id, amount in drops])
+        dungeon_drop_xp = await CombatSystem._calculate_drop_xp(self.parent_view.bot.db, [{'item_id': item_id, 'amount': amount} for item_id, amount in dungeon_loot])
+        xp_rewards += drop_xp + dungeon_drop_xp
         
         total_rewards = coin_rewards + self.parent_view.coins_gained_in_run
         

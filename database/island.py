@@ -58,7 +58,7 @@ class IslandDB(DatabaseCore):
             return False
         
         player = await self.fetchone(
-            'SELECT coins FROM players WHERE user_id = ?',
+            'SELECT coins FROM player_economy WHERE user_id = ?',
             (user_id,)
         )
         
@@ -75,7 +75,7 @@ class IslandDB(DatabaseCore):
             return False
         
         await self.execute(
-            'UPDATE players SET coins = coins - ? WHERE user_id = ?',
+            'UPDATE player_economy SET coins = coins - ? WHERE user_id = ?',
             (decoration['cost'], user_id)
         )
         
@@ -163,7 +163,7 @@ class IslandDB(DatabaseCore):
             return False
         
         player = await self.fetchone(
-            'SELECT coins FROM players WHERE user_id = ?',
+            'SELECT coins FROM player_economy WHERE user_id = ?',
             (user_id,)
         )
         
@@ -171,7 +171,7 @@ class IslandDB(DatabaseCore):
             return False
         
         await self.execute(
-            'UPDATE players SET coins = coins - ? WHERE user_id = ?',
+            'UPDATE player_economy SET coins = coins - ? WHERE user_id = ?',
             (theme['cost'], user_id)
         )
         

@@ -70,13 +70,17 @@ class BossRotationFightButton(discord.ui.Button):
             self.parent_view.bot.db, self.parent_view.bot.game_data, interaction.user.id
         )
         player_health = int(player_stats.get('max_health', 100))
+        player_mana = int(player_stats.get('max_mana', 100))
         
         combat_view.player_health = player_health
         combat_view.player_max_health = player_health
         combat_view.player_stats = player_stats
+        combat_view.current_mana = player_mana
+        combat_view.max_mana = player_mana
         
         player_hp_bar = combat_view._create_health_bar(player_health, player_health)
         mob_hp_bar = combat_view._create_health_bar(boss_data['health'], boss_data['health'])
+        mana_bar = combat_view._create_health_bar(player_mana, player_mana) if player_mana > 0 else "[No Mana]"
         
         embed = discord.Embed(
             title=f"{boss_data['emoji']} Boss Battle: {boss_data['name']}",
@@ -85,6 +89,7 @@ class BossRotationFightButton(discord.ui.Button):
         )
         
         embed.add_field(name="Your Health", value=f"{player_hp_bar}\n❤️ {player_health}/{player_health} HP", inline=False)
+        embed.add_field(name="Your Mana", value=f"{mana_bar}\n✨ {player_mana}/{player_mana}", inline=False)
         embed.add_field(name=f"{boss_data['name']} Health", value=f"{mob_hp_bar}\n❤️ {boss_data['health']:,}/{boss_data['health']:,} HP", inline=False)
         
         if party_id:
