@@ -256,25 +256,10 @@ class GameData:
         return await self.db.get_loot_table(table_id, category)
     
     async def calculate_level_from_xp(self, skill_name: str, xp: int):
-        config = await self.get_skill_config(skill_name)
-        if not config or not config.get('xp_requirements'):
-            return 1
-        xp_reqs = config['xp_requirements']
-        level = 0
-        sorted_levels = sorted([(int(lvl), req_xp) for lvl, req_xp in xp_reqs.items()])
-        for lvl, required_xp in sorted_levels:
-            if xp >= required_xp:
-                level = lvl
-            else:
-                break
-        return max(level, 0)
+        return await self.db.game_constants.calculate_level_from_xp(skill_name, xp)
     
     async def get_xp_for_level(self, skill_name: str, level: int):
-        config = await self.get_skill_config(skill_name)
-        if not config or not config.get('xp_requirements'):
-            return 0
-        xp_reqs = config['xp_requirements']
-        return xp_reqs.get(str(level), 0)
+        return await self.db.game_constants.get_xp_for_level(skill_name, level)
     
     async def get_mob_loot_table(self, mob_name: str):
         loot = await self.get_loot_table(mob_name, 'mob')

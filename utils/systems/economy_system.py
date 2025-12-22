@@ -40,7 +40,7 @@ class EconomySystem:
                 'error': 'Insufficient coins'
             }
         
-        await db.update_player(user_id, coins=player['coins'] - total_cost)
+        await db.players.update_player(user_id, coins=player['coins'] - total_cost, total_spent=player.get('total_spent', 0) + total_cost)
         await db.add_item_to_inventory(user_id, item_id, amount)
         
         return {
@@ -72,7 +72,7 @@ class EconomySystem:
         
         player = await db.get_player(user_id)
         if player:
-            await db.update_player(user_id, coins=player['coins'] + total_value)
+            await db.players.update_player(user_id, coins=player['coins'] + total_value, total_earned=player.get('total_earned', 0) + total_value)
         
         return {
             'success': True,
@@ -95,7 +95,7 @@ class EconomySystem:
             if not player or player['coins'] < total_cost:
                 return {'success': False, 'error': 'Insufficient coins'}
             
-            await db.update_player(user_id, coins=player['coins'] - total_cost)
+            await db.players.update_player(user_id, coins=player['coins'] - total_cost, total_spent=player.get('total_spent', 0) + total_cost)
         else:
             item_count = await db.get_item_count(user_id, product_id)
             if item_count < amount:
@@ -126,7 +126,7 @@ class EconomySystem:
         if not player or player['coins'] < total_cost:
             return {'success': False, 'error': 'Insufficient coins'}
         
-        await db.update_player(user_id, coins=player['coins'] - total_cost)
+        await db.players.update_player(user_id, coins=player['coins'] - total_cost, total_spent=player.get('total_spent', 0) + total_cost)
         await db.add_item_to_inventory(user_id, product_id, amount)
         
         new_sell_price = sell_price * 1.01
@@ -164,7 +164,7 @@ class EconomySystem:
         
         player = await db.get_player(user_id)
         if player:
-            await db.update_player(user_id, coins=player['coins'] + total_value)
+            await db.players.update_player(user_id, coins=player['coins'] + total_value, total_earned=player.get('total_earned', 0) + total_value)
         
         new_buy_price = buy_price * 0.99
         await db.update_bazaar_product(
@@ -218,7 +218,7 @@ class EconomySystem:
         if not success:
             return {'success': False, 'error': 'Bid failed'}
         
-        await db.update_player(user_id, coins=player['coins'] - bid_amount)
+        await db.players.update_player(user_id, coins=player['coins'] - bid_amount, total_spent=player.get('total_spent', 0) + bid_amount)
         
         return {
             'success': True,

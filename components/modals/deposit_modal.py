@@ -23,7 +23,7 @@ class DepositModal(discord.ui.Modal, title="Deposit Coins"):
             await interaction.response.send_message("❌ You don't have enough coins!", ephemeral=True)
             return
         
-        await self.bot.db.update_player(
+        await self.bot.db.players.update_player(
             interaction.user.id,
             coins=player['coins'] - amount,
             bank=player['bank'] + amount

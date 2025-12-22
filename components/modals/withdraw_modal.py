@@ -24,7 +24,7 @@ class WithdrawModal(discord.ui.Modal, title="Withdraw Coins"):
             await interaction.response.send_message("❌ You don't have enough coins in your bank!", ephemeral=True)
             return
         
-        await self.bot.db.update_player(
+        await self.bot.db.players.update_player(
             interaction.user.id,
             coins=player['coins'] + amount,
             bank=player['bank'] - amount

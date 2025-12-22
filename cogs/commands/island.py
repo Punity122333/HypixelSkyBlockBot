@@ -79,7 +79,7 @@ class IslandCommands(commands.Cog):
                 base_health = 100
                 base_mana = 20
                 
-                await self.bot.db.update_player(
+                await self.bot.db.players.update_player(
                     interaction.user.id,
                     max_health=base_health + health_bonus,
                     max_mana=base_mana + mana_bonus

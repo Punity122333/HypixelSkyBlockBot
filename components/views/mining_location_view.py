@@ -212,6 +212,7 @@ class MiningLocationView(View):
             return
         
         tool_id = pickaxe['item_id']
+        is_drill = 'drill' in tool_id.lower()
         
         dwarven_progress = await DwarvenMinesSystem.get_dwarven_progress(self.bot.db, interaction.user.id)
         
@@ -282,6 +283,31 @@ class MiningLocationView(View):
                         await DwarvenMinesSystem.update_commission_progress(
                             self.bot.db, interaction.user.id, 'hard_stone_mining', amount
                         )
+                
+                if is_drill:
+                    gemstone_types = ['ruby', 'sapphire', 'amber', 'jade', 'topaz', 'jasper', 'amethyst']
+                    gemstone_chances = {
+                        'ruby': 0.08,
+                        'sapphire': 0.08,
+                        'amber': 0.08,
+                        'jade': 0.08,
+                        'topaz': 0.08,
+                        'jasper': 0.08,
+                        'amethyst': 0.04
+                    }
+                    
+                    for gemstone in gemstone_types:
+                        base_chance = gemstone_chances[gemstone]
+                        fortune_multiplier = 1.0 + (hotm_stats.get('mining_fortune', 0) / 100)
+                        adjusted_chance = base_chance * fortune_multiplier
+                        
+                        if random.random() < adjusted_chance:
+                            gemstone_amount = random.randint(1, 3)
+                            await self.bot.db.add_item_to_inventory(interaction.user.id, gemstone, gemstone_amount)
+                            await self.bot.db.update_collection(interaction.user.id, gemstone, gemstone_amount)
+                            
+                            gemstone_name = gemstone.replace('_', ' ').title()
+                            items_found[gemstone_name] = items_found.get(gemstone_name, 0) + gemstone_amount
                 
                 xp_gained = int(result['xp'] * event_multiplier)
                 total_xp += xp_gained

@@ -61,8 +61,7 @@ class CombatSystem:
             return multiplier
             
         equipment = dict(row)
-        
-        # Get sword item_id from inventory
+
         sword_slot_id = equipment.get('sword_slot')
         if sword_slot_id:
             cursor = await db.conn.execute('''
@@ -80,8 +79,7 @@ class CombatSystem:
                     weapon_stats = dict(weapon_row)
                     if weapon_stats.get('combat_drop_yield_multiplier'):
                         multiplier *= weapon_stats['combat_drop_yield_multiplier']
-        
-        # Get bow item_id from inventory
+
         bow_slot_id = equipment.get('bow_slot')
         if bow_slot_id:
             cursor = await db.conn.execute('''
@@ -99,8 +97,7 @@ class CombatSystem:
                     weapon_stats = dict(weapon_row)
                     if weapon_stats.get('combat_drop_yield_multiplier'):
                         multiplier = max(multiplier, weapon_stats['combat_drop_yield_multiplier'])
-        
-        # Get armor item_ids from inventory
+
         armor_slots = ['helmet_slot', 'chestplate_slot', 'leggings_slot', 'boots_slot']
         armor_count = 0
         armor_multiplier_sum = 0.0
@@ -139,7 +136,18 @@ class CombatSystem:
         
         combat_drop_yield = await cls._get_combat_drop_yield_multiplier(db, user_id)
         
-        drops = [(item_id, max(1, int(amount * combat_drop_yield))) for item_id, amount in drops]
+        drops = [
+            (
+                item_id,
+                max(
+                    1,
+                    int(amount * (combat_drop_yield if "pet" not in item_id.lower() and "enchanted" not in item_id.lower()
+                                else combat_drop_yield / 2))
+                )
+            )
+            for item_id, amount in drops
+        ]
+
         
         return drops
     

@@ -113,7 +113,7 @@ class TalismanPouchSystem:
         
         new_capacity = current_capacity + 6
         
-        await db.update_player(user_id, coins=player['coins'] - cost)
+        await db.players.update_player(user_id, coins=player['coins'] - cost, total_spent=player.get('total_spent', 0) + cost)
         await db.upgrade_talisman_pouch_capacity(user_id, new_capacity)
         
         return {'success': True, 'new_capacity': new_capacity, 'cost': cost}

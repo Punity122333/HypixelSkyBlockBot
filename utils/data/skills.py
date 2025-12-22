@@ -1,40 +1,23 @@
-SKILL_XP_REQUIREMENTS = {}
-RUNECRAFTING_XP_REQUIREMENTS = {}
-SOCIAL_XP_REQUIREMENTS = {}
 COLLECTION_TIERS = {}
+_db_instance = None
 
 async def _load_xp_requirements(db):
-    global SKILL_XP_REQUIREMENTS, RUNECRAFTING_XP_REQUIREMENTS, SOCIAL_XP_REQUIREMENTS
-    SKILL_XP_REQUIREMENTS = await db.game_constants.get_skill_xp_requirements('standard')
-    RUNECRAFTING_XP_REQUIREMENTS = await db.game_constants.get_skill_xp_requirements('runecrafting')
-    SOCIAL_XP_REQUIREMENTS = await db.game_constants.get_skill_xp_requirements('social')
+    global _db_instance
+    _db_instance = db
 
 async def _load_collection_tiers(db):
     global COLLECTION_TIERS
     COLLECTION_TIERS = await db.game_constants.get_collection_tiers()
 
-def get_xp_for_level(skill: str, level: int) -> int:
-    if skill == 'runecrafting':
-        return RUNECRAFTING_XP_REQUIREMENTS.get(level, 0)
-    elif skill == 'social':
-        return SOCIAL_XP_REQUIREMENTS.get(level, 0)
-    else:
-        return SKILL_XP_REQUIREMENTS.get(level, 0)
+async def get_xp_for_level(skill: str, level: int) -> int:
+    if _db_instance:
+        return await _db_instance.game_constants.get_xp_for_level(skill, level)
+    return 0
 
-def calculate_level_from_xp(skill: str, xp: int) -> int:
-    requirements = SKILL_XP_REQUIREMENTS
-    if skill == 'runecrafting':
-        requirements = RUNECRAFTING_XP_REQUIREMENTS
-    elif skill == 'social':
-        requirements = SOCIAL_XP_REQUIREMENTS
-    
-    level = 0
-    for lvl, req_xp in sorted(requirements.items()):
-        if xp >= req_xp:
-            level = lvl
-        else:
-            break
-    return level
+async def calculate_level_from_xp(skill: str, xp: int) -> int:
+    if _db_instance:
+        return await _db_instance.game_constants.calculate_level_from_xp(skill, xp)
+    return 0
 
 def get_skill_rewards(skill: str, level: int) -> str:
     rewards = {

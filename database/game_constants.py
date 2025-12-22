@@ -27,13 +27,21 @@ class GameConstantsDB:
     
     async def get_xp_for_level(self, skill: str, level: int) -> int:
         requirements = await self.get_skill_xp_requirements(skill)
-        return requirements.get(level, 0)
+        cumulative_xp = 0
+        for lvl in sorted(requirements.keys()):
+            if lvl > level:
+                break
+            cumulative_xp += requirements.get(lvl, 0)
+        return cumulative_xp
     
     async def calculate_level_from_xp(self, skill: str, xp: int) -> int:
         requirements = await self.get_skill_xp_requirements(skill)
         level = 0
-        for lvl, req_xp in sorted(requirements.items()):
-            if xp >= req_xp:
+        cumulative_xp = 0
+        for lvl in sorted(requirements.keys()):
+            req_xp = requirements.get(lvl, 0)
+            if cumulative_xp + req_xp <= xp:
+                cumulative_xp += req_xp
                 level = lvl
             else:
                 break

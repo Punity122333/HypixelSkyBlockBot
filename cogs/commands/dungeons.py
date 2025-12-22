@@ -164,7 +164,6 @@ class DungeonCommands(commands.Cog):
         embed.add_field(name="Secrets Found", value=f"{secrets_found:,}", inline=True)
         
         embed.add_field(name="Best Score", value=best_score_text, inline=True)
-        embed.add_field(name="Fastest Run", value=fastest_run_text, inline=True)
         embed.add_field(name="Deaths", value=f"{total_deaths:,}", inline=True)
         
         await interaction.followup.send(embed=embed)

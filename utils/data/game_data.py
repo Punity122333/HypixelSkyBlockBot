@@ -247,28 +247,10 @@ class GameDataManager:
         return drops
     
     async def get_xp_for_level(self, skill_name: str, level: int) -> int:
-        skill_config = await self.get_skill_config(skill_name)
-        if skill_config and 'xp_requirements' in skill_config:
-            xp_reqs = skill_config['xp_requirements']
-            return xp_reqs.get(str(level), 0) if isinstance(list(xp_reqs.keys())[0], str) else xp_reqs.get(level, 0)
-        return 0
+        return await self.db.game_constants.get_xp_for_level(skill_name, level)
     
     async def calculate_level_from_xp(self, skill_name: str, xp: int) -> int:
-        skill_config = await self.get_skill_config(skill_name)
-        if not skill_config or 'xp_requirements' not in skill_config:
-            return 0
-        
-        requirements = skill_config['xp_requirements']
-        if isinstance(list(requirements.keys())[0], str):
-            requirements = {int(k): v for k, v in requirements.items()}
-        
-        level = 0
-        for lvl, req_xp in sorted(requirements.items()):
-            if xp >= req_xp:
-                level = lvl
-            else:
-                break
-        return level
+        return await self.db.game_constants.calculate_level_from_xp(skill_name, xp)
     
     async def get_skill_stat_bonuses(self, skill_name: str, level: int) -> Dict[str, float]:
         skill_config = await self.get_skill_config(skill_name)

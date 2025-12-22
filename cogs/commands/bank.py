@@ -44,8 +44,8 @@ class BankCommands(commands.Cog):
 
         recipient = await self.fetch_player(user.id, user.name)
 
-        await self.bot.db.update_player(interaction.user.id, coins=payer['coins'] - amount)
-        await self.bot.db.update_player(user.id, coins=recipient['coins'] + amount)
+        await self.bot.db.players.update_player(interaction.user.id, coins=payer['coins'] - amount, total_spent=payer.get('total_spent', 0) + amount)
+        await self.bot.db.players.update_player(user.id, coins=recipient['coins'] + amount, total_earned=recipient.get('total_earned', 0) + amount)
 
         payer = await self.fetch_player(interaction.user.id, interaction.user.name, fresh=True)
 

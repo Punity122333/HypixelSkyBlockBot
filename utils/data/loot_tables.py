@@ -149,9 +149,9 @@ MOB_LOOT_TABLES = {
         'xp': 120
     },
     'Dragon': {
-        'uncommon': [('dragon_scale', 2, 5), ('enchanted_ender_pearl', 3, 8)],
-        'rare': [('dragon_fragment', 5, 15)],
-        'epic': [('dragon_helmet', 1, 1), ('dragon_chestplate', 1, 1)],
+        'uncommon': [('dragon_scale', 2, 5), ('enchanted_ender_pearl', 3, 8), ('wise_dragon_fragment', 1, 2)],
+        'rare': [('dragon_fragment', 5, 15), ('strong_dragon_fragment', 1, 3), ('young_dragon_fragment', 1, 3)],
+        'epic': [('dragon_helmet', 1, 1), ('dragon_chestplate', 1, 1), ('superior_dragon_fragment', 1, 2)],
         'legendary': [('ender_dragon_pet', 1, 1), ('aspect_of_the_dragons', 1, 1)],
         'coins': (1000, 5000),
         'xp': 1000
@@ -212,9 +212,9 @@ MOB_LOOT_TABLES = {
         'xp': 150
     },
     'Ender Dragon': {
-        'uncommon': [('dragon_scale', 5, 12), ('enchanted_ender_pearl', 8, 15)],
-        'rare': [('dragon_fragment', 10, 25)],
-        'epic': [('dragon_helmet', 1, 1), ('dragon_chestplate', 1, 1), ('dragon_leggings', 1, 1), ('dragon_boots', 1, 1)],
+        'uncommon': [('dragon_scale', 5, 12), ('enchanted_ender_pearl', 8, 15), ('wise_dragon_fragment', 1, 2)],
+        'rare': [('dragon_fragment', 10, 25), ('strong_dragon_fragment', 1, 3), ('young_dragon_fragment', 1, 3)],
+        'epic': [('dragon_helmet', 1, 1), ('dragon_chestplate', 1, 1), ('dragon_leggings', 1, 1), ('dragon_boots', 1, 1), ('superior_dragon_fragment', 1, 2)],
         'legendary': [('ender_dragon_pet', 1, 1), ('aspect_of_the_dragons', 1, 1)],
         'mythic': [('dragon_egg', 1, 1)],
         'coins': (1000, 5000),

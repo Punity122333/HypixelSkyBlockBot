@@ -389,3 +389,48 @@ class DungeonSystem:
     async def add_class_xp(cls, db, user_id: int, dungeon_class: str, xp: int):
         current_level = await cls.get_class_level(db, user_id, dungeon_class)
         await db.update_player(user_id, **{f'{dungeon_class}_level': current_level})
+    
+    @classmethod
+    async def get_floor_data(cls, game_data, floor_id: str) -> Dict[str, Any]:
+        floor_info = await game_data.get_dungeon_floor(floor_id)
+        
+        if not floor_info:
+            default_floors = {
+                'entrance': {'name': 'Entrance', 'rewards': 500, 'time': 180},
+                'floor1': {'name': 'Floor 1', 'rewards': 1000, 'time': 240},
+                'floor2': {'name': 'Floor 2', 'rewards': 2000, 'time': 300},
+                'floor3': {'name': 'Floor 3', 'rewards': 4000, 'time': 360},
+                'floor4': {'name': 'Floor 4', 'rewards': 8000, 'time': 420},
+                'floor5': {'name': 'Floor 5', 'rewards': 15000, 'time': 480},
+                'floor6': {'name': 'Floor 6', 'rewards': 30000, 'time': 540},
+                'floor7': {'name': 'Floor 7', 'rewards': 60000, 'time': 600},
+                'm1': {'name': 'Master Mode 1', 'rewards': 100000, 'time': 300},
+                'm2': {'name': 'Master Mode 2', 'rewards': 150000, 'time': 360},
+                'm3': {'name': 'Master Mode 3', 'rewards': 250000, 'time': 420},
+                'm4': {'name': 'Master Mode 4', 'rewards': 400000, 'time': 480},
+                'm5': {'name': 'Master Mode 5', 'rewards': 600000, 'time': 540},
+                'm6': {'name': 'Master Mode 6', 'rewards': 900000, 'time': 600},
+                'm7': {'name': 'Master Mode 7', 'rewards': 1500000, 'time': 660},
+            }
+            return default_floors.get(floor_id, default_floors['entrance'])
+        
+        return {
+            'name': floor_info.get('name', 'Unknown Floor'),
+            'rewards': int(floor_info.get('rewards', 5000)),
+            'time': int(floor_info.get('time', 300))
+        }
+    
+    @classmethod
+    def calculate_rank(cls, score: int) -> str:
+        if score >= 300:
+            return "S+"
+        elif score >= 270:
+            return "S"
+        elif score >= 240:
+            return "A"
+        elif score >= 210:
+            return "B"
+        elif score >= 180:
+            return "C"
+        else:
+            return "D"

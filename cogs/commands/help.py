@@ -197,7 +197,7 @@ class MiscCommands(commands.Cog):
         await self.bot.db.add_item_to_inventory(interaction.user.id, 'cobblestone', 20)
         await self.bot.db.add_item_to_inventory(interaction.user.id, 'oak_wood', 15)
         
-        await self.bot.db.update_player(interaction.user.id, coins=player['coins'] + 500, total_earned=player.get('total_earned', 0) + 500)
+        await self.bot.db.players.update_player(interaction.user.id, coins=player['coins'] + 500, total_earned=player.get('total_earned', 0) + 500)
         
         import time
         await self.bot.db.update_progression(

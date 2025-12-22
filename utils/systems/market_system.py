@@ -131,7 +131,7 @@ class MarketSystem:
         if not player or player['coins'] < total_cost:
             return False, f"Not enough coins! Need {total_cost:,}"
         
-        await self.db.update_player(user_id, coins=player['coins'] - total_cost, total_spent=player.get('total_spent', 0) + total_cost)
+        await self.db.players.update_player(user_id, coins=player['coins'] - total_cost, total_spent=player.get('total_spent', 0) + total_cost)
         await self.db.add_item_to_inventory(user_id, product_id, amount)
         
         await self.db.execute_bazaar_transaction(-1, user_id, product_id, amount, product['buy_price'])
@@ -162,7 +162,7 @@ class MarketSystem:
         
         player = await self.db.get_player(user_id)
         if player:
-            await self.db.update_player(user_id, coins=player['coins'] + total_gain, total_earned=player.get('total_earned', 0) + total_gain)
+            await self.db.players.update_player(user_id, coins=player['coins'] + total_gain, total_earned=player.get('total_earned', 0) + total_gain)
         
         await self.db.execute_bazaar_transaction(user_id, -1, product_id, amount, product['sell_price'])
         
@@ -184,7 +184,7 @@ class MarketSystem:
         if not player or player['coins'] < total_cost:
             return False, f"Not enough coins! Need {total_cost:,}"
         
-        await self.db.update_player(user_id, coins=player['coins'] - total_cost)
+        await self.db.players.update_player(user_id, coins=player['coins'] - total_cost, total_spent=player.get('total_spent', 0) + total_cost)
         await self.db.create_bazaar_order(user_id, product_id, 'BUY', amount, price)
         
         return True, f"Created buy order for {amount}x {product_id} at {price:.1f} coins each"
