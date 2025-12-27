@@ -12,12 +12,11 @@ class EnchantingAdvanced(commands.Cog):
 
     @app_commands.command(name="enchant", description="Enchant an item")
     @app_commands.describe(
-        item="Item to enchant",
-        slot="Inventory slot of the item to enchant",
+        item="Item to enchant (name or ID)",
         enchantment="Enchantment to apply",
         level="Enchantment level"
     )
-    async def enchant(self, interaction: discord.Interaction, item: str, slot: int, enchantment: str, level: int):
+    async def enchant(self, interaction: discord.Interaction, item: str, enchantment: str, level: int):
         await self.bot.player_manager.get_or_create_player(
             interaction.user.id, interaction.user.name
         )
@@ -42,28 +41,6 @@ class EnchantingAdvanced(commands.Cog):
             )
             return
         
-        inventory_item = await self.bot.db.get_inventory_item_by_slot(interaction.user.id, slot)
-        if not inventory_item:
-            await interaction.response.send_message(
-                f"❌ No item found in slot {slot}!",
-                ephemeral=True
-            )
-            return
-        
-        item_data = await self.bot.game_data.get_item(inventory_item['item_id'])
-        if not item_data:
-            await interaction.response.send_message("❌ Item not found!", ephemeral=True)
-            return
-        
-        valid_types = enchant_data.get('applies_to', [])
-        item_type_lower = item_data.get('item_type', '').lower()
-        if item_type_lower not in valid_types:
-            await interaction.response.send_message(
-                f"❌ This enchantment cannot be applied to {item_data['name']}!",
-                ephemeral=True
-            )
-            return
-        
         cost = level * 1000
         player = await self.bot.db.get_player(interaction.user.id)
         
@@ -73,78 +50,151 @@ class EnchantingAdvanced(commands.Cog):
                 ephemeral=True
             )
             return
+
+        inventory = await self.bot.db.get_inventory(interaction.user.id)
+        if not inventory:
+            await interaction.response.send_message(
+                "❌ Your inventory is empty!",
+                ephemeral=True
+            )
+            return
+
+        # Search for matching items in inventory
+        matching_items = []
+        item_search = item.lower().strip()
+        valid_types = enchant_data.get('applies_to', [])
         
+        for inv_item in inventory:
+            item_obj = await self.bot.game_data.get_item(inv_item['item_id'])
+            if item_obj:
+                # Check if item name/id matches the search
+                if (inv_item['item_id'].lower() == item_search or 
+                    item_obj.get('name', '').lower() == item_search or
+                    item_search in inv_item['item_id'].lower() or
+                    item_search in item_obj.get('name', '').lower()):
+                    
+                    # Check if enchantment can be applied to this item type
+                    item_type_lower = item_obj.get('item_type', '').lower()
+                    if item_type_lower in valid_types:
+                        matching_items.append({
+                            'id': inv_item['id'],
+                            'item_id': inv_item['item_id'],
+                            'name': item_obj.get('name', inv_item['item_id']),
+                            'rarity': item_obj.get('rarity', 'COMMON'),
+                            'amount': inv_item.get('amount', 1)
+                        })
+        
+        if not matching_items:
+            await interaction.response.send_message(
+                f"❌ Could not find '{item}' in your inventory that can be enchanted with {enchant_data['name']}!",
+                ephemeral=True
+            )
+            return
+        
+        # Deduct coins upfront
         await self.bot.player_manager.remove_coins(interaction.user.id, cost)
         
-        await self.bot.db.add_enchantment_to_item(inventory_item['id'], enchantment.lower(), level)
-        
+        # Calculate base XP (multiplier applied in modal)
         xp_gained = level * 20
         
-        xp_multiplier = await self.event_effects.get_xp_multiplier('enchanting')
-        xp_gained = int(xp_gained * xp_multiplier)
-        
-        skills = await self.bot.db.get_skills(interaction.user.id)
-        enchanting_skill = next((s for s in skills if s['skill_name'] == 'enchanting'), None)
-        new_level = enchanting_skill['level'] if enchanting_skill else 0
-        
-        if enchanting_skill:
-            new_xp = enchanting_skill['xp'] + xp_gained
-            new_level = await self.bot.game_data.calculate_level_from_xp('enchanting', new_xp)
-            await self.bot.db.update_skill(interaction.user.id, 'enchanting', xp=new_xp, level=new_level)
+        # If only one item matches, enchant it directly
+        if len(matching_items) == 1:
+            inventory_item_id = matching_items[0]['id']
+            item_name = matching_items[0]['name']
+            
+            await self.bot.db.add_enchantment_to_item(inventory_item_id, enchantment.lower(), level)
+            
+            xp_multiplier = await self.event_effects.get_xp_multiplier('enchanting')
+            final_xp = int(xp_gained * xp_multiplier)
+            
+            skills = await self.bot.db.get_skills(interaction.user.id)
+            enchanting_skill = next((s for s in skills if s['skill_name'] == 'enchanting'), None)
+            new_level = enchanting_skill['level'] if enchanting_skill else 0
+            
+            if enchanting_skill:
+                new_xp = enchanting_skill['xp'] + final_xp
+                new_level = await self.bot.game_data.calculate_level_from_xp('enchanting', new_xp)
+                await self.bot.db.update_skill(interaction.user.id, 'enchanting', xp=new_xp, level=new_level)
 
-        await AchievementSystem.check_skill_achievements(
-            self.bot.db, interaction, interaction.user.id, 'enchanting', new_level
-        )
-        
-        from utils.systems.badge_system import BadgeSystem
-        await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='enchanting', level=new_level)
-        if new_level >= 50:
-            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
+            await AchievementSystem.check_skill_achievements(
+                self.bot.db, interaction, interaction.user.id, 'enchanting', new_level
+            )
+            
+            from utils.systems.badge_system import BadgeSystem
+            await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill', skill_name='enchanting', level=new_level)
+            if new_level >= 50:
+                await BadgeSystem.check_and_unlock_badges(self.bot.db, interaction.user.id, 'skill_50')
 
-        progression = await self.bot.db.get_player_progression(interaction.user.id)
-        if not progression or not progression.get('first_enchant_date'):
-            import time
-            await self.bot.db.update_progression(
-                interaction.user.id,
-                first_enchant_date=int(time.time())
-            )
-            await AchievementSystem.unlock_single_achievement(
-                self.bot.db, interaction, interaction.user.id, 'first_enchant'
-            )
+            progression = await self.bot.db.get_player_progression(interaction.user.id)
+            if not progression or not progression.get('first_enchant_date'):
+                import time
+                await self.bot.db.update_progression(
+                    interaction.user.id,
+                    first_enchant_date=int(time.time())
+                )
+                await AchievementSystem.unlock_single_achievement(
+                    self.bot.db, interaction, interaction.user.id, 'first_enchant'
+                )
 
-        stats = await self.bot.db.get_player_stats(interaction.user.id)
-        if stats:
-            total_enchants = stats.get('total_enchants', 0) + 1
-            await self.bot.db.update_player_stats(interaction.user.id, total_enchants=total_enchants)
+            stats = await self.bot.db.get_player_stats(interaction.user.id)
+            if stats:
+                total_enchants = stats.get('total_enchants', 0) + 1
+                await self.bot.db.update_player_stats(interaction.user.id, total_enchants=total_enchants)
 
-            from utils.achievement_tracker import AchievementTracker
-            enchant_achievements = await AchievementTracker.check_value_based_achievements(
-                self.bot.db, interaction.user.id, 'enchants', total_enchants
-            )
-            await AchievementSystem.check_and_notify(
-                self.bot.db, interaction, interaction.user.id, enchant_achievements
-            )
+                from utils.achievement_tracker import AchievementTracker
+                enchant_achievements = await AchievementTracker.check_value_based_achievements(
+                    self.bot.db, interaction.user.id, 'enchants', total_enchants
+                )
+                await AchievementSystem.check_and_notify(
+                    self.bot.db, interaction, interaction.user.id, enchant_achievements
+                )
 
-        if level >= enchant_data['max_level']:
-            await AchievementSystem.unlock_single_achievement(
-                self.bot.db, interaction, interaction.user.id, 'enchant_max'
+            if level >= enchant_data['max_level']:
+                await AchievementSystem.unlock_single_achievement(
+                    self.bot.db, interaction, interaction.user.id, 'enchant_max'
+                )
+            
+            embed = discord.Embed(
+                title="✨ Enchanted!",
+                description=f"Applied {enchant_data['name']} {level} to {item_name}!",
+                color=discord.Color.purple()
             )
-        
-        embed = discord.Embed(
-            title="✨ Enchanted!",
-            description=f"Applied {enchant_data['name']} {level} to {item_data['name']}!",
-            color=discord.Color.purple()
-        )
-        embed.add_field(name="Cost", value=f"{cost:,} coins", inline=True)
-        embed.add_field(name="Effect", value=enchant_data['description'], inline=True)
-        embed.add_field(name="XP Gained", value=f"+{xp_gained} Enchanting XP", inline=True)
-        
-        if xp_multiplier > 1.0:
-            event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
-            current_desc = embed.description or ""
-            embed.description = f"{current_desc}\n{event_text}"
-        
-        await interaction.response.send_message(embed=embed)
+            embed.add_field(name="Cost", value=f"{cost:,} coins", inline=True)
+            embed.add_field(name="Effect", value=enchant_data['description'], inline=True)
+            embed.add_field(name="XP Gained", value=f"+{final_xp} Enchanting XP", inline=True)
+            
+            if xp_multiplier > 1.0:
+                event_text = f"🎪 **Active Event Bonuses:** +{int((xp_multiplier - 1) * 100)}% XP"
+                current_desc = embed.description or ""
+                embed.description = f"{current_desc}\n{event_text}"
+            
+            await interaction.response.send_message(embed=embed)
+        else:
+            # Multiple items found, show selection menu
+            from components.views.enchant_item_select_view import EnchantItemSelectView
+            
+            view = EnchantItemSelectView(
+                self.bot, interaction.user.id, matching_items, 
+                enchantment.lower(), level, enchant_data, cost, xp_gained
+            )
+            
+            embed = discord.Embed(
+                title=f"✨ Select Item to Enchant",
+                description=f"Found {len(matching_items)} items matching '{item}'\n\nClick '✨ Choose Item' and enter the number.",
+                color=discord.Color.purple()
+            )
+            
+            for idx, match in enumerate(matching_items[:20], 1):
+                amount_text = f" (x{match['amount']})" if match.get('amount', 1) > 1 else ""
+                embed.add_field(
+                    name=f"{idx}. {match['name']}{amount_text}",
+                    value=f"✨ {match['rarity']}",
+                    inline=False
+                )
+            
+            embed.set_footer(text=f"Cost: {cost:,} coins | {enchant_data['name']} Level {level}")
+            
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @enchant.autocomplete('item')
     async def enchant_item_autocomplete(self, interaction: discord.Interaction, current: str):
