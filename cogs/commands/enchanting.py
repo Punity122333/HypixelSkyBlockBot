@@ -59,7 +59,6 @@ class EnchantingAdvanced(commands.Cog):
             )
             return
 
-        # Search for matching items in inventory
         matching_items = []
         item_search = item.lower().strip()
         valid_types = enchant_data.get('applies_to', [])
@@ -67,20 +66,21 @@ class EnchantingAdvanced(commands.Cog):
         for inv_item in inventory:
             item_obj = await self.bot.game_data.get_item(inv_item['item_id'])
             if item_obj:
-                # Check if item name/id matches the search
+
+                item_name = item_obj.name if hasattr(item_obj, 'name') else ''
                 if (inv_item['item_id'].lower() == item_search or 
-                    item_obj.get('name', '').lower() == item_search or
+                    item_name.lower() == item_search or
                     item_search in inv_item['item_id'].lower() or
-                    item_search in item_obj.get('name', '').lower()):
-                    
-                    # Check if enchantment can be applied to this item type
-                    item_type_lower = item_obj.get('item_type', '').lower()
+                    item_search in item_name.lower()):
+
+                    item_type = item_obj.type if hasattr(item_obj, 'type') else ''
+                    item_type_lower = item_type.lower()
                     if item_type_lower in valid_types:
                         matching_items.append({
                             'id': inv_item['id'],
                             'item_id': inv_item['item_id'],
-                            'name': item_obj.get('name', inv_item['item_id']),
-                            'rarity': item_obj.get('rarity', 'COMMON'),
+                            'name': item_obj.name if hasattr(item_obj, 'name') else inv_item['item_id'],
+                            'rarity': item_obj.rarity if hasattr(item_obj, 'rarity') else 'COMMON',
                             'amount': inv_item.get('amount', 1)
                         })
         
@@ -90,14 +90,11 @@ class EnchantingAdvanced(commands.Cog):
                 ephemeral=True
             )
             return
-        
-        # Deduct coins upfront
+
         await self.bot.player_manager.remove_coins(interaction.user.id, cost)
-        
-        # Calculate base XP (multiplier applied in modal)
+
         xp_gained = level * 20
-        
-        # If only one item matches, enchant it directly
+
         if len(matching_items) == 1:
             inventory_item_id = matching_items[0]['id']
             item_name = matching_items[0]['name']
@@ -170,7 +167,7 @@ class EnchantingAdvanced(commands.Cog):
             
             await interaction.response.send_message(embed=embed)
         else:
-            # Multiple items found, show selection menu
+
             from components.views.enchant_item_select_view import EnchantItemSelectView
             
             view = EnchantItemSelectView(

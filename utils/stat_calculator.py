@@ -60,6 +60,7 @@ class StatCalculator:
         await cls._apply_potion_bonuses(db, user_id, stats)
         await cls._apply_talisman_bonuses(db, user_id, stats)
         await cls._apply_bestiary_bonuses(db, user_id, stats)
+        await cls._apply_hotm_bonuses(db, user_id, stats)
         
         achievement_crit_bonus = await db.achievements.calculate_achievement_crit_bonus(user_id)
         stats['crit_chance'] += achievement_crit_bonus * 100
@@ -374,21 +375,23 @@ class StatCalculator:
         inventory = await db.get_inventory(user_id)
         
         for item_row in inventory:
-            if item_row.get('equipped') == 1 and item_row.get('enchantments'):
-                enchants_json = item_row.get('enchantments', '{}')
-                enchants = json.loads(enchants_json) if enchants_json else {}
+            if item_row.get('equipped') == 1:
+                inventory_item_id = item_row.get('id')
+                if not inventory_item_id:
+                    continue
                 
-                for enchant_id, level in enchants.items():
-                    if not db.conn:
-                        continue
+                enchantments = await db.get_item_enchantments(inventory_item_id)
+                
+                for enchant in enchantments:
+                    enchant_id = enchant['enchantment_id']
+                    level = enchant['level']
                     
-                    cursor = await db.conn.execute('SELECT * FROM enchantments WHERE enchant_id = ?', (enchant_id,))
-                    enchant_data = await cursor.fetchone()
+                    enchant_data = await db.get_enchantment(enchant_id)
                     
                     if not enchant_data:
                         continue
                     
-                    stat_bonuses = json.loads(enchant_data.get('stat_bonuses', '{}'))
+                    stat_bonuses = enchant_data.get('stat_bonuses', {})
                     for stat, base_value in stat_bonuses.items():
                         if stat in stats:
                             stats[stat] += base_value * level
@@ -458,6 +461,15 @@ class StatCalculator:
     async def _apply_bestiary_bonuses(cls, db, user_id: int, stats: Dict):
         bestiary_bonuses = await db.bestiary.get_total_bestiary_stats(user_id)
         for stat, bonus in bestiary_bonuses.items():
+            if stat in stats:
+                stats[stat] += bonus
+    
+    @classmethod
+    async def _apply_hotm_bonuses(cls, db, user_id: int, stats: Dict):
+        from utils.systems.hotm_system import HeartOfTheMountainSystem
+        hotm_stats = await HeartOfTheMountainSystem.calculate_hotm_stats(db, user_id)
+        
+        for stat, bonus in hotm_stats.items():
             if stat in stats:
                 stats[stat] += bonus
     
@@ -659,6 +671,7 @@ class StatCalculator:
             'pet': {},
             'reforges': {},
             'enchantments': {},
+            'hotm': {},
             'total': {}
         }
         
@@ -669,6 +682,14 @@ class StatCalculator:
         temp_stats = cls.BASE_STATS.copy()
         await cls._apply_skill_bonuses(db, user_id, temp_stats)
         breakdown['skills'] = {k: temp_stats[k] - base_stats[k] for k in base_stats}
+        
+        temp_stats = cls.BASE_STATS.copy()
+        await cls._apply_enchantment_stats(db, user_id, temp_stats)
+        breakdown['enchantments'] = {k: temp_stats[k] - base_stats[k] for k in base_stats}
+        
+        temp_stats = cls.BASE_STATS.copy()
+        await cls._apply_hotm_bonuses(db, user_id, temp_stats)
+        breakdown['hotm'] = {k: temp_stats[k] - base_stats[k] for k in base_stats}
         
         breakdown['total'] = await cls.calculate_full_stats(db, user_id)
         
