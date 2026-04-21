@@ -131,25 +131,24 @@ class CombatSystem:
     @classmethod
     async def roll_combat_loot(cls, game_data, db, user_id: int, loot_table: Dict[str, Any], magic_find: float = 0, fortune: int = 0) -> List[tuple[str, int]]:
         from ..compat import roll_loot as compat_roll_loot
+        from ..data.items import EQUIPMENT_TYPES
         
         drops = await compat_roll_loot(game_data, loot_table, magic_find, fortune)
         
         combat_drop_yield = await cls._get_combat_drop_yield_multiplier(db, user_id)
         
-        drops = [
-            (
-                item_id,
-                max(
-                    1,
-                    int(amount * (combat_drop_yield if "pet" not in item_id.lower() and "enchanted" not in item_id.lower()
-                                else combat_drop_yield / 2))
-                )
-            )
-            for item_id, amount in drops
-        ]
-
+        processed_drops = []
+        for item_id, amount in drops:
+            # Check if item is equipment - if so, always cap at 1
+            item_data = await game_data.get_item(item_id)
+            if item_data and item_data.type in EQUIPMENT_TYPES:
+                processed_drops.append((item_id, 1))
+            else:
+                # Apply combat drop yield multiplier (half for pets and enchanted items)
+                multiplier = combat_drop_yield if "pet" not in item_id.lower() and "enchanted" not in item_id.lower() else combat_drop_yield / 2
+                processed_drops.append((item_id, max(1, int(amount * multiplier))))
         
-        return drops
+        return processed_drops
     
     @classmethod
     async def calculate_player_damage(cls, db, user_id: int, target_defense: int = 0) -> Dict[str, Any]:

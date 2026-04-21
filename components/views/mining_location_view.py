@@ -28,6 +28,8 @@ class MiningLocationView(View):
         from utils.event_effects import EventEffects
         from utils.systems.hotm_system import HeartOfTheMountainSystem
         from utils.systems.dwarven_mines_system import DwarvenMinesSystem
+        from utils.data.items import EQUIPMENT_TYPES
+        from utils.data.game_data import GameDataManager
         import random
         import time
         
@@ -69,6 +71,7 @@ class MiningLocationView(View):
         skill_drop_multiplier = 1.0
         mining_level = 0
         tool_bonuses_display = None
+        game_data = GameDataManager(self.bot.db)
         
         for ore_type in selected_ores:
             result = await GatheringSystem.mine_block(self.bot.db, interaction.user.id, ore_type, event_bonuses)
@@ -83,8 +86,13 @@ class MiningLocationView(View):
                 for drop in result['drops']:
                     item_id = drop['item_id']
                     base_amount = drop['amount']
-                    amount = int(base_amount * multiplier * event_multiplier)
-                    amount = max(1, amount)
+                    
+                    item_data = await game_data.get_item(item_id)
+                    if item_data and item_data.type in EQUIPMENT_TYPES:
+                        amount = 1
+                    else:
+                        amount = int(base_amount * multiplier * event_multiplier)
+                        amount = max(1, amount)
                     
                     await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, amount)
                     await self.bot.db.update_collection(interaction.user.id, item_id, amount)
@@ -192,6 +200,8 @@ class MiningLocationView(View):
         from utils.systems.hotm_system import HeartOfTheMountainSystem
         from utils.systems.dwarven_mines_system import DwarvenMinesSystem
         from utils.event_effects import EventEffects
+        from utils.data.items import EQUIPMENT_TYPES
+        from utils.data.game_data import GameDataManager
         import random
         
         skills = await self.bot.db.get_skills(interaction.user.id)
@@ -242,6 +252,7 @@ class MiningLocationView(View):
         skill_yield_multiplier = 1.0
         skill_drop_multiplier = 1.0
         mining_level = 0
+        game_data = GameDataManager(self.bot.db)
         
         for ore_type in selected_ores:
             result = await GatheringSystem.mine_block(self.bot.db, interaction.user.id, ore_type, {})
@@ -255,11 +266,14 @@ class MiningLocationView(View):
                     item_id = drop['item_id']
                     base_amount = drop['amount']
                     
-                    fortune_bonus = hotm_stats.get('mining_fortune', 0)
-                    fortune_multiplier = 1.0 + (fortune_bonus / 100)
-                    
-                    amount = int(base_amount * multiplier * event_multiplier * fortune_multiplier)
-                    amount = max(1, amount)
+                    item_data = await game_data.get_item(item_id)
+                    if item_data and item_data.type in EQUIPMENT_TYPES:
+                        amount = 1
+                    else:
+                        fortune_bonus = hotm_stats.get('mining_fortune', 0)
+                        fortune_multiplier = 1.0 + (fortune_bonus / 100)
+                        amount = int(base_amount * multiplier * event_multiplier * fortune_multiplier)
+                        amount = max(1, amount)
                     
                     await self.bot.db.add_item_to_inventory(interaction.user.id, item_id, amount)
                     await self.bot.db.update_collection(interaction.user.id, item_id, amount)

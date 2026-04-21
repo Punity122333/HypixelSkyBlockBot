@@ -5,6 +5,8 @@ from discord.ui import View, Button
 from utils.stat_calculator import StatCalculator
 from utils.systems.combat_system import CombatSystem
 from utils.systems.party_system import PartySystem
+from utils.data.items import EQUIPMENT_TYPES
+from utils.data.game_data import GameDataManager
 
 if TYPE_CHECKING:
     from main import SkyblockBot
@@ -447,7 +449,16 @@ class DungeonCombatView(View):
         combat_drop_yield = await CombatSystem._get_combat_drop_yield_multiplier(
             self.bot.db, self.user_id
         )
-        dungeon_loot = [(item_id, max(1, int(amount * combat_drop_yield))) for item_id, amount in dungeon_loot]
+        
+        game_data = GameDataManager(self.bot.db)
+        adjusted_dungeon_loot = []
+        for item_id, amount in dungeon_loot:
+            item_data = await game_data.get_item(item_id)
+            if item_data and item_data.type in EQUIPMENT_TYPES:
+                adjusted_dungeon_loot.append((item_id, 1))
+            else:
+                adjusted_dungeon_loot.append((item_id, max(1, int(amount * combat_drop_yield))))
+        dungeon_loot = adjusted_dungeon_loot
         
         items_obtained = []
         if self.party_id:
@@ -471,7 +482,15 @@ class DungeonCombatView(View):
                     member_combat_drop_yield = await CombatSystem._get_combat_drop_yield_multiplier(
                         self.bot.db, member_id
                     )
-                    member_dungeon_loot = [(item_id, max(1, int(amount * member_combat_drop_yield))) for item_id, amount in member_dungeon_loot]
+                    
+                    adjusted_member_dungeon_loot = []
+                    for item_id, amount in member_dungeon_loot:
+                        item_data = await game_data.get_item(item_id)
+                        if item_data and item_data.type in EQUIPMENT_TYPES:
+                            adjusted_member_dungeon_loot.append((item_id, 1))
+                        else:
+                            adjusted_member_dungeon_loot.append((item_id, max(1, int(amount * member_combat_drop_yield))))
+                    member_dungeon_loot = adjusted_member_dungeon_loot
                     
                     for item_id, amount in member_drops:
                         await self.bot.db.add_item_to_inventory(member_id, item_id, amount)

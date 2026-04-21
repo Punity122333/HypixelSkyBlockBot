@@ -9,6 +9,12 @@ class Item:
     type: str
     stats: Dict[str, int]
     lore: List[str]
+
+EQUIPMENT_TYPES = {
+    'SWORD', 'BOW', 'AXE',  
+    'HELMET', 'CHESTPLATE', 'LEGGINGS', 'BOOTS',  
+    'PICKAXE', 'SHOVEL', 'HOE', 'FISHING_ROD'  
+}
     
 RARITIES = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC', 'DIVINE', 'SPECIAL', 'VERY SPECIAL']
 

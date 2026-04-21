@@ -203,6 +203,8 @@ class GameDataManager:
         return self._reforges_cache
     
     async def roll_loot(self, loot_table: Dict, magic_find: float = 0, fortune: int = 0) -> List[Tuple[str, int]]:
+        from .items import EQUIPMENT_TYPES
+        
         drops = []
         
         rarity_chances = {
@@ -227,8 +229,13 @@ class GameDataManager:
                     continue
                 
                 amount = random.randint(min_amt, max_amt)
-                fortune_bonus = int((fortune / 100) * amount)
-                total_amount = amount + fortune_bonus
+
+                item_data = await self.get_item(item_id)
+                if item_data and item_data.type in EQUIPMENT_TYPES:
+                    total_amount = 1
+                else:
+                    fortune_bonus = int((fortune / 100) * amount)
+                    total_amount = amount + fortune_bonus
                 
                 if total_amount > 0:
                     drops.append((item_id, total_amount))
@@ -237,12 +244,18 @@ class GameDataManager:
             rarity_drops = loot_table['common']
             if rarity_drops:
                 chosen_drop = random.choice(rarity_drops)
-                # Handle both list and tuple formats
                 if isinstance(chosen_drop, (list, tuple)) and len(chosen_drop) >= 3:
                     item_id, min_amt, max_amt = chosen_drop[0], chosen_drop[1], chosen_drop[2]
                     amount = random.randint(min_amt, max_amt)
-                    fortune_bonus = int((fortune / 100) * amount)
-                    drops.append((item_id, amount + fortune_bonus))
+
+                    item_data = await self.get_item(item_id)
+                    if item_data and item_data.type in EQUIPMENT_TYPES:
+                        total_amount = 1
+                    else:
+                        fortune_bonus = int((fortune / 100) * amount)
+                        total_amount = amount + fortune_bonus
+                    
+                    drops.append((item_id, total_amount))
         
         return drops
     

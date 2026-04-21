@@ -161,6 +161,9 @@ class GatheringSystem:
     @classmethod
     async def _generate_gathering_drops(cls, db, gathering_type: str, resource_type: str, 
                                        base_amount: int, stats: Dict) -> List[Dict[str, Any]]:
+        from ..data.items import EQUIPMENT_TYPES
+        from ..data.game_data import GameDataManager
+        
         drops = []
         
         user_id = stats.get('user_id', 0)
@@ -191,6 +194,9 @@ class GatheringSystem:
             achievement_luck = await db.achievements.calculate_achievement_luck_bonus(user_id)
             drop_multiplier *= museum_bonus * achievement_luck
         
+        # Create game data manager for item lookups
+        game_data = GameDataManager(db)
+        
         for drop_config in drop_configs:
             drop_chance = drop_config['drop_chance'] * drop_multiplier
             
@@ -198,7 +204,13 @@ class GatheringSystem:
                 min_amt = drop_config['min_amt']
                 max_amt = drop_config['max_amt']
                 amount = random.randint(min_amt, max_amt)
-                amount = int(amount * skill_drop_multiplier)
+                
+                # Check if item is equipment - if so, cap at 1
+                item_data = await game_data.get_item(drop_config['item_id'])
+                if item_data and item_data.type in EQUIPMENT_TYPES:
+                    amount = 1
+                else:
+                    amount = int(amount * skill_drop_multiplier)
                 
                 drops.append({
                     'item_id': drop_config['item_id'],

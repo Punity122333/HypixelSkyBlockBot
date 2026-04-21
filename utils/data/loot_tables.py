@@ -1,5 +1,10 @@
 import random
 from typing import List, Tuple, Dict
+from .items import EQUIPMENT_TYPES
+
+def is_equipment_type(item_type: str) -> bool:
+    """Check if an item type is equipment (weapon/armor/tool)."""
+    return item_type in EQUIPMENT_TYPES
 
 default_loot = {
             'entrance': [
@@ -451,6 +456,8 @@ DUNGEON_LOOT_TABLES = {
 }
 
 def roll_loot(loot_table: Dict, magic_find: float = 0, fortune: int = 0) -> List[Tuple[str, int]]:
+    from .all_items import get_item
+    
     drops = []
     
     rarity_chances = {
@@ -468,8 +475,14 @@ def roll_loot(loot_table: Dict, magic_find: float = 0, fortune: int = 0) -> List
             item_id, min_amt, max_amt = random.choice(rarity_drops)
             
             amount = random.randint(min_amt, max_amt)
-            fortune_bonus = int((fortune / 100) * amount)
-            total_amount = amount + fortune_bonus
+            
+            # Check if item is equipment - if so, cap at 1 regardless of fortune
+            item_data = get_item(item_id)
+            if item_data and is_equipment_type(item_data.type):
+                total_amount = 1
+            else:
+                fortune_bonus = int((fortune / 100) * amount)
+                total_amount = amount + fortune_bonus
             
             if total_amount > 0:
                 drops.append((item_id, total_amount))
@@ -477,8 +490,16 @@ def roll_loot(loot_table: Dict, magic_find: float = 0, fortune: int = 0) -> List
     if not drops and 'common' in loot_table:
         item_id, min_amt, max_amt = random.choice(loot_table['common'])
         amount = random.randint(min_amt, max_amt)
-        fortune_bonus = int((fortune / 100) * amount)
-        drops.append((item_id, amount + fortune_bonus))
+        
+        # Check if item is equipment - if so, cap at 1 regardless of fortune
+        item_data = get_item(item_id)
+        if item_data and is_equipment_type(item_data.type):
+            total_amount = 1
+        else:
+            fortune_bonus = int((fortune / 100) * amount)
+            total_amount = amount + fortune_bonus
+        
+        drops.append((item_id, total_amount))
     
     return drops
 
